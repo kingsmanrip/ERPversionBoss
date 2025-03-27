@@ -23,6 +23,7 @@ pdq_erp/
 │
 ├── templates/             # HTML templates
 │   ├── layout.html        # Base template with navigation and structure
+│   ├── login.html         # User authentication login form
 │   ├── index.html         # Dashboard/home page
 │   │
 │   ├── employees.html     # Employee listing page
@@ -68,6 +69,8 @@ pdq_erp/
 - **Contents**:
   - Flask application configuration
   - Database connection setup
+  - Authentication system with login/logout routes
+  - Login required protection for routes
   - Route definitions for all pages
   - Request handling logic
   - Form processing
@@ -77,6 +80,7 @@ pdq_erp/
 - **Purpose**: Database schema definition
 - **Contents**:
   - SQLAlchemy model classes
+  - User model for authentication with password hashing
   - Table relationships with proper cascade behavior
   - Enums for statuses (ProjectStatus, PaymentStatus, PaymentMethod)
   - Business logic methods within models
@@ -88,6 +92,7 @@ pdq_erp/
 - **Purpose**: Form definitions and validation
 - **Contents**:
   - WTForms form classes
+  - Login form for authentication
   - Field definitions with validators
   - Custom field coercion for handling special cases
   - Default values and choices for select fields
@@ -100,6 +105,7 @@ pdq_erp/
 
 #### Base Templates
 - **`layout.html`**: Main layout template with navigation, header, and footer
+- **`login.html`**: User authentication login form
 - **`index.html`**: Dashboard with summary information and quick links
 
 #### Employee Management
@@ -136,6 +142,11 @@ pdq_erp/
 ### Key Model Relationships
 
 All database relationships are carefully designed with proper cascade behavior to ensure data integrity:
+
+#### User
+- Stores authentication information
+- Uses secure password hashing
+- Provides authentication methods
 
 #### Employee
 - Has many timesheets (one-to-many)
@@ -196,6 +207,7 @@ The test suite is organized to ensure comprehensive coverage:
 
 The application uses Flask's configuration system:
 - Development configuration is the default
+- Session management for authentication
 - Debug mode is enabled by default
 - SQLite database used for simplicity
 - Session security with SECRET_KEY

@@ -4,6 +4,8 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Features
 
+- **User Authentication**: Secure login system to protect sensitive business data
+- **Visual Analytics Dashboard**: Interactive visualizations of key business metrics and trends
 - **Employee Management**: Track employee information, pay rates, and contact details
 - **Project Management**: Manage client projects with status tracking and financial details
 - **Time Tracking**: Record employee hours worked on specific projects with automatic lunch break handling
@@ -68,6 +70,7 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 6. **Access the application**:
    - Open your browser and navigate to: http://127.0.0.1:5000
+   - Login with the default credentials (username: `patricia`, password: `Patri2025`)
 
 7. **Run tests**:
    ```
@@ -121,10 +124,13 @@ All relationships are properly set up with cascade behavior for reliable data ma
 
 ## Security Notes
 
-This basic version doesn't include user authentication. For production use, consider:
-- Adding user authentication
-- Using environment variables for sensitive configuration
-- Implementing proper backup procedures for the database
+This version includes basic user authentication. For enhanced security in production:
+- Enable HTTPS for secure data transmission
+- Implement role-based access control for different user types
+- Use environment variables for sensitive configuration (including SECRET_KEY)
+- Store passwords using strong hashing methods (already implemented)
+- Implement multi-factor authentication for sensitive operations
+- Implement proper backup procedures for the database
 
 ## Troubleshooting
 

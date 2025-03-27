@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField, DateField, SelectField, TextAreaField, SubmitField, TimeField, BooleanField
+from wtforms import StringField, FloatField, IntegerField, DateField, SelectField, TextAreaField, SubmitField, TimeField, BooleanField, PasswordField
 from wtforms.validators import DataRequired, Optional, NumberRange, Email, ValidationError
 from models import ProjectStatus, PaymentMethod, PaymentStatus
 from datetime import date
@@ -21,6 +21,11 @@ def validate_not_negative(form, field):
         raise ValidationError('Value cannot be negative.')
 
 # --- Form Definitions ---
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Log In')
 
 class EmployeeForm(FlaskForm):
     name = StringField('Full Name', validators=[DataRequired()])

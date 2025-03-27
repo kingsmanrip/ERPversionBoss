@@ -17,6 +17,7 @@ The Mauricio PDQ ERP System is a comprehensive Enterprise Resource Planning solu
 9. [System Administration](#system-administration)
 10. [Troubleshooting](#troubleshooting)
 11. [Future Enhancements](#future-enhancements)
+12. [Technical Implementation Notes](#technical-implementation-notes)
 
 ## System Architecture
 
@@ -242,9 +243,30 @@ The database schema uses SQLAlchemy relationships with proper cascade behavior t
 
 ### Dashboard
 
-- Summary of active projects
-- Quick statistics on finances
-- Links to key actions
+- Interactive visual analytics dashboard with key business metrics
+- Financial summary cards including:
+  - Total and active projects counter
+  - Total invoiced amounts
+  - Unpaid invoices tracking
+  - Weekly hours logged by employees
+- Project status distribution chart (doughnut chart with color-coded status visualization)
+- Monthly expense trend visualization (line chart showing past 5 months of expense data)
+- Top performing projects with color-coded profit margin indicators and visual progress bars
+- Quick action buttons for common tasks
+- Recent expenses overview with categorization
+
+### Data Export Functionality
+
+- Excel and PDF export options for key data types:
+  - Invoices export with project details, amounts, and status
+  - Projects export with detailed status, dates, and financial metrics
+  - Timesheets export with employee hours, projects, and calculated totals
+  - Expenses export with categorization, payment status, and project association
+- Export buttons integrated into each list view for easy access
+- Excel exports using pandas DataFrames for rich formatting and data handling
+- PDF exports using FPDF with temporary file handling for reliable generation
+- Proper attachment handling with appropriate MIME types for browser compatibility
+- Automatic file naming for downloaded reports
 
 ### Employee Management
 
@@ -337,20 +359,31 @@ python -m pytest -v  # Run with verbose output
 ## Security Considerations
 
 Current security features:
+- User authentication with secure password hashing
+- Session management for login state
+- Route protection with login_required decorator
 - CSRF protection via Flask-WTF
 - Input validation and sanitization
 - Business rule enforcement
 
 Recommended additions for production:
-- User authentication system
 - Role-based access control
+- Multi-factor authentication
+- Password reset functionality
+- User account management
 - HTTPS configuration
-- Environment variables for sensitive information
+- Environment variables for sensitive information (especially SECRET_KEY)
 - Regular database backups
+- Session timeout settings
+- Login attempt limiting
 
 ## Troubleshooting
 
 ### Common Issues
+
+#### Authentication Issues
+- If you forget the default password, you can change it by running a Python script in the application context
+- Default credentials are username: `patricia` and password: `Patri2025`
 
 #### Database Issues
 - If database errors occur, check file permissions on the instance directory
@@ -368,11 +401,83 @@ Recommended additions for production:
 
 ## Future Enhancements
 
-Potential improvements for future versions:
-- User authentication system
-- PDF generation for invoices and reports
-- Email notifications
-- Mobile-responsive improvements
-- Advanced reporting and analytics
+The following enhancements have been identified as priority items for future development:
+
+### 1. Email Notifications System (HIGH PRIORITY)
+- **Description**: Implement automated email notifications for critical business events
+- **Key Features**:
+  - Invoice due date reminders to clients and staff
+  - Project deadline alerts and milestone notifications
+  - Weekly summary reports of timesheet entries
+  - Material inventory warnings when stock is low
+  - Monthly financial summaries for management
+- **Technical Approach**: Integrate Flask-Mail with scheduled tasks (using Celery or APScheduler)
+- **Expected Benefits**: Proactive business management, improved cash flow, reduced missed deadlines
+
+### 2. Dashboard Filters and Date Ranges (HIGH PRIORITY)
+- **Description**: Enhance the analytics dashboard with filtering and date comparison capabilities
+- **Key Features**:
+  - Date range selection for all dashboard metrics and charts
+  - Comparison views (year-over-year, month-over-month)
+  - Filter by project, client, employee, or department
+  - Save filter presets for commonly used views
+- **Technical Approach**: Add JavaScript-based filtering with AJAX dashboard updates
+- **Expected Benefits**: More granular business insights, better trend analysis, customized views for different roles
+
+### 3. Client Portal (HIGH PRIORITY)
+- **Description**: Create a limited-access portal for clients to view their project information
+- **Key Features**:
+  - Project status tracking and timeline visibility
+  - Invoice viewing and online payment capabilities
+  - Document sharing for project deliverables
+  - Messaging system for client-team communication
+- **Technical Approach**: Create separate client-focused Flask routes with client authentication
+- **Expected Benefits**: Increased client satisfaction, reduced administrative overhead for status updates, faster payments
+
+### 4. Data Import Functionality (HIGH PRIORITY)
+- **Description**: Add bulk data import capabilities to complement existing export functionality
+- **Key Features**:
+  - CSV/Excel import for all major data types (projects, clients, expenses, etc.)
+  - Data validation during import with error reporting
+  - Template downloads for proper formatting
+  - Scheduled imports for integration with other systems
+- **Technical Approach**: Use pandas for data processing with format validation
+- **Expected Benefits**: Faster data entry, reduced manual errors, easier integration with external systems
+
+### Additional Future Enhancements
+
+- Role-based access control
+- Mobile optimization for field workers
 - Integration with accounting software
-- Client portal for project status viewing
+- Advanced reporting and analytics
+- Multi-factor authentication
+- Quick search functionality across all data
+
+## Technical Implementation Notes
+
+### Dashboard Implementation
+- Uses Chart.js for interactive data visualizations
+- Implements responsive design with Bootstrap 5
+- Calculates key metrics in Python code rather than in templates for better reliability
+- Pre-processes data for visualizations on the server-side to optimize performance
+- Utilizes color-coding to provide immediate visual feedback on performance metrics
+- Carefully handles edge cases like null values and division by zero
+
+### Export Functionality Implementation
+- Uses pandas DataFrames for Excel file generation
+  - Better handling of data formatting and column headers
+  - Improved compatibility with various Excel versions
+  - Support for custom column styling and formatting
+- Implements PDF generation via FPDF
+  - Uses temporary files for reliable PDF output
+  - Handles different page orientations based on report complexity
+  - Implements proper encoding for special characters
+  - Ensures consistent formatting across different report types
+- File serving uses appropriate MIME types for browser compatibility
+- All export functionality is protected by the same authentication system
+
+### Database Design
+- The database schema is designed with normalization principles to minimize data redundancy and improve data integrity.
+- Indexes are used on columns used in WHERE and JOIN clauses to improve query performance.
+- Relationships between tables are established using foreign keys to maintain data consistency.
+- The database is designed to support the application's functionality, including user authentication, project management, time tracking, and invoicing.
