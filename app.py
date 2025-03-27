@@ -134,6 +134,12 @@ def add_project():
             description=form.description.data,
             status=ProjectStatus[form.status.data]
         )
+        
+        # Validate that end date is after start date if both are provided
+        if not new_project.validate_dates() and form.start_date.data and form.end_date.data:
+            flash('Error: End date must be on or after start date.', 'danger')
+            return render_template('project_form.html', form=form, title="Add Project")
+            
         db.session.add(new_project)
         db.session.commit()
         flash(f'Project {new_project.name} added successfully!', 'success')
@@ -159,6 +165,12 @@ def edit_project(id):
         project.contract_value = form.contract_value.data
         project.description = form.description.data
         project.status = ProjectStatus[form.status.data]  # Update status from form
+        
+        # Validate that end date is after start date if both are provided
+        if not project.validate_dates() and form.start_date.data and form.end_date.data:
+            flash('Error: End date must be on or after start date.', 'danger')
+            return render_template('project_form.html', form=form, title="Edit Project", project=project)
+            
         db.session.commit()
         flash(f'Project {project.name} updated successfully!', 'success')
         return redirect(url_for('projects'))
@@ -206,17 +218,16 @@ def timesheets():
 @app.route('/timesheet/add', methods=['GET', 'POST'])
 def add_timesheet():
     form = TimesheetForm()
-    # Populate choices dynamically
-    form.employee_id.choices = [(e.id, e.name) for e in Employee.query.filter_by(is_active=True).order_by('name')]
-    form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS])).order_by('name')]
-
+    
+    # Populate the choices for employees and projects
+    with app.app_context():
+        # Only show active employees in the dropdown
+        form.employee_id.choices = [(e.id, e.name) for e in Employee.query.filter_by(is_active=True).order_by(Employee.name).all()]
+        form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(Project.status != ProjectStatus.PAID).order_by(Project.name).all()]
+    
     if form.validate_on_submit():
-        # Simple validation for times
-        if form.exit_time.data <= form.entry_time.data:
-             flash('Exit time must be after entry time.', 'warning')
-             return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
-
-        new_entry = Timesheet(
+        # Create a new timesheet instance
+        new_timesheet = Timesheet(
             employee_id=form.employee_id.data,
             project_id=form.project_id.data,
             date=form.date.data,
@@ -224,15 +235,37 @@ def add_timesheet():
             exit_time=form.exit_time.data,
             lunch_duration_minutes=form.lunch_duration_minutes.data
         )
-        db.session.add(new_entry)
+        
+        # Validate timesheet entry
+        is_valid, message = new_timesheet.is_valid()
+        if not is_valid:
+            flash(f'Error: {message}', 'danger')
+            return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
+        
+        # Check if employee is active
+        employee = Employee.query.get(form.employee_id.data)
+        if not employee.is_active:
+            flash('Cannot create timesheet entry for inactive employee.', 'danger')
+            return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
+        
+        # Check for overlapping timesheet entries
+        existing_timesheet = Timesheet.query.filter_by(
+            employee_id=form.employee_id.data,
+            date=form.date.data
+        ).filter(
+            ((Timesheet.entry_time <= form.entry_time.data) & (Timesheet.exit_time > form.entry_time.data)) |
+            ((Timesheet.entry_time < form.exit_time.data) & (Timesheet.exit_time >= form.exit_time.data)) |
+            ((Timesheet.entry_time >= form.entry_time.data) & (Timesheet.exit_time <= form.exit_time.data))
+        ).first()
+        
+        if existing_timesheet:
+            flash('Warning: This timesheet entry overlaps with an existing entry.', 'warning')
+        
+        db.session.add(new_timesheet)
         db.session.commit()
         flash('Timesheet entry added successfully!', 'success')
         return redirect(url_for('timesheets'))
-
-    # Pre-fill date if not postback
-    if not form.is_submitted():
-        form.date.data = date.today()
-
+    
     return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
 
 # --- Material Routes ---
@@ -302,11 +335,12 @@ def add_expense():
     return render_template('expense_form.html', form=form, title="Add Expense")
 
 # --- Payroll Routes ---
-@app.route('/payroll/record_payment', methods=['GET', 'POST'])
+@app.route('/payroll/record-payment', methods=['GET', 'POST'])
 def record_payroll_payment():
     form = PayrollPaymentForm()
-    form.employee_id.choices = [(e.id, e.name) for e in Employee.query.filter_by(is_active=True).order_by('name')]
-
+    # Populate employee choices
+    form.employee_id.choices = [(e.id, e.name) for e in Employee.query.order_by(Employee.name).all()]
+    
     if form.validate_on_submit():
         new_payment = PayrollPayment(
             employee_id=form.employee_id.data,
@@ -315,23 +349,20 @@ def record_payroll_payment():
             amount=form.amount.data,
             payment_date=form.payment_date.data,
             payment_method=PaymentMethod[form.payment_method.data],
-            notes=form.notes.data,
-            status=PaymentStatus.PROCESSED  # Default status for recorded payment
+            notes=form.notes.data
         )
+        
+        # Validate that end date is after start date
+        if not new_payment.validate_dates():
+            flash('Error: Pay period end date must be on or after start date.', 'danger')
+            return render_template('payroll_payment_form.html', form=form, title="Record Payroll Payment")
+            
         db.session.add(new_payment)
         db.session.commit()
-        flash('Payroll payment recorded successfully!', 'success')
-        return redirect(url_for('payroll_report'))  # Redirect to a report page
-
-    if not form.is_submitted():
-        # Pre-fill dates for convenience (e.g., last week)
-        today = date.today()
-        start_of_week, end_of_week = get_week_start_end(today - timedelta(days=7))
-        form.pay_period_start.data = start_of_week
-        form.pay_period_end.data = end_of_week
-        form.payment_date.data = today
-
-    return render_template('payroll_payment_form.html', form=form, title="Record Payroll Payment")
+        flash('Payment recorded successfully!', 'success')
+        return redirect(url_for('payroll_report'))
+    
+    return render_template('payroll_payment_form.html', form=form, title="Record Payment")
 
 @app.route('/payroll/report')
 def payroll_report():
@@ -394,31 +425,136 @@ def invoices():
 @app.route('/invoice/add', methods=['GET', 'POST'])
 def add_invoice():
     form = InvoiceForm()
-    form.project_id.choices = [(p.id, p.name) for p in Project.query.order_by('name')]
-
+    # Populate project choices
+    form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(
+        Project.status.in_([ProjectStatus.COMPLETED, ProjectStatus.INVOICED])
+    ).order_by(Project.name).all()]
+    
     if form.validate_on_submit():
-        # Handle empty invoice_number by setting it to None instead of empty string
-        invoice_number = form.invoice_number.data if form.invoice_number.data else None
-        
         new_invoice = Invoice(
             project_id=form.project_id.data,
-            invoice_number=invoice_number,
+            invoice_number=form.invoice_number.data,
             invoice_date=form.invoice_date.data,
             due_date=form.due_date.data,
             amount=form.amount.data,
             status=PaymentStatus[form.status.data],
-            payment_received_date=form.payment_received_date.data
+            payment_received_date=form.payment_received_date.data if form.status.data == PaymentStatus.PAID.name else None
         )
+        
+        # Validate that due date is after invoice date if provided
+        if not new_invoice.validate_dates() and form.invoice_date.data and form.due_date.data:
+            flash('Error: Due date must be on or after invoice date.', 'danger')
+            return render_template('invoice_form.html', form=form, title="Add Invoice")
+            
+        # If status is PAID, need payment date
+        if form.status.data == PaymentStatus.PAID.name and not form.payment_received_date.data:
+            flash('Error: Payment received date is required when status is PAID.', 'danger')
+            return render_template('invoice_form.html', form=form, title="Add Invoice")
+        
         db.session.add(new_invoice)
+        
+        # Update project status if invoice is being created
+        project = Project.query.get(form.project_id.data)
+        if project.status == ProjectStatus.COMPLETED:
+            project.status = ProjectStatus.INVOICED
+        
+        # Update project status if invoice is marked as paid
+        if form.status.data == PaymentStatus.PAID.name:
+            project.status = ProjectStatus.PAID
+            
         db.session.commit()
         flash('Invoice added successfully!', 'success')
         return redirect(url_for('invoices'))
-
-    if not form.is_submitted():
-        form.invoice_date.data = date.today()
-        form.status.data = PaymentStatus.PENDING.name
-
+    
     return render_template('invoice_form.html', form=form, title="Add Invoice")
+
+@app.route('/invoice/delete/<int:id>', methods=['POST'])
+def delete_invoice(id):
+    invoice = Invoice.query.get_or_404(id)
+    try:
+        db.session.delete(invoice)
+        db.session.commit()
+        flash(f'Invoice {invoice.invoice_number} deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting invoice: {e}', 'danger')
+    return redirect(url_for('invoices'))
+
+# --- Future Enhancements Routes ---
+@app.route('/future-enhancements')
+def future_enhancements():
+    """Display future enhancement plans and suggestion form"""
+    # Predefined enhancements based on documentation
+    enhancements = [
+        {
+            'title': 'User Authentication',
+            'description': 'Add login system with role-based permissions to secure the application and allow different access levels for administrators, managers, and staff.',
+            'priority': 'High'
+        },
+        {
+            'title': 'Document Management',
+            'description': 'Upload and store project-related documents such as contracts, designs, and client communications directly in the system.',
+            'priority': 'Medium'
+        },
+        {
+            'title': 'Client Portal',
+            'description': 'Allow clients to view project status, approve work, and access invoices through a secure client portal.',
+            'priority': 'Medium'
+        },
+        {
+            'title': 'Advanced Reporting',
+            'description': 'Generate detailed business analytics reports including profit margins, employee productivity, and project comparisons.',
+            'priority': 'Medium'
+        },
+        {
+            'title': 'Email Notifications',
+            'description': 'Send automatic updates for key events such as invoice due dates, project milestones, and payment confirmations.',
+            'priority': 'Low'
+        },
+        {
+            'title': 'Mobile Application',
+            'description': 'Develop a companion app for field use, allowing employees to log time and materials directly from job sites.',
+            'priority': 'High'
+        },
+        {
+            'title': 'Inventory Management',
+            'description': 'Track inventory levels and automate reordering to ensure materials are always available when needed.',
+            'priority': 'Medium'
+        },
+        {
+            'title': 'Integration with Accounting Software',
+            'description': 'Connect with accounting and tax software to streamline financial reporting and tax preparation.',
+            'priority': 'Medium'
+        },
+        {
+            'title': 'Electronic Signatures',
+            'description': 'Enable digital signing of documents for contracts, approvals, and other paperwork.',
+            'priority': 'Low'
+        }
+    ]
+    
+    # Form for suggesting new enhancements
+    from forms import EnhancementSuggestionForm
+    form = EnhancementSuggestionForm()
+    
+    return render_template('future_enhancements.html', enhancements=enhancements, form=form)
+
+@app.route('/suggest-enhancement', methods=['POST'])
+def suggest_enhancement():
+    """Handle enhancement suggestions"""
+    from forms import EnhancementSuggestionForm
+    form = EnhancementSuggestionForm()
+    
+    if form.validate_on_submit():
+        # In a real implementation, you would save this to a database
+        # For now, just show a success message
+        flash(f'Thank you for your enhancement suggestion: "{form.title.data}". Our team will review it!', 'success')
+        return redirect(url_for('future_enhancements'))
+    
+    # If form validation fails, return to the page with errors
+    enhancements = []  # You would need to repopulate this
+    flash('Please correct the errors in your submission.', 'danger')
+    return render_template('future_enhancements.html', enhancements=enhancements, form=form)
 
 # --- Create DB tables ---
 @app.cli.command('init-db')

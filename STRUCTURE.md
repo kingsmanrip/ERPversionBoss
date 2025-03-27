@@ -12,6 +12,7 @@ pdq_erp/
 ├── forms.py               # Form definitions using WTForms
 ├── requirements.txt       # Python dependencies
 ├── README.md              # Project documentation
+├── DOCUMENTATION.md       # Detailed documentation of the system
 ├── STRUCTURE.md           # This file - detailed structure documentation
 │
 ├── instance/              # Database storage (created at runtime)
@@ -46,6 +47,15 @@ pdq_erp/
 │   ├── payroll_report.html # Payroll reporting page
 │   └── payroll_payment_form.html # Record payroll payment form
 │
+├── tests/                 # Test directory
+│   ├── test_models.py     # Tests for data models
+│   ├── test_forms.py      # Tests for form validation
+│   ├── test_routes.py     # Tests for route functionality
+│   ├── test_integration.py # Integration tests
+│   ├── test_complex_scenarios.py # Tests for complex business flows
+│   ├── test_edge_cases.py # Tests for boundary conditions
+│   └── test_security_and_validation.py # Security and validation tests
+│
 └── venv/                  # Virtual environment (not included in repository)
 ```
 
@@ -67,10 +77,12 @@ pdq_erp/
 - **Purpose**: Database schema definition
 - **Contents**:
   - SQLAlchemy model classes
-  - Table relationships
+  - Table relationships with proper cascade behavior
   - Enums for statuses (ProjectStatus, PaymentStatus, PaymentMethod)
   - Business logic methods within models
   - Data validation rules
+  - Calculated properties for costs and other derived values
+  - Indexes for performance optimization
 
 #### `forms.py`
 - **Purpose**: Form definitions and validation
@@ -100,95 +112,98 @@ pdq_erp/
 - **`project_detail.html`**: Detailed view of a project with financial analysis
 
 #### Time Tracking
-- **`timesheets.html`**: Lists timesheet entries with filtering options
-- **`timesheet_form.html`**: Form for recording time worked on projects
+- **`timesheets.html`**: Lists timesheet entries for filtering and viewing
+- **`timesheet_form.html`**: Form for recording employee time entries
 
 #### Materials Management
-- **`materials.html`**: Lists materials purchased for projects
-- **`material_form.html`**: Form for adding materials to projects
+- **`materials.html`**: Lists materials with project associations
+- **`material_form.html`**: Form for recording materials purchased
 
 #### Expense Tracking
-- **`expenses.html`**: Lists business expenses with filtering
+- **`expenses.html`**: Lists expenses with filtering options
 - **`expense_form.html`**: Form for recording business expenses
 
 #### Invoicing
-- **`invoices.html`**: Lists all invoices with status information
-- **`invoice_form.html`**: Form for creating and editing invoices
+- **`invoices.html`**: Lists invoices with status tracking
+- **`invoice_form.html`**: Form for creating and managing invoices
 
 #### Payroll
-- **`payroll_report.html`**: Reporting interface for payroll calculations
+- **`payroll_report.html`**: Generates payroll reports by date range
 - **`payroll_payment_form.html`**: Form for recording payments to employees
 
 ## Database Models
 
-### `Employee`
-- Stores employee information, pay rates, and status
+### Key Model Relationships
 
-### `Project`
-- Tracks project details, client information, and financial data
-- Contains methods for calculating costs and profitability
+All database relationships are carefully designed with proper cascade behavior to ensure data integrity:
 
-### `Timesheet`
-- Records hours worked by employees on specific projects
-- Includes logic for calculating billable hours
+#### Employee
+- Has many timesheets (one-to-many)
+- Has many payroll payments (one-to-many)
+- Enforces validation for employee status changes
 
-### `Material`
-- Tracks materials purchased for projects
-- Records costs for project profitability calculations
+#### Project
+- Has many timesheets (one-to-many)
+- Has many materials (one-to-many)
+- Has many expenses (one-to-many)
+- Has many invoices (one-to-many)
+- Includes properties for cost and profit calculations
 
-### `Expense`
-- Records business expenses
-- Can be linked to specific projects or kept as general expenses
+#### Timesheet
+- Belongs to an employee (many-to-one)
+- Belongs to a project (many-to-one)
+- Includes hour calculation properties with lunch break handling
+- Validates that employee is active
 
-### `PayrollPayment`
-- Tracks payments made to employees
-- Links to employee records
+#### Material
+- Belongs to a project (many-to-one)
+- Configured with cascade delete when project is deleted
 
-### `Invoice`
-- Manages client invoicing
-- Tracks payment status and due dates
+#### Expense
+- Can belong to a project (many-to-one, optional)
+- Includes payment tracking fields
 
-## Key Relationships
+#### PayrollPayment
+- Belongs to an employee (many-to-one)
+- Records payment information and status
 
-- **Employee to Timesheets**: One-to-many (one employee has many timesheet entries)
-- **Project to Timesheets**: One-to-many (one project has many timesheet entries)
-- **Project to Materials**: One-to-many (one project uses many materials)
-- **Project to Expenses**: One-to-many (one project has many expenses)
-- **Project to Invoices**: One-to-many (one project has many invoices)
+#### Invoice
+- Belongs to a project (many-to-one)
+- Includes payment tracking fields
 
-## Enums
+## Test Structure
 
-### `ProjectStatus`
-- PENDING
-- IN_PROGRESS
-- COMPLETED
-- INVOICED
-- PAID
+The test suite is organized to ensure comprehensive coverage:
 
-### `PaymentStatus`
-- PENDING
-- PROCESSED
-- PAID
+### Unit Tests
+- **`test_models.py`**: Tests individual model functionality
+- **`test_forms.py`**: Tests form validation rules
 
-### `PaymentMethod`
-- CASH
-- CHECK
-- OTHER
+### Integration Tests
+- **`test_routes.py`**: Tests route functionality
+- **`test_integration.py`**: Tests multi-step workflows
 
-## Application Flow
+### Complex Scenario Tests
+- **`test_complex_scenarios.py`**: Tests business process flows
+- **`test_edge_cases.py`**: Tests boundary conditions
+- **`test_security_and_validation.py`**: Tests security features and validation
 
-1. Create employees and projects
-2. Record timesheets as work is performed
-3. Add materials and expenses as they occur
-4. Generate payroll reports and record payments
-5. Create invoices for completed projects
-6. Update project status as it progresses through the workflow
+### Test Fixtures
+- Provides sample data for testing
+- Creates test environments with database isolation
 
-## Future Extension Points
+## Configuration
 
-- User authentication system
-- File upload for project documents
-- Client portal
-- Advanced reporting
-- Mobile application integration
-- Email notifications
+The application uses Flask's configuration system:
+- Development configuration is the default
+- Debug mode is enabled by default
+- SQLite database used for simplicity
+- Session security with SECRET_KEY
+- CSRF protection enabled
+
+## Security Features
+
+- CSRF protection via Flask-WTF
+- Input validation through WTForms
+- Business rule enforcement in models
+- Data integrity through SQLAlchemy relationships

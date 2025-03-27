@@ -6,11 +6,12 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 - **Employee Management**: Track employee information, pay rates, and contact details
 - **Project Management**: Manage client projects with status tracking and financial details
-- **Time Tracking**: Record employee hours worked on specific projects
-- **Materials Management**: Track materials used for each project
+- **Time Tracking**: Record employee hours worked on specific projects with automatic lunch break handling
+- **Materials Management**: Track materials used for each project with cost calculations
 - **Expense Tracking**: Monitor business expenses with or without project association
 - **Invoicing**: Generate and track invoices for completed projects
 - **Payroll Reporting**: Calculate payroll based on recorded timesheets
+- **Cost Analysis**: Automatic calculation of project costs and profitability
 
 ## Tech Stack
 
@@ -18,6 +19,7 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Database**: SQLite (via SQLAlchemy)
 - **Frontend**: Bootstrap 5 for responsive design
 - **Forms**: WTForms for form handling and validation
+- **Testing**: Comprehensive pytest suite for validation
 
 ## Installation
 
@@ -67,6 +69,11 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 6. **Access the application**:
    - Open your browser and navigate to: http://127.0.0.1:5000
 
+7. **Run tests**:
+   ```
+   python -m pytest
+   ```
+
 ## Recommended Workflow
 
 ### Initial Setup
@@ -82,6 +89,7 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 1. Generate payroll reports and record payments to employees
 2. Create invoices for completed projects
 3. Update project statuses as they progress
+4. Monitor project profitability through the cost analysis features
 
 ## Project Structure
 
@@ -91,17 +99,25 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - `templates/` - HTML templates for the web interface
 - `instance/` - Contains the SQLite database file
 - `static/` - Static files (CSS, JavaScript)
+- `tests/` - Comprehensive test suite
 
 ## Database Schema
 
 The application uses the following main models:
-- Employee
-- Project
-- Timesheet
-- Material
-- Expense
-- PayrollPayment
-- Invoice
+- **Employee**: Stores employee information and pay rates
+- **Project**: Manages project details, status, and relationships to other models
+- **Timesheet**: Records work hours with automatic calculation of hours and lunch breaks
+- **Material**: Tracks materials used in projects with costs
+- **Expense**: Records business expenses with categorization
+- **PayrollPayment**: Manages employee payment processing
+- **Invoice**: Handles client billing for projects
+
+## Key Model Relationships
+
+All relationships are properly set up with cascade behavior for reliable data management:
+- Projects have timesheets, materials, expenses, and invoices
+- Employees have timesheets and payroll payments
+- Proper validation ensures data integrity across all models
 
 ## Security Notes
 
