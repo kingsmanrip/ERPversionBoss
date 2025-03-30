@@ -8,6 +8,7 @@ This document provides a comprehensive overview of the PDQ ERP application's str
 pdq_erp/
 │
 ├── app.py                 # Main application file with routes and Flask configuration
+├── config.py              # Configuration settings for the application
 ├── models.py              # Database models and relationships
 ├── forms.py               # Form definitions using WTForms
 ├── requirements.txt       # Python dependencies
@@ -46,7 +47,10 @@ pdq_erp/
 │   ├── invoice_form.html  # Add/edit invoice form
 │   │
 │   ├── payroll_report.html # Payroll reporting page
-│   └── payroll_payment_form.html # Record payroll payment form
+│   ├── payroll_payment_form.html # Record payroll payment form
+│   │
+│   ├── generate_mock_data.py   # Script for generating test data for the application
+│   ├── update_schema.py        # Script for updating database schema with new fields
 │
 ├── tests/                 # Test directory
 │   ├── test_models.py     # Tests for data models
@@ -55,7 +59,8 @@ pdq_erp/
 │   ├── test_integration.py # Integration tests
 │   ├── test_complex_scenarios.py # Tests for complex business flows
 │   ├── test_edge_cases.py # Tests for boundary conditions
-│   └── test_security_and_validation.py # Security and validation tests
+│   ├── test_security_and_validation.py # Security and validation tests
+│   └── conftest.py         # Pytest fixtures and configuration
 │
 └── venv/                  # Virtual environment (not included in repository)
 ```
@@ -75,6 +80,13 @@ pdq_erp/
   - Request handling logic
   - Form processing
   - Helper functions
+
+#### `config.py`
+- **Purpose**: Configuration settings for the application
+- **Contents**:
+  - Environment-specific configurations (development, testing, production)
+  - Database connection settings
+  - Secret key for session management
 
 #### `models.py`
 - **Purpose**: Database schema definition
@@ -136,6 +148,23 @@ pdq_erp/
 #### Payroll
 - **`payroll_report.html`**: Generates payroll reports by date range
 - **`payroll_payment_form.html`**: Form for recording payments to employees
+
+## UI Design Structure
+
+### Component Usage
+- **Bootstrap Cards**: Used for all summary metrics and information grouping
+- **Responsive Grid System**: Bootstrap columns and rows with appropriate breakpoints
+- **Form Components**: Custom-styled form elements with Bootstrap for consistent look and feel
+- **Text Size Management**: 
+  - Dashboard uses `display-6` class for large numerical values
+  - Reports use `h3` elements for payment/financial summaries
+  - All text sizes are responsive to prevent overflow on mobile devices
+- **Color System**:
+  - Primary (blue): General information, projects
+  - Success (green): Positive financial metrics, cash payments
+  - Warning (yellow): Items requiring attention
+  - Info (light blue): Informational sections, check payments
+  - Danger (red): Critical issues, unpaid items
 
 ## Database Models
 
@@ -219,3 +248,19 @@ The application uses Flask's configuration system:
 - Input validation through WTForms
 - Business rule enforcement in models
 - Data integrity through SQLAlchemy relationships
+
+## Recent Updates
+
+### Models Updates
+- **Timesheet**: Enhanced lunch break calculations
+- **PayrollPayment**: Added fields for check tracking (check_number, bank_name)
+
+### UI Updates
+- Optimized display sizes for financial information
+- Improved responsive design for mobile use
+- Enhanced payment method visualization
+
+### Testing Improvements
+- Updated tests to properly authenticate before accessing protected routes
+- Enhanced assertions for our complex business logic
+- Added tests for the new lunch break calculation rules

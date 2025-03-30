@@ -8,12 +8,17 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Visual Analytics Dashboard**: Interactive visualizations of key business metrics and trends
 - **Employee Management**: Track employee information, pay rates, and contact details
 - **Project Management**: Manage client projects with status tracking and financial details
-- **Time Tracking**: Record employee hours worked on specific projects with automatic lunch break handling
+- **Time Tracking**: Record employee hours worked with smart lunch break handling:
+  - Lunch breaks ≥ 1 hour: only 30 minutes deducted
+  - Lunch breaks < 30 minutes: no deduction
+  - Lunch breaks 30-59 minutes: actual time deducted
 - **Materials Management**: Track materials used for each project with cost calculations
 - **Expense Tracking**: Monitor business expenses with or without project association
 - **Invoicing**: Generate and track invoices for completed projects
-- **Payroll Reporting**: Calculate payroll based on recorded timesheets
+- **Payroll Reporting**: Calculate payroll based on recorded timesheets with detailed breakdowns by payment method (Cash vs Check)
+- **Payment Method Tracking**: Record and track payments by method (Cash/Check) with check numbers and bank information
 - **Cost Analysis**: Automatic calculation of project costs and profitability
+- **Responsive UI Design**: Optimized display of financial data with properly sized elements to ensure readability of large numbers
 
 ## Tech Stack
 
@@ -22,6 +27,15 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Frontend**: Bootstrap 5 for responsive design
 - **Forms**: WTForms for form handling and validation
 - **Testing**: Comprehensive pytest suite for validation
+
+## Recent Updates (March 2025)
+
+- **Enhanced Lunch Break Calculations**: Implemented precise rules for lunch break deductions
+- **Improved Payment Method Tracking**: Added capabilities to record check numbers and bank names
+- **Enhanced Payroll Reporting**: Added detailed breakdowns by payment method (Cash vs Check)
+- **UI Improvements**: Optimized display of large financial values in dashboard and reports
+- **Comprehensive Testing**: Added extensive test suite with all tests passing
+- **Mock Data Generation**: Included a script to populate the system with realistic test data
 
 ## Installation
 

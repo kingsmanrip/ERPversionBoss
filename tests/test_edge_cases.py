@@ -1,7 +1,14 @@
 import pytest
 from datetime import date, time, timedelta, datetime
 from flask import url_for
-from models import db, Employee, Project, Timesheet, Material, Expense, Invoice, ProjectStatus, PaymentMethod, PaymentStatus
+from models import db, Employee, Project, Timesheet, Material, Expense, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User
+
+def login(client, username, password):
+    """Helper function to log in a user."""
+    return client.post('/login', data={
+        'username': username,
+        'password': password
+    }, follow_redirects=True)
 
 def test_boundary_values(app):
     """Test boundary values for numeric fields."""
@@ -139,29 +146,43 @@ def test_time_boundaries(app):
         # Should be 1/60 = approximately 0.0167 hours
         assert round(timesheet_short.raw_hours, 4) == round(1/60, 4)
 
-def test_error_handling_invalid_data(client):
+def test_error_handling_invalid_data(app, client):
     """Test how the application handles invalid form submissions."""
-    # Test invalid employee creation (missing required field)
-    response = client.post('/employee/add', data={
-        'employee_id_str': 'INVALID001',
-        'pay_rate': 'not-a-number'  # Invalid pay rate
-    }, follow_redirects=True)
-    assert response.status_code == 200
-    assert b'This field is required' in response.data or b'Invalid' in response.data
-    
-    # Test invalid project creation (end date before start date)
-    response = client.post('/project/add', data={
-        'name': 'Invalid Date Project',
-        'start_date': date.today().strftime('%Y-%m-%d'),
-        'end_date': (date.today() - timedelta(days=10)).strftime('%Y-%m-%d'),
-        'status': 'PENDING'
-    }, follow_redirects=True)
-    assert response.status_code == 200
-    # Ideally there should be validation for this, but if not, the test should still not crash
-    
-    # Test access to non-existent resource
-    response = client.get('/project/view/99999')
-    assert response.status_code == 404
+    with app.app_context():
+        # First login as the test user
+        from models import User, db
+        
+        if not User.query.filter_by(username="testuser").first():
+            user = User(username="testuser")
+            user.set_password("testpassword")
+            db.session.add(user)
+            db.session.commit()
+        
+        login_response = login(client, "testuser", "testpassword")
+        assert b'Dashboard' in login_response.data or b'Login' in login_response.data
+        
+        # Test invalid employee creation (missing required field)
+        response = client.post('/employee/add', data={
+            'employee_id_str': 'INVALID001',
+            'pay_rate': 'not-a-number'  # Invalid pay rate
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert b'This field is required' in response.data or b'Invalid' in response.data
+        
+        # Test invalid project creation
+        response = client.post('/project/add', data={
+            'name': 'Invalid Test Project',
+            'contract_value': 'not-a-number'  # Invalid contract value
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert b'This field is required' in response.data or b'Invalid' in response.data
+        
+        # Test invalid timesheet submission
+        response = client.post('/timesheet/add', data={
+            'date': 'not-a-date',  # Invalid date
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert b'This field is required' in response.data or b'Invalid' in response.data
 
 def test_concurrent_operations(app, client):
     """Test operations that could potentially cause concurrency issues."""

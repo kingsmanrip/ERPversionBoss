@@ -95,13 +95,14 @@ def test_project_cost_calculations(app, sample_data):
         assert project.profit == 4150.0  # 5000 - 850.0
 
 def test_timesheet_hour_calculation(app, sample_data):
-    """Test timesheet hour calculations."""
+    """Test that timesheet hours are calculated correctly with lunch break rules."""
     with app.app_context():
-        from models import db, Employee, Project, Timesheet
         employee = Employee.query.get(sample_data['employee_ids'][0])
         project = Project.query.get(sample_data['project_ids'][0])
         
-        # 8 hour day with 30 min lunch (should be no deduction)
+        # Create test timesheets with different lunch durations
+        
+        # Standard workday with 30 minute lunch (should deduct actual 30 minutes)
         timesheet1 = Timesheet(
             employee_id=employee.id,
             project_id=project.id,
@@ -111,7 +112,7 @@ def test_timesheet_hour_calculation(app, sample_data):
             lunch_duration_minutes=30
         )
         
-        # 8 hour day with 60 min lunch (should be 0.5 hour deduction)
+        # Standard workday with 1 hour lunch (should deduct only 30 minutes per new rules)
         timesheet2 = Timesheet(
             employee_id=employee.id,
             project_id=project.id,
@@ -121,24 +122,28 @@ def test_timesheet_hour_calculation(app, sample_data):
             lunch_duration_minutes=60
         )
         
-        # 8 hour day with 90 min lunch (should be 0.5 hour deduction)
+        # Short lunch break (less than 30 min, no deduction)
         timesheet3 = Timesheet(
             employee_id=employee.id,
             project_id=project.id,
             date=date.today(),
             entry_time=time(8, 0),
             exit_time=time(16, 0),
-            lunch_duration_minutes=90
+            lunch_duration_minutes=15
         )
-
-        db.session.add_all([timesheet1, timesheet2, timesheet3])
-        db.session.commit()
         
-        assert timesheet1.raw_hours == 8.0
-        assert timesheet1.calculated_hours == 8.0  # No deduction for 30 min lunch
+        # Medium lunch break (between 30-59 min, deduct actual time)
+        timesheet4 = Timesheet(
+            employee_id=employee.id,
+            project_id=project.id,
+            date=date.today(),
+            entry_time=time(8, 0),
+            exit_time=time(16, 0),
+            lunch_duration_minutes=45
+        )
         
-        assert timesheet2.raw_hours == 8.0
-        assert timesheet2.calculated_hours == 7.5  # 0.5 hour deduction for 60 min lunch
-        
-        assert timesheet3.raw_hours == 8.0
-        assert timesheet3.calculated_hours == 7.5  # 0.5 hour deduction for 90 min lunch
+        # Assert correct hour calculations according to updated lunch break rules
+        assert timesheet1.calculated_hours == 7.5  # 8 hours - 30 minutes lunch
+        assert timesheet2.calculated_hours == 7.5  # 8 hours - 30 minutes (capped) lunch
+        assert timesheet3.calculated_hours == 8.0  # 8 hours - no deduction for lunch < 30 minutes
+        assert timesheet4.calculated_hours == 7.25  # 8 hours - 45 minutes lunch

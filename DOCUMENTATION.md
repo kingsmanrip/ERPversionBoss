@@ -18,6 +18,7 @@ The Mauricio PDQ ERP System is a comprehensive Enterprise Resource Planning solu
 10. [Troubleshooting](#troubleshooting)
 11. [Future Enhancements](#future-enhancements)
 12. [Technical Implementation Notes](#technical-implementation-notes)
+13. [Recent Enhancements](#recent-enhancements)
 
 ## System Architecture
 
@@ -460,8 +461,16 @@ The following enhancements have been identified as priority items for future dev
 - Implements responsive design with Bootstrap 5
 - Calculates key metrics in Python code rather than in templates for better reliability
 - Pre-processes data for visualizations on the server-side to optimize performance
-- Utilizes color-coding to provide immediate visual feedback on performance metrics
-- Carefully handles edge cases like null values and division by zero
+- Uses appropriate text sizing classes (display-6) to ensure large numbers are displayed properly
+- Ensures all financial figures fit within their containers without overflow issues
+
+### UI Design Considerations
+
+- **Numeric Display**: Large numbers (financial amounts, project counts, hours) use `display-6` class in dashboard and `h3` elements in reports to maintain proper layout regardless of value size
+- **Responsive Breakpoints**: Layout adapts to different screen sizes with Bootstrap's grid system
+- **Color Scheme**: Uses consistent Bootstrap color utilities (primary, success, warning, info) for information hierarchy
+- **Card Components**: Cards are used as the primary UI component for displaying grouped information
+- **Accessibility**: Maintains proper color contrast and text sizing for readability
 
 ### Export Functionality Implementation
 - Uses pandas DataFrames for Excel file generation
@@ -481,3 +490,106 @@ The following enhancements have been identified as priority items for future dev
 - Indexes are used on columns used in WHERE and JOIN clauses to improve query performance.
 - Relationships between tables are established using foreign keys to maintain data consistency.
 - The database is designed to support the application's functionality, including user authentication, project management, time tracking, and invoicing.
+
+## Recent Enhancements
+
+### Enhanced Timesheet Calculations
+
+The Timesheet model has been updated to implement precise lunch break rules:
+
+```python
+@property
+def calculated_hours(self):
+    """Calculate the actual working hours after deducting lunch break.
+    Rules:
+    - Lunch breaks ≥ 60 minutes: Only deduct 30 minutes
+    - Lunch breaks < 30 minutes: No deduction
+    - Lunch breaks 30-59 minutes: Deduct actual time
+    """
+    if self.lunch_duration_minutes is None:
+        return self.raw_hours
+    
+    # Apply lunch deduction rules
+    if self.lunch_duration_minutes >= 60:
+        # For lunch breaks 1 hour or longer, deduct only 30 minutes
+        return self.raw_hours - 0.5
+    elif self.lunch_duration_minutes < 30:
+        # For lunch breaks less than 30 minutes, no deduction
+        return self.raw_hours
+    else:
+        # For lunch breaks between 30-59 minutes, deduct the actual time
+        return self.raw_hours - (self.lunch_duration_minutes / 60.0)
+```
+
+This enhancement ensures fair and accurate calculation of employee working hours.
+
+### Improved Payment Method Tracking
+
+The PayrollPayment model has been enhanced to track detailed payment information:
+
+```python
+# New fields in PayrollPayment model
+check_number = db.Column(db.String(50))  # Track check numbers for CHECK payments
+bank_name = db.Column(db.String(100))    # Track bank information for CHECK payments
+
+def validate_check_details(self):
+    """Validate that check payments have a check number."""
+    if self.payment_method == PaymentMethod.CHECK:
+        return self.check_number is not None and self.check_number.strip() != ''
+    return True
+```
+
+These additions allow tracking:
+- Check numbers for check payments
+- Bank names for better financial record-keeping
+- Validation to ensure check payments have associated check numbers
+
+### Enhanced Payroll Reporting
+
+The payroll report functionality has been improved to:
+
+1. **Display Payment Method Breakdowns**:
+   - Separate sections for Cash and Check payments
+   - Summary cards showing total amounts per payment method
+
+2. **Improved Visualization**:
+   - Color-coded indicators (green for Cash, blue for Check)
+   - Check numbers displayed for Check payments
+   - Comprehensive payment status tracking
+
+3. **UI Optimizations**:
+   - Properly sized numeric displays for large dollar amounts
+   - Consistent spacing and alignment for financial data
+   - Mobile-responsive design for field technicians
+
+### Mock Data Generation
+
+A dedicated script (`generate_mock_data.py`) has been implemented to generate realistic test data, including:
+
+- 15 employees with various pay rates and skills
+- 25 projects with different statuses and contract values
+- 344 timesheets with various lunch break durations
+- 96 materials with costs and categories
+- 72 expenses with different payment methods
+- 24 payroll payments (both Cash and Check methods)
+- 3 invoices in various states
+
+This data is crucial for stress testing and validating the system's performance with realistic volumes.
+
+### Database Schema Updates
+
+Added script (`update_schema.py`) to upgrade existing databases with the new payment tracking fields:
+
+```python
+# Adding new columns to payroll_payment table
+conn.execute(sa.text('ALTER TABLE payroll_payment ADD COLUMN check_number VARCHAR(50)'))
+conn.execute(sa.text('ALTER TABLE payroll_payment ADD COLUMN bank_name VARCHAR(100)'))
+```
+
+### UI Improvements
+
+Enhanced the display of large financial values throughout the application:
+
+- Changed from `display-4` to `display-6` class for dashboard cards
+- Replaced `h2` with `h3` elements for payment summary cards
+- Added consistent margin and padding for financial data
