@@ -37,8 +37,8 @@ def test_project_cost_calculations(app, sample_data):
     """Test project cost calculation properties."""
     with app.app_context():
         from models import db, Project, Material, Timesheet, Expense, Employee
-        project = Project.query.get(sample_data['project_ids'][0])
-        employee = Employee.query.get(sample_data['employee_ids'][0])
+        project = db.session.get(Project, sample_data['project_ids'][0])
+        employee = db.session.get(Employee, sample_data['employee_ids'][0])
         
         # Add some materials
         material1 = Material(
@@ -82,7 +82,7 @@ def test_project_cost_calculations(app, sample_data):
         db.session.commit()
         
         # Refresh the project to ensure all relationships are loaded
-        project = Project.query.get(project.id)
+        project = db.session.get(Project, project.id)
         
         # Test cost calculations
         assert project.total_material_cost == 500.0  # 200 + 300
@@ -97,8 +97,9 @@ def test_project_cost_calculations(app, sample_data):
 def test_timesheet_hour_calculation(app, sample_data):
     """Test that timesheet hours are calculated correctly with lunch break rules."""
     with app.app_context():
-        employee = Employee.query.get(sample_data['employee_ids'][0])
-        project = Project.query.get(sample_data['project_ids'][0])
+        from models import db, Employee, Project, Timesheet
+        employee = db.session.get(Employee, sample_data['employee_ids'][0])
+        project = db.session.get(Project, sample_data['project_ids'][0])
         
         # Create test timesheets with different lunch durations
         

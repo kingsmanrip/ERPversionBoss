@@ -493,6 +493,121 @@ The following enhancements have been identified as priority items for future dev
 
 ## Recent Enhancements
 
+### SQLAlchemy 2.0 Compatibility Updates
+
+All database access patterns have been modernized to align with SQLAlchemy 2.0 best practices:
+
+```python
+# Old approach (deprecated)
+employee = Employee.query.get(id)
+project = Project.query.get_or_404(id)
+
+# New approach
+employee = db.session.get(Employee, id)
+
+# With proper error handling for not found items
+project = db.session.get(Project, id)
+if not project:
+    flash('Project not found.', 'danger')
+    return redirect(url_for('projects')), 404
+```
+
+This update:
+- Eliminates deprecation warnings
+- Prepares the codebase for future SQLAlchemy 2.0 migration
+- Improves error handling patterns
+- Provides more explicit database access code
+
+### Enhanced Export Capabilities
+
+New comprehensive export functionality has been implemented, supporting three formats:
+
+1. **Excel (.xlsx)**:
+   - Formatted spreadsheets with all data
+   - Uses pandas and openpyxl for generation
+   - Preserves data types and formatting
+
+2. **PDF**:
+   - Printable reports with consistent layout
+   - Includes title and proper column headers
+   - Formatted for readability
+
+3. **CSV**:
+   - Simple, universal format for data exchange
+   - Compatible with most data analysis tools
+   - Useful for importing into other systems
+
+The export system is built on reusable helper functions:
+
+```python
+def export_to_excel(data, prefix):
+    """Helper function to export data to Excel"""
+    df = pd.DataFrame(data)
+    excel_file = io.BytesIO()
+    df.to_excel(excel_file, index=False, engine='openpyxl')
+    excel_file.seek(0)
+    
+    return send_file(
+        excel_file,
+        as_attachment=True,
+        download_name=f'{prefix}_report.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+```
+
+Each data type (Projects, Timesheets, Expenses, etc.) has its own dedicated export route:
+
+```python
+@app.route('/export/timesheets/<format>')
+@login_required
+def export_timesheets(format):
+    """Export timesheets to Excel, PDF, or CSV"""
+    timesheets = Timesheet.query.order_by(Timesheet.date.desc()).all()
+    
+    timesheets_data = []
+    for timesheet in timesheets:
+        employee = db.session.get(Employee, timesheet.employee_id)
+        project = db.session.get(Project, timesheet.project_id)
+        
+        timesheets_data.append({
+            'Date': timesheet.date.strftime('%Y-%m-%d'),
+            'Employee': employee.name if employee else 'Unknown',
+            'Project': project.name if project else 'Unknown',
+            'Entry Time': timesheet.entry_time.strftime('%H:%M'),
+            'Exit Time': timesheet.exit_time.strftime('%H:%M'),
+            'Lunch (mins)': timesheet.lunch_duration_minutes or 0,
+            'Raw Hours': f"{timesheet.raw_hours:.2f}",
+            'Calculated Hours': f"{timesheet.calculated_hours:.2f}",
+            'Labor Cost': f"${timesheet.calculated_hours * (employee.pay_rate if employee else 0):.2f}"
+        })
+    
+    # Handle different format types
+    if format == 'excel':
+        return export_to_excel(timesheets_data, 'timesheets')
+    elif format == 'pdf':
+        return export_to_pdf(timesheets_data, 'Timesheets', 'timesheets.pdf')
+    elif format == 'csv':
+        return export_to_csv(timesheets_data, 'timesheets')
+    else:
+        flash('Invalid export format', 'error')
+        return redirect(url_for('timesheets'))
+```
+
+The UI has been updated with dropdown menus for all export options:
+
+```html
+<div class="dropdown me-2">
+    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Export
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+        <li><a class="dropdown-item" href="{{ url_for('export_projects', format='excel') }}">Excel (.xlsx)</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('export_projects', format='pdf') }}">PDF</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('export_projects', format='csv') }}">CSV</a></li>
+    </ul>
+</div>
+```
+
 ### Enhanced Timesheet Calculations
 
 The Timesheet model has been updated to implement precise lunch break rules:

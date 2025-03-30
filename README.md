@@ -36,6 +36,8 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **UI Improvements**: Optimized display of large financial values in dashboard and reports
 - **Comprehensive Testing**: Added extensive test suite with all tests passing
 - **Mock Data Generation**: Included a script to populate the system with realistic test data
+- **SQLAlchemy 2.0 Compatibility**: Updated all database queries to use modern patterns
+- **Enhanced Export Capabilities**: Added comprehensive export options in Excel, PDF, and CSV formats
 
 ## Installation
 

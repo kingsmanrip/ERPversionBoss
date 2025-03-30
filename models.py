@@ -202,61 +202,70 @@ class Timesheet(db.Model):
     
     @property
     def raw_hours(self):
-        """Calculate raw hours worked without lunch break deduction.
-        Implements specific logic for test compatibility."""
+        """Calculate raw hours without lunch break adjustment."""
         if self.entry_time and self.exit_time:
-            # Special case for all the hour calculation tests with 8am-4pm
-            if self.entry_time == time(8, 0) and self.exit_time == time(16, 0):
-                return 8.0
-                
-            # Special case for identical times - test_time_boundaries expects 0.0
-            entry_datetime = datetime.combine(self.date, self.entry_time)
-            exit_datetime = datetime.combine(self.date, self.exit_time)
-            if entry_datetime == exit_datetime:
-                return 0.0
+            # First create datetime objects with the same date to calculate difference
+            base_date = datetime.now().date()
+            entry_datetime = datetime.combine(base_date, self.entry_time)
+            exit_datetime = datetime.combine(base_date, self.exit_time)
             
-            # Handle overnight shifts
+            # If exit is earlier than entry, it must be next day (overnight shift)
             if exit_datetime < entry_datetime:
-                exit_datetime += timedelta(days=1)
-                
-            # Return decimal hours
-            return (exit_datetime - entry_datetime).total_seconds() / 3600
+                exit_datetime = exit_datetime + timedelta(days=1)
+            
+            # Calculate the time difference in hours
+            time_diff = exit_datetime - entry_datetime
+            return time_diff.total_seconds() / 3600  # Convert seconds to hours
         return 0
     
     @property
     def calculated_hours(self):
-        """Calculate the number of hours worked, accounting for lunch breaks.
-        This implements specific logic to match test expectations exactly."""
-        # Hard-coded exact values for specific test cases
-        
-        # For test_timesheet_hour_calculation
-        if self.entry_time == time(8, 0) and self.exit_time == time(16, 0):
-            if self.lunch_duration_minutes == 30:
-                return 8.0  # No deduction for 30 min lunch
-            elif self.lunch_duration_minutes >= 60:
-                return 7.5  # Standard 0.5 hour deduction for lunch ≥ 60 min
-        
-        # For test_project_cost_calculations
-        # No specific case needed here since the raw_hours is already fixed
-        
-        # Default calculation
-        raw = self.raw_hours
-        if raw <= 0:
-            return 0
+        """Calculate hours worked with lunch break adjustment according to specific rules.
+        - If lunch duration >= 60 minutes, deduct 30 minutes
+        - If lunch duration < 30 minutes, no deduction
+        - If lunch duration between 30-59 minutes, deduct actual lunch time
+        """
+        if self.entry_time and self.exit_time:
+            hours = self.raw_hours
             
-        # Calculate lunch deduction based on test assumptions
-        lunch_deduction = 0
-        if self.lunch_duration_minutes >= 60:
-            lunch_deduction = 0.5
-            
-        # Calculate hours
-        hours = raw - lunch_deduction
-        return max(0, hours)  # Ensure hours are not negative
+            # Apply lunch break rules
+            if self.lunch_duration_minutes >= 60:
+                # Only deduct 30 minutes for lunch breaks of 1 hour or more
+                lunch_deduction = 0.5
+            elif self.lunch_duration_minutes < 30:
+                # No deduction for lunch breaks less than 30 minutes
+                lunch_deduction = 0
+            else:
+                # For breaks between 30-59 minutes, deduct actual time
+                lunch_deduction = self.lunch_duration_minutes / 60
+                
+            return hours - lunch_deduction
+        return 0
     
+    @property
+    def employee_name(self):
+        """Get the employee name for this timesheet."""
+        from models import Employee
+        employee = db.session.get(Employee, self.employee_id)
+        return employee.name if employee else "Unknown"
+
+    @property
+    def project_name(self):
+        """Get the project name for this timesheet."""
+        from models import Project
+        project = db.session.get(Project, self.project_id)
+        return project.name if project else "Unknown"
+
+    def validate_employee(self):
+        """Validate that employee exists and is active."""
+        from models import Employee, db
+        employee = db.session.get(Employee, self.employee_id)
+        return employee is not None and employee.is_active
+
     def is_valid(self):
         """Validate the timesheet entry."""
         # Check if employee is active
-        employee = Employee.query.get(self.employee_id)
+        employee = db.session.get(Employee, self.employee_id)
         if employee and not employee.is_active:
             return False, "Cannot create timesheet for inactive employee."
             
@@ -280,14 +289,14 @@ class Timesheet(db.Model):
             return False, "Lunch break cannot be longer than the total shift."
             
         # Check if project is in appropriate status
-        project = Project.query.get(self.project_id)
+        project = db.session.get(Project, self.project_id)
         if project and project.status not in [ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]:
             return False, f"Cannot add timesheet to a project with status {project.status.value}."
             
         return True, "Timesheet is valid."
 
     def __repr__(self):
-        return f'<Timesheet E:{self.employee_id} P:{self.project_id} D:{self.date} H:{self.calculated_hours:.2f}>'
+        return f'<Timesheet: {self.date}, {self.employee.name if self.employee else "No Employee"}, {self.project.name if self.project else "No Project"}, Hours: {self.calculated_hours:.2f}>'
 
 class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -343,9 +352,16 @@ class PayrollPayment(db.Model):
     payment_date = db.Column(db.Date, nullable=False)
     payment_method = db.Column(db.Enum(PaymentMethod), nullable=False)
     notes = db.Column(db.Text)
+    check_number = db.Column(db.String(50))
+    bank_name = db.Column(db.String(100))
     
-    # Define relationship with backref for better test compatibility
     employee = db.relationship('Employee', foreign_keys=[employee_id], backref='payments')
+    
+    __table_args__ = (
+        db.Index('idx_payroll_emp_date', 'employee_id', 'payment_date'),
+        db.Index('idx_payroll_method', 'payment_method'),
+        db.Index('idx_payroll_period', 'pay_period_start', 'pay_period_end'),
+    )
     
     def validate_dates(self):
         """Validate that pay period end date is on or after start date."""
@@ -353,8 +369,14 @@ class PayrollPayment(db.Model):
             return self.pay_period_end >= self.pay_period_start
         return True
     
+    def validate_check_details(self):
+        """Validate that check details are provided if payment method is Check."""
+        if self.payment_method == PaymentMethod.CHECK:
+            return bool(self.check_number)
+        return True
+
     def __repr__(self):
-        return f'<PayrollPayment E:{self.employee_id} ${self.amount:.2f}>'
+        return f'<PayrollPayment {self.employee.name if self.employee else "No Employee"}, Period: {self.pay_period_start} to {self.pay_period_end}, Amount: ${self.amount:.2f}, Method: {self.payment_method.value if self.payment_method else "None"}>'
 
 class Invoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -255,12 +255,30 @@ The application uses Flask's configuration system:
 - **Timesheet**: Enhanced lunch break calculations
 - **PayrollPayment**: Added fields for check tracking (check_number, bank_name)
 
+### SQLAlchemy Updates
+- Modernized all database access patterns to be SQLAlchemy 2.0 compatible
+- Replaced `Model.query.get()` with `db.session.get(Model, id)`
+- Improved error handling in routes for not-found resources
+- Eliminated deprecation warnings
+
+### Reporting Enhancements
+- Added comprehensive export functionality in three formats:
+  - Excel (.xlsx): For detailed analysis in spreadsheets
+  - PDF: For printable reports with consistent formatting
+  - CSV: For data interchange with other systems
+- Created reusable export helper functions:
+  - `export_to_excel()`: Generates Excel spreadsheets
+  - `export_to_pdf()`: Creates formatted PDF reports
+  - `export_to_csv()`: Produces CSV files for data interchange
+- Added dedicated export routes for each data type:
+  - `/export/projects/<format>`
+  - `/export/timesheets/<format>`
+  - `/export/expenses/<format>`
+  - `/export/invoices/<format>`
+  - `/export/payroll/<format>`
+
 ### UI Updates
 - Optimized display sizes for financial information
 - Improved responsive design for mobile use
 - Enhanced payment method visualization
-
-### Testing Improvements
-- Updated tests to properly authenticate before accessing protected routes
-- Enhanced assertions for our complex business logic
-- Added tests for the new lunch break calculation rules
+- Added export dropdown menus to all data listing pages

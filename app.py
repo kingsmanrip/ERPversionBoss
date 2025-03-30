@@ -52,6 +52,74 @@ def get_week_start_end(dt=None):
     end = start + timedelta(days=6)
     return start, end
 
+# --- Export Helpers ---
+def export_to_excel(data, prefix):
+    """Helper function to export data to Excel"""
+    df = pd.DataFrame(data)
+    excel_file = io.BytesIO()
+    df.to_excel(excel_file, index=False, engine='openpyxl')
+    excel_file.seek(0)
+    
+    return send_file(
+        excel_file,
+        as_attachment=True,
+        download_name=f'{prefix}_report.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+def export_to_pdf(data, title, filename):
+    """Helper function to export data to PDF"""
+    pdf = FPDF()
+    pdf.add_page('L')  # Landscape orientation for more columns
+    
+    # Add title
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(0, 10, f'{title} Report', 0, 1, 'C')
+    pdf.ln(5)
+    
+    # Add header
+    if data:
+        pdf.set_font('Arial', 'B', 8)
+        col_width = 270 / len(data[0].keys())
+        for key in data[0].keys():
+            pdf.cell(col_width, 10, str(key), 1)
+        pdf.ln()
+        
+        # Add data
+        pdf.set_font('Arial', '', 8)
+        for item in data:
+            for key, value in item.items():
+                pdf.cell(col_width, 10, str(value)[:20], 1)
+            pdf.ln()
+    
+    # Create temp file and write PDF to it
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+        pdf_path = tmp.name
+        pdf.output(pdf_path)
+        
+    # Return the created PDF file
+    return send_file(
+        pdf_path,
+        as_attachment=True, 
+        download_name=filename,
+        mimetype='application/pdf'
+    )
+
+def export_to_csv(data, prefix):
+    """Helper function to export data to CSV"""
+    df = pd.DataFrame(data)
+    csv_file = io.StringIO()
+    df.to_csv(csv_file, index=False)
+    csv_file.seek(0)
+    
+    return Response(
+        csv_file.getvalue(),
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': f'attachment; filename={prefix}_report.csv'
+        }
+    )
+
 # --- Auth Routes ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -204,7 +272,11 @@ def add_employee():
 @app.route('/employee/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_employee(id):
-    employee = Employee.query.get_or_404(id)
+    employee = db.session.get(Employee, id)
+    if not employee:
+        flash('Employee not found.', 'danger')
+        return redirect(url_for('employees')), 404
+        
     form = EmployeeForm(obj=employee)
     # Ensure correct enum loading for SelectField
     if request.method == 'GET' and employee.payment_method_preference:
@@ -227,7 +299,11 @@ def edit_employee(id):
 @app.route('/employee/delete/<int:id>', methods=['POST'])
 @login_required
 def delete_employee(id):
-    employee = Employee.query.get_or_404(id)
+    employee = db.session.get(Employee, id)
+    if not employee:
+        flash('Employee not found.', 'danger')
+        return redirect(url_for('employees')), 404
+        
     try:
         db.session.delete(employee)
         db.session.commit()
@@ -278,7 +354,11 @@ def add_project():
 @app.route('/project/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_project(id):
-    project = Project.query.get_or_404(id)
+    project = db.session.get(Project, id)
+    if not project:
+        flash('Project not found.', 'danger')
+        return redirect(url_for('projects')), 404
+    
     form = ProjectForm(obj=project)
     # Handle enum loading for SelectField
     if request.method == 'GET':
@@ -309,7 +389,11 @@ def edit_project(id):
 @app.route('/project/view/<int:id>')
 @login_required
 def project_detail(id):
-    project = Project.query.get_or_404(id)
+    project = db.session.get(Project, id)
+    if not project:
+        flash('Project not found.', 'danger')
+        return redirect(url_for('projects')), 404
+        
     # Calculate costs (using properties defined in model)
     labor_cost = project.total_labor_cost
     material_cost = project.total_material_cost
@@ -351,15 +435,16 @@ def timesheets():
 def add_timesheet():
     form = TimesheetForm()
     
-    # Populate the choices for employees and projects
-    with app.app_context():
-        # Only show active employees in the dropdown
-        form.employee_id.choices = [(e.id, e.name) for e in Employee.query.filter_by(is_active=True).order_by(Employee.name).all()]
-        form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(Project.status != ProjectStatus.PAID).order_by(Project.name).all()]
+    # Populate the employee and project choices
+    form.employee_id.choices = [(emp.id, f"{emp.name} ({emp.employee_id_str or 'No ID'})") 
+                               for emp in Employee.query.filter_by(is_active=True).order_by(Employee.name).all()]
+    form.project_id.choices = [(proj.id, f"{proj.name} ({proj.project_id_str or 'No ID'})") 
+                              for proj in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]))
+                              .order_by(Project.name).all()]
     
     if form.validate_on_submit():
-        # Create a new timesheet instance
-        new_timesheet = Timesheet(
+        # Create new timesheet
+        timesheet = Timesheet(
             employee_id=form.employee_id.data,
             project_id=form.project_id.data,
             date=form.date.data,
@@ -368,35 +453,20 @@ def add_timesheet():
             lunch_duration_minutes=form.lunch_duration_minutes.data
         )
         
-        # Validate timesheet entry
-        is_valid, message = new_timesheet.is_valid()
-        if not is_valid:
-            flash(f'Error: {message}', 'danger')
-            return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
-        
-        # Check if employee is active
-        employee = Employee.query.get(form.employee_id.data)
-        if not employee.is_active:
-            flash('Cannot create timesheet entry for inactive employee.', 'danger')
-            return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
-        
-        # Check for overlapping timesheet entries
-        existing_timesheet = Timesheet.query.filter_by(
-            employee_id=form.employee_id.data,
-            date=form.date.data
-        ).filter(
-            ((Timesheet.entry_time <= form.entry_time.data) & (Timesheet.exit_time > form.entry_time.data)) |
-            ((Timesheet.entry_time < form.exit_time.data) & (Timesheet.exit_time >= form.exit_time.data)) |
-            ((Timesheet.entry_time >= form.entry_time.data) & (Timesheet.exit_time <= form.exit_time.data))
-        ).first()
-        
-        if existing_timesheet:
-            flash('Warning: This timesheet entry overlaps with an existing entry.', 'warning')
-        
-        db.session.add(new_timesheet)
-        db.session.commit()
-        flash('Timesheet entry added successfully!', 'success')
-        return redirect(url_for('timesheets'))
+        # Validate the timesheet
+        is_valid, message = timesheet.is_valid()
+        if is_valid:
+            db.session.add(timesheet)
+            db.session.commit()
+            
+            # Get the names for the flash message
+            employee = db.session.get(Employee, form.employee_id.data)
+            project = db.session.get(Project, form.project_id.data)
+            
+            flash(f'Timesheet for {employee.name} on project {project.name} added successfully!', 'success')
+            return redirect(url_for('timesheets'))
+        else:
+            flash(f'Error adding timesheet: {message}', 'danger')
     
     return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
 
@@ -486,12 +556,20 @@ def record_payroll_payment():
             amount=form.amount.data,
             payment_date=form.payment_date.data,
             payment_method=PaymentMethod[form.payment_method.data],
-            notes=form.notes.data
+            notes=form.notes.data,
+            # Add check details
+            check_number=form.check_number.data if form.payment_method.data == 'CHECK' else None,
+            bank_name=form.bank_name.data if form.payment_method.data == 'CHECK' else None
         )
         
         # Validate that end date is after start date
         if not new_payment.validate_dates():
             flash('Error: Pay period end date must be on or after start date.', 'danger')
+            return render_template('payroll_payment_form.html', form=form, title="Record Payroll Payment")
+            
+        # Validate check details if payment method is Check
+        if form.payment_method.data == 'CHECK' and not new_payment.validate_check_details():
+            flash('Error: Check number is required for check payments.', 'danger')
             return render_template('payroll_payment_form.html', form=form, title="Record Payroll Payment")
             
         db.session.add(new_payment)
@@ -504,7 +582,7 @@ def record_payroll_payment():
 @app.route('/payroll/report')
 @login_required
 def payroll_report():
-    """Basic report showing weekly hours and recorded payments"""
+    """Comprehensive report showing weekly hours and recorded payments with payment method breakdown"""
     target_date_str = request.args.get('date')
     target_date = date.today()
     if target_date_str:
@@ -546,13 +624,51 @@ def payroll_report():
              if 'payments' not in weekly_hours_data[payment.employee_id]:
                  weekly_hours_data[payment.employee_id]['payments'] = []
              weekly_hours_data[payment.employee_id]['payments'].append(payment)
-
-    return render_template('payroll_report.html',
-                           weekly_data=weekly_hours_data.values(),
-                           recorded_payments=recorded_payments,
-                           start_date=start_of_week,
-                           end_date=end_of_week,
-                           target_date_str=target_date.strftime('%Y-%m-%d'))
+    
+    # 3. Calculate payment method totals for the report
+    payment_method_totals = {
+        'CASH': {
+            'count': 0,
+            'total': 0.0,
+            'payments': []
+        },
+        'CHECK': {
+            'count': 0,
+            'total': 0.0,
+            'payments': []
+        }
+    }
+    
+    # Add other payment methods as needed
+    for payment in recorded_payments:
+        if payment.payment_method == PaymentMethod.CASH:
+            method = 'CASH'
+        elif payment.payment_method == PaymentMethod.CHECK:
+            method = 'CHECK'
+        else:
+            # Skip other payment methods for this specific report
+            continue
+            
+        payment_method_totals[method]['count'] += 1
+        payment_method_totals[method]['total'] += payment.amount
+        payment_method_totals[method]['payments'].append(payment)
+    
+    # 4. Calculate total hours across all employees
+    total_weekly_hours = sum(data['total_hours'] for data in weekly_hours_data.values())
+    
+    # Find previous and next week for navigation
+    prev_week = target_date - timedelta(days=7)
+    next_week = target_date + timedelta(days=7)
+    
+    return render_template('payroll_report.html', 
+                          weekly_data=weekly_hours_data,
+                          recorded_payments=recorded_payments,
+                          payment_method_totals=payment_method_totals,
+                          current_week_start=start_of_week,
+                          current_week_end=end_of_week,
+                          prev_week=prev_week,
+                          next_week=next_week,
+                          total_weekly_hours=total_weekly_hours)
 
 # --- Invoice Routes (Basic CRUD) ---
 @app.route('/invoices')
@@ -611,7 +727,11 @@ def add_invoice():
 @app.route('/invoice/delete/<int:id>', methods=['POST'])
 @login_required
 def delete_invoice(id):
-    invoice = Invoice.query.get_or_404(id)
+    invoice = db.session.get(Invoice, id)
+    if not invoice:
+        flash('Invoice not found.', 'danger')
+        return redirect(url_for('invoices')), 404
+    
     try:
         db.session.delete(invoice)
         db.session.commit()
@@ -622,349 +742,141 @@ def delete_invoice(id):
     return redirect(url_for('invoices'))
 
 # --- Export Routes ---
-@app.route('/export/<data_type>/<format>')
+@app.route('/export/projects/<format>')
 @login_required
-def export_data(data_type, format):
-    """Export data to Excel or PDF"""
-    if data_type == 'invoices':
-        return export_invoices(format)
-    elif data_type == 'projects':
-        return export_projects(format)
-    elif data_type == 'timesheets':
-        return export_timesheets(format)
-    elif data_type == 'expenses':
-        return export_expenses(format)
-    else:
-        flash(f'Export type {data_type} not supported', 'danger')
-        return redirect(url_for('index'))
-
-def export_invoices(format):
-    """Export invoices to Excel or PDF"""
-    invoices = Invoice.query.all()
-    
-    if format == 'excel':
-        # Prepare data for Excel
-        data = []
-        for invoice in invoices:
-            project = Project.query.get(invoice.project_id)
-            data.append({
-                'Invoice #': invoice.invoice_number,
-                'Date': invoice.date.strftime('%Y-%m-%d'),
-                'Project': project.name if project else 'N/A',
-                'Client': project.client_name if project else 'N/A',
-                'Amount': f"${invoice.amount:.2f}",
-                'Status': invoice.status.name
-            })
-            
-        df = pd.DataFrame(data)
-        excel_file = io.BytesIO()
-        df.to_excel(excel_file, index=False, engine='openpyxl')
-        excel_file.seek(0)
-        
-        return send_file(
-            excel_file,
-            as_attachment=True,
-            download_name='Invoices_Report.xlsx',
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    
-    elif format == 'pdf':
-        # Create PDF
-        pdf = FPDF()
-        pdf.add_page()
-        
-        # Add title
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, 'Invoices Report', 0, 1, 'C')
-        pdf.ln(5)
-        
-        # Add header
-        pdf.set_font('Arial', 'B', 12)
-        pdf.cell(25, 10, 'Invoice #', 1)
-        pdf.cell(25, 10, 'Date', 1)
-        pdf.cell(40, 10, 'Project', 1)
-        pdf.cell(40, 10, 'Client', 1)
-        pdf.cell(30, 10, 'Amount', 1)
-        pdf.cell(30, 10, 'Status', 1)
-        pdf.ln()
-        
-        # Add data
-        pdf.set_font('Arial', '', 10)
-        for invoice in invoices:
-            project = Project.query.get(invoice.project_id)
-            pdf.cell(25, 10, str(invoice.invoice_number), 1)
-            pdf.cell(25, 10, invoice.date.strftime('%Y-%m-%d'), 1)
-            pdf.cell(40, 10, (project.name if project else 'N/A')[:20], 1)
-            pdf.cell(40, 10, (project.client_name if project else 'N/A')[:20], 1)
-            pdf.cell(30, 10, f"${invoice.amount:.2f}", 1)
-            pdf.cell(30, 10, invoice.status.name, 1)
-            pdf.ln()
-
-        # Create temp file and write PDF to it
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-            pdf_path = tmp.name
-            pdf.output(pdf_path)
-            
-        # Return the created PDF file
-        return send_file(
-            pdf_path,
-            as_attachment=True, 
-            download_name='Invoices_Report.pdf',
-            mimetype='application/pdf'
-        )
-    
-    else:
-        flash(f'Export format {format} not supported', 'danger')
-        return redirect(url_for('invoices'))
-
 def export_projects(format):
-    """Export projects to Excel or PDF"""
-    projects = Project.query.all()
+    """Export projects to Excel, PDF, or CSV"""
+    projects = Project.query.order_by(Project.start_date.desc()).all()
+    
+    projects_data = []
+    for project in projects:
+        projects_data.append({
+            'Project ID': project.project_id_str or '',
+            'Name': project.name,
+            'Client': project.client_name or '',
+            'Location': project.location or '',
+            'Start Date': project.start_date.strftime('%Y-%m-%d') if project.start_date else '',
+            'End Date': project.end_date.strftime('%Y-%m-%d') if project.end_date else '',
+            'Status': project.status.value if project.status else '',
+            'Contract Value': f"${project.contract_value:.2f}" if project.contract_value else '$0.00',
+            'Labor Cost': f"${project.total_labor_cost:.2f}",
+            'Material Cost': f"${project.total_material_cost:.2f}",
+            'Other Expenses': f"${project.total_other_expenses:.2f}",
+            'Total Cost': f"${project.total_cost:.2f}",
+            'Profit': f"${project.profit:.2f}",
+            'Profit Margin': f"{project.profit_margin:.2f}%"
+        })
     
     if format == 'excel':
-        # Prepare data for Excel
-        data = []
-        for project in projects:
-            data.append({
-                'Project ID': project.id,
-                'Name': project.name,
-                'Client': project.client_name,
-                'Status': project.status.name,
-                'Start Date': project.start_date.strftime('%Y-%m-%d') if project.start_date else 'N/A',
-                'End Date': project.end_date.strftime('%Y-%m-%d') if project.end_date else 'N/A',
-                'Budget': f"${project.budget:.2f}" if project.budget else 'N/A',
-                'Profit Margin': f"{project.profit_margin:.1f}%" if project.profit_margin is not None else 'N/A'
-            })
-            
-        df = pd.DataFrame(data)
-        excel_file = io.BytesIO()
-        df.to_excel(excel_file, index=False, engine='openpyxl')
-        excel_file.seek(0)
-        
-        return send_file(
-            excel_file,
-            as_attachment=True,
-            download_name='Projects_Report.xlsx',
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    
+        return export_to_excel(projects_data, 'projects')
     elif format == 'pdf':
-        # Create PDF
-        pdf = FPDF()
-        pdf.add_page('L')  # Landscape mode for more columns
-        
-        # Add title
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, 'Projects Report', 0, 1, 'C')
-        pdf.ln(5)
-        
-        # Add header
-        pdf.set_font('Arial', 'B', 10)
-        pdf.cell(15, 10, 'ID', 1)
-        pdf.cell(45, 10, 'Name', 1)
-        pdf.cell(40, 10, 'Client', 1)
-        pdf.cell(25, 10, 'Status', 1)
-        pdf.cell(25, 10, 'Start Date', 1)
-        pdf.cell(25, 10, 'End Date', 1)
-        pdf.cell(25, 10, 'Budget', 1)
-        pdf.cell(25, 10, 'Profit Margin', 1)
-        pdf.ln()
-        
-        # Add data
-        pdf.set_font('Arial', '', 9)
-        for project in projects:
-            pdf.cell(15, 10, str(project.id), 1)
-            pdf.cell(45, 10, project.name[:22], 1)
-            pdf.cell(40, 10, project.client_name[:20], 1)
-            pdf.cell(25, 10, project.status.name, 1)
-            pdf.cell(25, 10, project.start_date.strftime('%Y-%m-%d') if project.start_date else 'N/A', 1)
-            pdf.cell(25, 10, project.end_date.strftime('%Y-%m-%d') if project.end_date else 'N/A', 1)
-            pdf.cell(25, 10, f"${project.budget:.2f}" if project.budget else 'N/A', 1)
-            pdf.cell(25, 10, f"{project.profit_margin:.1f}%" if project.profit_margin is not None else 'N/A', 1)
-            pdf.ln()
-
-        # Create temp file and write PDF to it
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-            pdf_path = tmp.name
-            pdf.output(pdf_path)
-            
-        # Return the created PDF file
-        return send_file(
-            pdf_path,
-            as_attachment=True, 
-            download_name='Projects_Report.pdf',
-            mimetype='application/pdf'
-        )
-    
+        return export_to_pdf(projects_data, 'Projects', 'projects.pdf')
+    elif format == 'csv':
+        return export_to_csv(projects_data, 'projects')
     else:
-        flash(f'Export format {format} not supported', 'danger')
+        flash('Invalid export format', 'error')
         return redirect(url_for('projects'))
 
+@app.route('/export/timesheets/<format>')
+@login_required
 def export_timesheets(format):
-    """Export timesheets to Excel or PDF"""
+    """Export timesheets to Excel, PDF, or CSV"""
     timesheets = Timesheet.query.order_by(Timesheet.date.desc()).all()
     
+    timesheets_data = []
+    for timesheet in timesheets:
+        employee = db.session.get(Employee, timesheet.employee_id)
+        project = db.session.get(Project, timesheet.project_id)
+        
+        timesheets_data.append({
+            'Date': timesheet.date.strftime('%Y-%m-%d'),
+            'Employee': employee.name if employee else 'Unknown',
+            'Project': project.name if project else 'Unknown',
+            'Entry Time': timesheet.entry_time.strftime('%H:%M'),
+            'Exit Time': timesheet.exit_time.strftime('%H:%M'),
+            'Lunch (mins)': timesheet.lunch_duration_minutes or 0,
+            'Raw Hours': f"{timesheet.raw_hours:.2f}",
+            'Calculated Hours': f"{timesheet.calculated_hours:.2f}",
+            'Labor Cost': f"${timesheet.calculated_hours * (employee.pay_rate if employee else 0):.2f}"
+        })
+    
     if format == 'excel':
-        # Prepare data for Excel
-        data = []
-        for timesheet in timesheets:
-            employee = Employee.query.get(timesheet.employee_id)
-            project = Project.query.get(timesheet.project_id)
-            data.append({
-                'Date': timesheet.date.strftime('%Y-%m-%d'),
-                'Employee': employee.name if employee else 'N/A',
-                'Project': project.name if project else 'N/A',
-                'Start Time': timesheet.start_time.strftime('%H:%M') if timesheet.start_time else 'N/A',
-                'End Time': timesheet.end_time.strftime('%H:%M') if timesheet.end_time else 'N/A',
-                'Lunch (hrs)': timesheet.lunch_hours,
-                'Total Hours': timesheet.total_hours
-            })
-            
-        df = pd.DataFrame(data)
-        excel_file = io.BytesIO()
-        df.to_excel(excel_file, index=False, engine='openpyxl')
-        excel_file.seek(0)
-        
-        return send_file(
-            excel_file,
-            as_attachment=True,
-            download_name='Timesheets_Report.xlsx',
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    
+        return export_to_excel(timesheets_data, 'timesheets')
     elif format == 'pdf':
-        # Create PDF
-        pdf = FPDF()
-        pdf.add_page('L')  # Landscape for more columns
-        
-        # Add title
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, 'Timesheets Report', 0, 1, 'C')
-        pdf.ln(5)
-        
-        # Add header
-        pdf.set_font('Arial', 'B', 10)
-        pdf.cell(25, 10, 'Date', 1)
-        pdf.cell(40, 10, 'Employee', 1)
-        pdf.cell(60, 10, 'Project', 1)
-        pdf.cell(25, 10, 'Start Time', 1)
-        pdf.cell(25, 10, 'End Time', 1)
-        pdf.cell(25, 10, 'Lunch (hrs)', 1)
-        pdf.cell(25, 10, 'Total Hours', 1)
-        pdf.ln()
-        
-        # Add data
-        pdf.set_font('Arial', '', 9)
-        for timesheet in timesheets:
-            employee = Employee.query.get(timesheet.employee_id)
-            project = Project.query.get(timesheet.project_id)
-            pdf.cell(25, 10, timesheet.date.strftime('%Y-%m-%d'), 1)
-            pdf.cell(40, 10, (employee.name if employee else 'N/A')[:20], 1)
-            pdf.cell(60, 10, (project.name if project else 'N/A')[:30], 1)
-            pdf.cell(25, 10, timesheet.start_time.strftime('%H:%M') if timesheet.start_time else 'N/A', 1)
-            pdf.cell(25, 10, timesheet.end_time.strftime('%H:%M') if timesheet.end_time else 'N/A', 1)
-            pdf.cell(25, 10, str(timesheet.lunch_hours), 1)
-            pdf.cell(25, 10, str(timesheet.total_hours), 1)
-            pdf.ln()
-        
-        # Create temp file and write PDF to it
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-            pdf_path = tmp.name
-            pdf.output(pdf_path)
-            
-        # Return the created PDF file
-        return send_file(
-            pdf_path,
-            as_attachment=True, 
-            download_name='Timesheets_Report.pdf',
-            mimetype='application/pdf'
-        )
-    
+        return export_to_pdf(timesheets_data, 'Timesheets', 'timesheets.pdf')
+    elif format == 'csv':
+        return export_to_csv(timesheets_data, 'timesheets')
     else:
-        flash(f'Export format {format} not supported', 'danger')
+        flash('Invalid export format', 'error')
         return redirect(url_for('timesheets'))
 
+@app.route('/export/expenses/<format>')
+@login_required
 def export_expenses(format):
-    """Export expenses to Excel or PDF"""
+    """Export expenses to Excel, PDF, or CSV"""
     expenses = Expense.query.order_by(Expense.date.desc()).all()
     
+    expenses_data = []
+    for expense in expenses:
+        project = db.session.get(Project, expense.project_id) if expense.project_id else None
+        
+        expenses_data.append({
+            'Date': expense.date.strftime('%Y-%m-%d'),
+            'Description': expense.description,
+            'Category': expense.category or '',
+            'Amount': f"${expense.amount:.2f}",
+            'Supplier/Vendor': expense.supplier_vendor or '',
+            'Project': project.name if project else 'N/A',
+            'Payment Method': expense.payment_method.value if expense.payment_method else '',
+            'Payment Status': expense.payment_status.value if expense.payment_status else ''
+        })
+    
     if format == 'excel':
-        # Prepare data for Excel
-        data = []
-        for expense in expenses:
-            project = Project.query.get(expense.project_id) if expense.project_id else None
-            data.append({
-                'Date': expense.date.strftime('%Y-%m-%d'),
-                'Description': expense.description,
-                'Category': expense.category,
-                'Amount': f"${expense.amount:.2f}",
-                'Project': project.name if project else 'N/A',
-                'Payment Method': expense.payment_method.name if expense.payment_method else 'N/A',
-                'Status': expense.payment_status.name if expense.payment_status else 'N/A'
-            })
-            
-        df = pd.DataFrame(data)
-        excel_file = io.BytesIO()
-        df.to_excel(excel_file, index=False, engine='openpyxl')
-        excel_file.seek(0)
-        
-        return send_file(
-            excel_file,
-            as_attachment=True,
-            download_name='Expenses_Report.xlsx',
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    
+        return export_to_excel(expenses_data, 'expenses')
     elif format == 'pdf':
-        # Create PDF
-        pdf = FPDF()
-        pdf.add_page('L')  # Landscape for more columns
-        
-        # Add title
-        pdf.set_font('Arial', 'B', 16)
-        pdf.cell(0, 10, 'Expenses Report', 0, 1, 'C')
-        pdf.ln(5)
-        
-        # Add header
-        pdf.set_font('Arial', 'B', 10)
-        pdf.cell(25, 10, 'Date', 1)
-        pdf.cell(60, 10, 'Description', 1)
-        pdf.cell(30, 10, 'Category', 1)
-        pdf.cell(25, 10, 'Amount', 1)
-        pdf.cell(60, 10, 'Project', 1)
-        pdf.cell(30, 10, 'Payment Method', 1)
-        pdf.cell(25, 10, 'Status', 1)
-        pdf.ln()
-        
-        # Add data
-        pdf.set_font('Arial', '', 9)
-        for expense in expenses:
-            project = Project.query.get(expense.project_id) if expense.project_id else None
-            pdf.cell(25, 10, expense.date.strftime('%Y-%m-%d'), 1)
-            pdf.cell(60, 10, expense.description[:30], 1)
-            pdf.cell(30, 10, expense.category[:15], 1)
-            pdf.cell(25, 10, f"${expense.amount:.2f}", 1)
-            pdf.cell(60, 10, (project.name if project else 'N/A')[:30], 1)
-            pdf.cell(30, 10, expense.payment_method.name if expense.payment_method else 'N/A', 1)
-            pdf.cell(25, 10, expense.payment_status.name if expense.payment_status else 'N/A', 1)
-            pdf.ln()
-        
-        # Create temp file and write PDF to it
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-            pdf_path = tmp.name
-            pdf.output(pdf_path)
-            
-        # Return the created PDF file
-        return send_file(
-            pdf_path,
-            as_attachment=True, 
-            download_name='Expenses_Report.pdf',
-            mimetype='application/pdf'
-        )
-    
+        return export_to_pdf(expenses_data, 'Expenses', 'expenses.pdf')
+    elif format == 'csv':
+        return export_to_csv(expenses_data, 'expenses')
     else:
-        flash(f'Export format {format} not supported', 'danger')
+        flash('Invalid export format', 'error')
         return redirect(url_for('expenses'))
+
+@app.route('/export/payroll/<format>')
+@login_required
+def export_payroll(format):
+    """Export payroll data to Excel, PDF, or CSV"""
+    payroll_payments = PayrollPayment.query.order_by(PayrollPayment.payment_date.desc()).all()
+    
+    payroll_data = []
+    for payment in payroll_payments:
+        employee = db.session.get(Employee, payment.employee_id)
+        
+        check_info = ""
+        if payment.payment_method == PaymentMethod.CHECK:
+            check_info = f"Check #{payment.check_number}" if payment.check_number else "No check number"
+            if payment.bank_name:
+                check_info += f", {payment.bank_name}"
+        
+        payroll_data.append({
+            'Employee': employee.name if employee else 'Unknown',
+            'Pay Period Start': payment.pay_period_start.strftime('%Y-%m-%d'),
+            'Pay Period End': payment.pay_period_end.strftime('%Y-%m-%d'),
+            'Payment Date': payment.payment_date.strftime('%Y-%m-%d'),
+            'Amount': f"${payment.amount:.2f}",
+            'Payment Method': payment.payment_method.value,
+            'Check Details': check_info,
+            'Notes': payment.notes or ''
+        })
+    
+    if format == 'excel':
+        return export_to_excel(payroll_data, 'payroll')
+    elif format == 'pdf':
+        return export_to_pdf(payroll_data, 'Payroll', 'payroll.pdf')
+    elif format == 'csv':
+        return export_to_csv(payroll_data, 'payroll')
+    else:
+        flash('Invalid export format', 'error')
+        return redirect(url_for('payroll_report'))
 
 # --- Future Enhancements Routes ---
 @app.route('/future-enhancements')
@@ -1086,4 +998,4 @@ if __name__ == '__main__':
             db.session.commit()
             print('Created default user: patricia')
             
-    app.run(debug=True, host='0.0.0.0')  # Runs on localhost and network IP
+    app.run(debug=True, host='0.0.0.0', port=5001)  # Runs on localhost and network IP
