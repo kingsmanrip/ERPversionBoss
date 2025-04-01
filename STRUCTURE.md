@@ -56,10 +56,12 @@ pdq_erp/
 │   ├── test_models.py     # Tests for data models
 │   ├── test_forms.py      # Tests for form validation
 │   ├── test_routes.py     # Tests for route functionality
-│   ├── test_integration.py # Integration tests
+│   ├── test_integration.py # Integration tests for complete workflows
 │   ├── test_complex_scenarios.py # Tests for complex business flows
 │   ├── test_edge_cases.py # Tests for boundary conditions
 │   ├── test_security_and_validation.py # Security and validation tests
+│   ├── test_payroll_deductions_and_cash_flow.py # Tests for payroll deductions system
+│   ├── test_net_profit.py # Tests for net profit calculation functionality
 │   └── conftest.py         # Pytest fixtures and configuration
 │
 └── venv/                  # Virtual environment (not included in repository)
@@ -94,10 +96,13 @@ pdq_erp/
   - SQLAlchemy model classes
   - User model for authentication with password hashing
   - Table relationships with proper cascade behavior
-  - Enums for statuses (ProjectStatus, PaymentStatus, PaymentMethod)
+  - Enums for statuses (ProjectStatus, PaymentStatus, PaymentMethod, DeductionType)
   - Business logic methods within models
   - Data validation rules
-  - Calculated properties for costs and other derived values
+  - Calculated properties for costs, profits, and net amounts
+  - PayrollDeduction model for tracking different types of deductions
+  - Enhanced PayrollPayment model with gross_amount and net amount calculations
+  - Project model with actual revenue and net profit properties
   - Indexes for performance optimization
 
 #### `forms.py`
@@ -146,8 +151,11 @@ pdq_erp/
 - **`invoice_form.html`**: Form for creating and managing invoices
 
 #### Payroll
-- **`payroll_report.html`**: Generates payroll reports by date range
-- **`payroll_payment_form.html`**: Form for recording payments to employees
+- **`payroll_report.html`**: Generates payroll reports by date range with gross and net amounts
+- **`payroll_payment_form.html`**: Form for recording payments to employees with deduction management
+  - Includes dynamic UI for adding/removing multiple deductions
+  - Supports different deduction types (taxes, insurance, retirement, advances, etc.)
+  - Features real-time calculation of net amount as deductions are added
 
 ## UI Design Structure
 
@@ -188,6 +196,8 @@ All database relationships are carefully designed with proper cascade behavior t
 - Has many expenses (one-to-many)
 - Has many invoices (one-to-many)
 - Includes properties for cost and profit calculations
+- Features actual_revenue property to calculate revenue from paid invoices
+- Includes actual_net_profit property to calculate real profit (actual revenue minus costs)
 
 #### Timesheet
 - Belongs to an employee (many-to-one)

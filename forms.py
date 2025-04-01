@@ -1,13 +1,24 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, DateField, SelectField, TextAreaField, SubmitField, TimeField, BooleanField, PasswordField
 from wtforms.validators import DataRequired, Optional, NumberRange, Email, ValidationError
-from models import ProjectStatus, PaymentMethod, PaymentStatus
+from models import ProjectStatus, PaymentMethod, PaymentStatus, DeductionType
 from datetime import date
 
 # Custom validators
 def validate_end_after_start(form, field):
-    """Validate that end date is on or after start date."""
-    if form.start_date.data and field.data and field.data < form.start_date.data:
+    """Validate that end date is on or after start date.
+    Works with both start_date and pay_period_start field names.
+    """
+    # Check if we're using a form with start_date or pay_period_start
+    if hasattr(form, 'start_date'):
+        start_field = form.start_date
+    elif hasattr(form, 'pay_period_start'):
+        start_field = form.pay_period_start
+    else:
+        # If neither field exists, skip validation
+        return
+        
+    if start_field.data and field.data and field.data < start_field.data:
         raise ValidationError('End date must be on or after start date.')
 
 def validate_future_date(form, field):
@@ -91,12 +102,20 @@ class ExpenseForm(FlaskForm):
         if form.date.data and field.data and field.data < form.date.data:
             raise ValidationError('Due date should not be earlier than expense date.')
 
+# Form for adding or editing a payroll deduction
+class PayrollDeductionForm(FlaskForm):
+    description = StringField('Description', validators=[DataRequired()])
+    amount = FloatField('Deduction Amount ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
+    deduction_type = SelectField('Deduction Type', choices=[(dt.name, dt.value) for dt in DeductionType], coerce=str, validators=[DataRequired()])
+    notes = TextAreaField('Notes')
+    submit = SubmitField('Add Deduction')
+
 # Basic form for recording a payroll payment manually
 class PayrollPaymentForm(FlaskForm):
     employee_id = SelectField('Employee', coerce=int, validators=[DataRequired()])
     pay_period_start = DateField('Pay Period Start', validators=[DataRequired()], format='%Y-%m-%d')
     pay_period_end = DateField('Pay Period End', validators=[DataRequired(), validate_end_after_start], format='%Y-%m-%d')
-    amount = FloatField('Amount Paid ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
+    gross_amount = FloatField('Gross Amount ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
     payment_date = DateField('Payment Date', validators=[DataRequired()], format='%Y-%m-%d')
     payment_method = SelectField('Payment Method', choices=[(pm.name, pm.value) for pm in PaymentMethod if pm != PaymentMethod.OTHER], coerce=str, validators=[DataRequired()])
     notes = TextAreaField('Notes (e.g., adjustments)')

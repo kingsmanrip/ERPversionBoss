@@ -38,6 +38,33 @@ def test_employees_route(app, client):
             db.session.add(user)
             db.session.commit()
         
+        # Create test employees
+        from datetime import date, timedelta
+        from models import Employee, PaymentMethod
+        
+        employee1 = Employee(
+            name="John Doe",
+            employee_id_str="TEST-EMP-001",
+            contact_details="john@example.com",
+            pay_rate=25.0,
+            payment_method_preference=PaymentMethod.CHECK,
+            is_active=True,
+            hire_date=date.today() - timedelta(days=90)
+        )
+        
+        employee2 = Employee(
+            name="Jane Smith",
+            employee_id_str="TEST-EMP-002",
+            contact_details="jane@example.com",
+            pay_rate=28.0,
+            payment_method_preference=PaymentMethod.CASH,
+            is_active=True,
+            hire_date=date.today() - timedelta(days=30)
+        )
+        
+        db.session.add_all([employee1, employee2])
+        db.session.commit()
+        
         login(client, "testuser", "testpassword")
         
         # Now access the employees page
@@ -57,6 +84,37 @@ def test_projects_route(app, client):
             user.set_password("testpassword")
             db.session.add(user)
             db.session.commit()
+        
+        # Create test projects
+        from datetime import date, timedelta
+        from models import Project, ProjectStatus
+        
+        project1 = Project(
+            name="Office Renovation",
+            project_id_str="TEST-PRJ-001",
+            client_name="ABC Corp",
+            location="123 Business St",
+            start_date=date.today() - timedelta(days=10),
+            end_date=date.today() + timedelta(days=20),
+            contract_value=5000.0,
+            description="Renovate office space",
+            status=ProjectStatus.IN_PROGRESS
+        )
+        
+        project2 = Project(
+            name="Residential Painting",
+            project_id_str="TEST-PRJ-002",
+            client_name="Smith Family",
+            location="456 Home Ave",
+            start_date=date.today() - timedelta(days=5),
+            end_date=date.today() + timedelta(days=10),
+            contract_value=2500.0,
+            description="Paint living room and kitchen",
+            status=ProjectStatus.PENDING
+        )
+        
+        db.session.add_all([project1, project2])
+        db.session.commit()
         
         login(client, "testuser", "testpassword")
         
@@ -190,15 +248,31 @@ def test_project_detail_route(app, client):
         
         login(client, "testuser", "testpassword")
         
-        # Get a fresh instance of the project within the request context
-        from models import Project
-        project_id = 1  # Replace with actual project ID
-        project = Project.query.get(project_id)
-        assert project is not None
-    
+        # Create a test project
+        from models import Project, ProjectStatus
+        from datetime import date, timedelta
+        
+        test_project = Project(
+            name="Test Detail Project",
+            project_id_str="TEST-DETAIL-001",
+            client_name="Test Client",
+            location="Test Location",
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=30),
+            contract_value=10000.0,
+            description="Project for detail view test",
+            status=ProjectStatus.IN_PROGRESS
+        )
+        db.session.add(test_project)
+        db.session.commit()
+        
+        # Get the project ID
+        project_id = test_project.id
+        
+        # Test the project detail page
         response = client.get(f'/project/view/{project_id}', follow_redirects=True)
         assert response.status_code == 200
-        assert b'Office Renovation' in response.data
+        assert bytes(test_project.name, 'utf-8') in response.data
         assert b'Project Details' in response.data
         assert b'Contract Value' in response.data
 

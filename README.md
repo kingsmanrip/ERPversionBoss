@@ -41,6 +41,8 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
   - Enhanced reporting to show both gross and net payment amounts
   - Added tooltips to display detailed deduction information in reports
   - Fixed edge cases in payroll report calculations
+  - Fixed critical issues with the PayrollPayment model to properly handle gross and net amounts
+  - Improved validation for payroll payment forms
 - **Net Profit Calculation**: Added functionality to track actual net profit (money collected minus expenses) for each project and company-wide
   - Color-coded profit displays (green for positive, red for negative)
   - Comprehensive test coverage for the net profit calculation functionality
@@ -57,7 +59,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
   - Fixed UndefinedError in payroll reports when no payments exist for certain methods
   - Fixed BuildError related to non-existent routes
   - Improved error handling throughout the application
+  - Fixed NOT NULL constraint errors in PayrollPayment model
+  - Fixed validator issue in forms.py to handle different field names consistently
+  - Resolved test failures in integration tests for project workflow and payroll processing
+  - Fixed authentication issues in test suite
 - **Comprehensive Testing**: Added extensive test suite with all tests passing
+  - Enhanced test data creation for consistent test execution
+  - Improved test coverage for edge cases
+  - Fixed authentication in tests to ensure proper access to protected routes
 - **Mock Data Generation**: Included a script to populate the system with realistic test data
 - **SQLAlchemy 2.0 Compatibility**: Updated all database queries to use modern patterns
 

@@ -1,14 +1,42 @@
 import pytest
 from datetime import date, time, timedelta
 import re
-from models import db, Employee, Project, Timesheet, Material, Expense, Invoice, ProjectStatus, PaymentMethod, PaymentStatus
+from models import db, Employee, Project, Timesheet, Material, Expense, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User
 from sqlalchemy import func
 import time as pytime
 
-def test_input_sanitization(client):
+def login(client, username, password):
+    """Helper function to log in a user."""
+    return client.post('/login', data={
+        'username': username,
+        'password': password
+    }, follow_redirects=True)
+
+def test_input_sanitization(client, app):
     """Test input sanitization for potential security issues."""
-    # Test HTML injection in text fields
-    html_injection = "<script>alert('XSS');</script>"
+    with app.app_context():
+        # Create and login as the test user
+        user = User(username="testuser")
+        user.set_password("testpassword")
+        db.session.add(user)
+        db.session.commit()
+        
+        login_response = login(client, "testuser", "testpassword")
+        assert login_response.status_code == 200
+        
+        # Create a test employee to ensure the database has data
+        test_employee = Employee(
+            name="Security Test Employee",
+            employee_id_str="SEC001",
+            contact_details="security@test.com",
+            pay_rate=25.0,
+            is_active=True
+        )
+        db.session.add(test_employee)
+        db.session.commit()
+        
+        # Test HTML injection in text fields
+        html_injection = "<script>alert('XSS');</script>"
     
     employee_data = {
         'name': f"Test Employee {html_injection}",

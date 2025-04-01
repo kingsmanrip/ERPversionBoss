@@ -1,10 +1,25 @@
 import pytest
 from datetime import date, time, timedelta
-from models import db, Employee, Project, Timesheet, Material, Expense, Invoice, ProjectStatus, PaymentMethod, PaymentStatus
+from models import db, Employee, Project, Timesheet, Material, Expense, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User
+
+def login(client, username, password):
+    """Helper function to log in a user."""
+    return client.post('/login', data={
+        'username': username,
+        'password': password
+    }, follow_redirects=True)
 
 def test_project_workflow(app, client):
     """Test the entire project workflow from creation to completion."""
     with app.app_context():
+        # Create and login as the test user
+        user = User(username="testuser")
+        user.set_password("testpassword")
+        db.session.add(user)
+        db.session.commit()
+        
+        login_response = login(client, "testuser", "testpassword")
+        assert login_response.status_code == 200
         # 1. Create a new employee
         employee_data = {
             'name': 'Integration Tester',
@@ -54,7 +69,8 @@ def test_project_workflow(app, client):
         }
         response = client.post('/timesheet/add', data=timesheet_data, follow_redirects=True)
         assert response.status_code == 200
-        assert b'Timesheet entry added successfully' in response.data
+        # Check for the actual flash message format used in the app
+        assert b'Timesheet for Integration Tester on project Integration Test Project added successfully!' in response.data
         
         # 4. Add materials
         material_data = {
@@ -84,6 +100,11 @@ def test_project_workflow(app, client):
         assert response.status_code == 200
         assert b'Expense added successfully' in response.data
         
+        # Update project status to COMPLETED before creating an invoice
+        # This is necessary because invoices can only be created for COMPLETED or INVOICED projects
+        project.status = ProjectStatus.COMPLETED
+        db.session.commit()
+        
         # 6. Create invoice
         invoice_data = {
             'project_id': project.id,
@@ -95,7 +116,7 @@ def test_project_workflow(app, client):
         }
         response = client.post('/invoice/add', data=invoice_data, follow_redirects=True)
         assert response.status_code == 200
-        assert b'Invoice added successfully' in response.data
+        assert b'Invoice added successfully!' in response.data
         
         # 7. Verify project details
         response = client.get(f'/project/view/{project.id}')
@@ -122,6 +143,15 @@ def test_project_workflow(app, client):
 def test_payroll_workflow(app, client, sample_data):
     """Test the full payroll workflow from timesheet entry to payment."""
     with app.app_context():
+        # Create and login as the test user
+        if not User.query.filter_by(username="testuser").first():
+            user = User(username="testuser")
+            user.set_password("testpassword")
+            db.session.add(user)
+            db.session.commit()
+        
+        login_response = login(client, "testuser", "testpassword")
+        assert login_response.status_code == 200
         # 1. Get an employee from sample data
         employee_id = sample_data['employee_ids'][0]
         employee = db.session.get(Employee, employee_id)  # Use session.get instead of query.get
@@ -153,7 +183,7 @@ def test_payroll_workflow(app, client, sample_data):
             'employee_id': employee.id,
             'pay_period_start': (date.today() - timedelta(days=7)).strftime('%Y-%m-%d'),
             'pay_period_end': date.today().strftime('%Y-%m-%d'),
-            'amount': 1000.0,
+            'gross_amount': 1000.0,  # Changed from 'amount' to 'gross_amount' to match the updated form
             'payment_date': date.today().strftime('%Y-%m-%d'),
             'payment_method': 'CASH',
             'notes': 'Integration test payment'

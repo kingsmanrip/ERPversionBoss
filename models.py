@@ -29,6 +29,14 @@ class PaymentStatus(Enum):
     OVERDUE = "Overdue"
     PROCESSED = "Processed"
 
+class DeductionType(Enum):
+    TAX = "Tax"
+    INSURANCE = "Insurance"
+    RETIREMENT = "Retirement"
+    ADVANCE = "Advance Payment"
+    LOAN = "Loan Repayment"
+    OTHER = "Other"
+
 # --- Models ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -177,6 +185,17 @@ class Project(db.Model):
         if self.contract_value and self.contract_value > 0:
             return (self.profit / self.contract_value) * 100
         return 0
+        
+    @property
+    def actual_revenue(self):
+        """Calculate actual revenue received from paid invoices."""
+        return sum(invoice.amount for invoice in self.invoices 
+                  if invoice.status == PaymentStatus.PAID)
+    
+    @property
+    def actual_net_profit(self):
+        """Calculate actual net profit (money collected minus expenses)."""
+        return self.actual_revenue - self.total_cost
         
     def __repr__(self):
         return f'<Project {self.name}>'
@@ -343,12 +362,31 @@ class Expense(db.Model):
     def __repr__(self):
         return f'<Expense {self.category} ${self.amount:.2f}>'
 
+class PayrollDeduction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    payroll_payment_id = db.Column(db.Integer, db.ForeignKey('payroll_payment.id', ondelete='CASCADE'), nullable=False)
+    description = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    deduction_type = db.Column(db.Enum(DeductionType), nullable=False)
+    notes = db.Column(db.Text)
+    
+    payroll_payment = db.relationship('PayrollPayment', foreign_keys=[payroll_payment_id], backref=db.backref('deductions', cascade='all, delete-orphan'))
+    
+    __table_args__ = (
+        db.Index('idx_deduction_payroll', 'payroll_payment_id'),
+        db.Index('idx_deduction_type', 'deduction_type'),
+    )
+    
+    def __repr__(self):
+        return f'<PayrollDeduction {self.description}, Amount: ${self.amount:.2f}, Type: {self.deduction_type.value if self.deduction_type else "None"}>'
+
 class PayrollPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
     pay_period_start = db.Column(db.Date, nullable=False)
     pay_period_end = db.Column(db.Date, nullable=False)
-    amount = db.Column(db.Float, nullable=False)
+    gross_amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Float, nullable=False)  # Net amount after deductions
     payment_date = db.Column(db.Date, nullable=False)
     payment_method = db.Column(db.Enum(PaymentMethod), nullable=False)
     notes = db.Column(db.Text)
@@ -363,6 +401,16 @@ class PayrollPayment(db.Model):
         db.Index('idx_payroll_period', 'pay_period_start', 'pay_period_end'),
     )
     
+    @property
+    def total_deductions(self):
+        """Calculate the total amount of all deductions."""
+        return sum(deduction.amount for deduction in self.deductions)
+    
+    @property
+    def net_amount(self):
+        """Calculate the net amount after deductions."""
+        return self.gross_amount - self.total_deductions
+    
     def validate_dates(self):
         """Validate that pay period end date is on or after start date."""
         if self.pay_period_start and self.pay_period_end:
@@ -376,7 +424,7 @@ class PayrollPayment(db.Model):
         return True
 
     def __repr__(self):
-        return f'<PayrollPayment {self.employee.name if self.employee else "No Employee"}, Period: {self.pay_period_start} to {self.pay_period_end}, Amount: ${self.amount:.2f}, Method: {self.payment_method.value if self.payment_method else "None"}>'
+        return f'<PayrollPayment {self.employee.name if self.employee else "No Employee"}, Period: {self.pay_period_start} to {self.pay_period_end}, Gross: ${self.gross_amount:.2f}, Net: ${self.amount:.2f}, Method: {self.payment_method.value if self.payment_method else "None"}>'
 
 class Invoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)

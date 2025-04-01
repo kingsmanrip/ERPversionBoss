@@ -225,9 +225,19 @@ The database schema uses SQLAlchemy relationships with proper cascade behavior t
   - `employee_id` (Foreign Key with CASCADE)
   - `payment_date`
   - `pay_period_start` and `pay_period_end`
-  - `amount`
+  - `gross_amount` (Total amount before deductions)
+  - `amount` (Net amount after deductions)
   - `payment_method` (Using PaymentMethod enum)
   - `notes`
+  - `check_number` (For check payments)
+  - `bank_name` (For check payments)
+
+- **Properties**:
+  - `total_deductions`: Calculated sum of all associated deduction amounts
+  - `net_amount`: Calculated as gross_amount minus total_deductions
+
+- **Relationships**:
+  - One-to-many with PayrollDeduction
 
 #### Invoice
 
@@ -310,8 +320,13 @@ The database schema uses SQLAlchemy relationships with proper cascade behavior t
 ### Payroll Management
 
 - Calculate payroll based on recorded timesheets
-- Generate payroll reports
-- Record payments to employees
+- Generate payroll reports with detailed breakdowns
+- Record payments to employees with comprehensive deduction tracking
+- Support for multiple deduction types (taxes, insurance, retirement, advances, etc.)
+- Dynamic UI for adding/removing deductions with real-time calculations
+- Detailed reporting showing both gross and net amounts
+- Tooltips in reports to show deduction breakdowns
+- Check payment tracking with check numbers and bank information
 
 ## Testing
 
@@ -325,19 +340,22 @@ The application includes a comprehensive test suite using pytest with the follow
    - Route functionality tests
 
 2. **Integration Tests**:
-   - Project workflow tests
-   - Payroll workflow tests
+   - Project workflow tests (from creation to completion)
+   - Payroll workflow tests (from timesheet entry to payment with deductions)
+   - Authentication tests to ensure proper access control
 
 3. **Edge Case Tests**:
    - Time boundary tests
    - Date boundary tests
    - Data validation tests
+   - Error handling tests
 
 4. **Complex Scenario Tests**:
    - Complete project lifecycle
    - Multiple project resource allocation
    - Employee status change impacts
    - Project status changes
+   - Payroll deduction calculations
 
 5. **Security and Validation Tests**:
    - Input sanitization
@@ -345,6 +363,17 @@ The application includes a comprehensive test suite using pytest with the follow
    - Data consistency
    - Performance with large queries
    - Transaction integrity
+   - Authentication validation
+
+6. **Payroll Deductions and Cash Flow Tests**:
+   - Payroll deduction calculation tests
+   - Project labor cost with payroll tests
+   - Comprehensive cash flow tests
+   - Payroll net amount consistency tests
+
+7. **Net Profit Tests**:
+   - Actual revenue calculation tests
+   - Actual net profit calculation tests
 
 ### Running Tests
 
@@ -528,22 +557,39 @@ A complete payroll deductions system has been implemented with the following fea
    - Linked to PayrollPayment via foreign key relationship
    - Supports multiple deduction types (taxes, insurance, retirement, advances, etc.)
    - Tracks description, amount, and deduction type
+   - Includes notes field for additional context
 
 2. **Enhanced PayrollPayment Model**:
    - Added gross_amount field to track pre-deduction amount
    - Implemented property methods to calculate net amount after deductions
    - Added relationship to PayrollDeduction for easy access to deductions
+   - Includes check_number and bank_name fields for check payments
+   - Properly initializes amount field to prevent NOT NULL constraint errors
+   - Implements read-only properties for total_deductions and net_amount
 
 3. **Dynamic UI for Deduction Management**:
    - JavaScript-powered interface for adding/removing deductions
    - Real-time calculation of net amount as deductions are added
    - User-friendly form with validation
+   - Supports multiple deduction types with dropdown selection
 
 4. **Enhanced Payroll Reports**:
    - Display both gross and net amounts
    - Detailed breakdown of deductions
    - Tooltips to show deduction details
    - Safe handling of edge cases where no deductions exist
+   - Proper handling of payment method totals
+
+5. **Form Validation Improvements**:
+   - Enhanced validate_end_after_start function to work with both start_date and pay_period_start field names
+   - Improved error handling for date validation
+   - Added validation for check payment details
+
+6. **Bug Fixes**:
+   - Fixed NOT NULL constraint errors in PayrollPayment model
+   - Fixed issue with total_deductions property being treated as writable
+   - Resolved UndefinedError in payroll reports when no payments exist for certain methods
+   - Improved error handling throughout the payroll workflow
 
 ### UI Improvements
 

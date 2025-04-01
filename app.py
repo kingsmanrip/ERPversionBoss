@@ -556,12 +556,13 @@ def record_payroll_payment():
     deduction_types = list(DeductionType)
     
     if form.validate_on_submit():
-        # Create the payment with gross amount
+        # Create the payment with gross amount and initially set amount equal to gross_amount
         new_payment = PayrollPayment(
             employee_id=form.employee_id.data,
             pay_period_start=form.pay_period_start.data,
             pay_period_end=form.pay_period_end.data,
             gross_amount=form.gross_amount.data,
+            amount=form.gross_amount.data,  # Initially set to gross amount, will be updated after deductions
             payment_date=form.payment_date.data,
             payment_method=PaymentMethod[form.payment_method.data],
             notes=form.notes.data,
@@ -601,6 +602,10 @@ def record_payroll_payment():
                         notes=notes[i] if i < len(notes) else None
                     )
                     db.session.add(deduction)
+            
+            # Update the net amount after all deductions are processed
+            total_deductions = sum(float(amount) for amount in amounts if amount and float(amount) > 0)
+            new_payment.amount = new_payment.gross_amount - total_deductions
         
         db.session.commit()
         flash('Payment recorded successfully!', 'success')
@@ -652,8 +657,8 @@ def payroll_report():
         # Load deductions for the payment
         payment.deductions = PayrollDeduction.query.filter_by(payroll_payment_id=payment.id).all()
         
-        # Calculate total deductions
-        payment.total_deductions = sum(deduction.amount for deduction in payment.deductions)
+        # We don't need to calculate total_deductions here as it's a property in the model
+        # that will be calculated automatically when accessed
 
     # Add payment info to the weekly data
     for payment in recorded_payments:
@@ -688,12 +693,11 @@ def payroll_report():
             
         payment_method_totals[method]['count'] += 1
         payment_method_totals[method]['total'] += payment.gross_amount
-        # Calculate net amount (gross amount - total deductions)
-        net_amount = payment.gross_amount - payment.total_deductions
+        # Use the net_amount property from the model
         # Add net amount to the totals if not already there
         if 'total_after_deductions' not in payment_method_totals[method]:
             payment_method_totals[method]['total_after_deductions'] = 0
-        payment_method_totals[method]['total_after_deductions'] += net_amount
+        payment_method_totals[method]['total_after_deductions'] += payment.net_amount
         payment_method_totals[method]['payments'].append(payment)
     
     # 4. Calculate total hours across all employees

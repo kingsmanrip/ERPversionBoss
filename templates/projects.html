@@ -32,6 +32,7 @@
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Contract Value</th>
+                    <th>Net Profit</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -45,6 +46,7 @@
                     <td>{{ project.start_date.strftime('%Y-%m-%d') if project.start_date else "Not set" }}</td>
                     <td>{{ project.end_date.strftime('%Y-%m-%d') if project.end_date else "Not set" }}</td>
                     <td>{{ "$%.2f"|format(project.contract_value) if project.contract_value else "Not set" }}</td>
+                    <td class="{{ 'text-success' if project.actual_net_profit > 0 else 'text-danger' if project.actual_net_profit < 0 else '' }}">{{ "$%.2f"|format(project.actual_net_profit) }}</td>
                     <td>
                         <span class="badge bg-{{ 'info' if project.status.name == 'PENDING' else 'success' if project.status.name == 'IN_PROGRESS' else 'primary' if project.status.name == 'COMPLETED' else 'warning' if project.status.name == 'INVOICED' else 'dark' if project.status.name == 'PAID' else 'secondary' }}">
                             {{ project.status.value }}

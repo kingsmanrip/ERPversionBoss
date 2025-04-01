@@ -72,11 +72,22 @@
                     <span>Total Cost:</span>
                     <span class="fw-bold">{{ "$%.2f"|format(total_cost) }}</span>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <span>Profit:</span>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Estimated Profit:</span>
                     <span class="fw-bold {{ 'text-success' if profit > 0 else 'text-danger' if profit < 0 else '' }}">
                         {{ "$%.2f"|format(profit) }}
                         ({{ "%.1f%%"|format((profit / project.contract_value * 100) if project.contract_value else 0) }})
+                    </span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Actual Revenue:</span>
+                    <span class="fw-bold">{{ "$%.2f"|format(project.actual_revenue) }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Actual Net Profit:</span>
+                    <span class="fw-bold {{ 'text-success' if project.actual_net_profit > 0 else 'text-danger' if project.actual_net_profit < 0 else '' }}">
+                        {{ "$%.2f"|format(project.actual_net_profit) }}
                     </span>
                 </div>
             </div>
