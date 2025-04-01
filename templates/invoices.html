@@ -6,16 +6,8 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Invoices</h1>
         <div class="d-flex">
-            <div class="dropdown me-2">
-                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Export
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                    <li><a class="dropdown-item" href="{{ url_for('export_invoices', format='excel') }}">Excel (.xlsx)</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('export_invoices', format='pdf') }}">PDF</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('export_invoices', format='csv') }}">CSV</a></li>
-                </ul>
-            </div>
+            <!-- Export dropdown removed until functionality is implemented -->
+
             <a href="{{ url_for('add_invoice') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Create New Invoice
             </a>
@@ -53,10 +45,7 @@
                     </td>
                     <td>{{ invoice.payment_received_date.strftime('%Y-%m-%d') if invoice.payment_received_date else 'Not paid' }}</td>
                     <td>
-                        <!-- Add Edit link/button here once implemented -->
-                        <a href="#" class="btn btn-sm btn-info">Edit</a>
-                        <!-- Add Print/View PDF button here once implemented -->
-                        <a href="#" class="btn btn-sm btn-secondary">Print</a>
+                        <span class="text-muted"><small>Actions coming soon</small></span>
                     </td>
                 </tr>
                 {% endfor %}

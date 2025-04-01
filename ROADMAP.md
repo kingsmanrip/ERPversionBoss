@@ -21,9 +21,12 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
   - Add report showing total hours worked by employee per period
   - Add payment summary report with totals by payment type
 
-- [ ] **Add Payroll Deductions**
+- [x] **Add Payroll Deductions**
   - Implement ability to record and calculate various deductions
   - Display deductions on payroll reports
+  - Support multiple deduction types (taxes, insurance, retirement, advances, etc.)
+  - Calculate net amounts after deductions
+  - Provide dynamic UI for adding/removing deductions
 
 ## Priority 2: Financial Management System
 
@@ -97,6 +100,7 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
   - Include payment receipt tracking
 
 - [ ] **Project Financial Reporting**
+  - [x] Implement net profit tracking (actual revenue minus expenses)
   - Create detailed project billing report
   - Implement project cost breakdown report
   - Add profit margin analysis report

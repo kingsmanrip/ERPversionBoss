@@ -172,7 +172,9 @@ The database schema uses SQLAlchemy relationships with proper cascade behavior t
   - `total_labor_cost`: Calculated sum of timesheet hours multiplied by employee pay rates
   - `total_other_expenses`: Calculated sum of all expenses
   - `total_cost`: Sum of materials, labor, and expenses
-  - `profit`: Contract value minus total cost
+  - `profit`: Contract value minus total cost (estimated profit)
+  - `actual_revenue`: Calculated sum of all paid invoices
+  - `actual_net_profit`: Actual revenue minus total cost (actual money made)
 
 #### Timesheet
 
@@ -517,6 +519,51 @@ This update:
 - Prepares the codebase for future SQLAlchemy 2.0 migration
 - Improves error handling patterns
 - Provides more explicit database access code
+
+### Comprehensive Payroll Deductions System
+
+A complete payroll deductions system has been implemented with the following features:
+
+1. **PayrollDeduction Model**:
+   - Linked to PayrollPayment via foreign key relationship
+   - Supports multiple deduction types (taxes, insurance, retirement, advances, etc.)
+   - Tracks description, amount, and deduction type
+
+2. **Enhanced PayrollPayment Model**:
+   - Added gross_amount field to track pre-deduction amount
+   - Implemented property methods to calculate net amount after deductions
+   - Added relationship to PayrollDeduction for easy access to deductions
+
+3. **Dynamic UI for Deduction Management**:
+   - JavaScript-powered interface for adding/removing deductions
+   - Real-time calculation of net amount as deductions are added
+   - User-friendly form with validation
+
+4. **Enhanced Payroll Reports**:
+   - Display both gross and net amounts
+   - Detailed breakdown of deductions
+   - Tooltips to show deduction details
+   - Safe handling of edge cases where no deductions exist
+
+### UI Improvements
+
+1. **Streamlined Dashboard**:
+   - Removed the Quick Actions section for a cleaner interface
+   - Improved layout to emphasize financial metrics and project performance
+
+2. **Navigation Enhancements**:
+   - Removed Future Enhancements link from navigation menu
+   - Focused navigation on implemented functionality
+
+3. **Improved Error Handling**:
+   - Fixed BuildError related to non-existent routes
+   - Added proper error handling for missing data
+   - Improved user feedback for non-implemented features
+
+4. **Invoice Page Improvements**:
+   - Removed non-functional buttons and export options
+   - Added clear indicators for features coming soon
+   - Improved layout consistency
 
 ### Enhanced Export Capabilities
 

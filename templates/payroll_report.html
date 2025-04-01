@@ -98,7 +98,19 @@
                                 {% if data.payments is defined and data.payments %}
                                     {% for payment in data.payments %}
                                         <div class="d-flex justify-content-between">
-                                            <span>${{ "%.2f"|format(payment.amount) }}</span>
+                                            <span>
+                                                ${{ "%.2f"|format(payment.gross_amount) }} gross
+                                                {% if payment.deductions and payment.deductions|length > 0 %}
+                                                    <a href="#" data-bs-toggle="tooltip" data-bs-html="true" title="
+                                                        <strong>Deductions:</strong><br>
+                                                        {% for deduction in payment.deductions %}
+                                                            {{ deduction.description }}: ${{ '%.2f'|format(deduction.amount) }}<br>
+                                                        {% endfor %}
+                                                        <strong>Total Deductions:</strong> ${{ '%.2f'|format(payment.total_deductions) }}
+                                                    "><i class="bi bi-info-circle text-primary"></i></a>
+                                                    <small class="text-muted">(${{ "%.2f"|format(payment.total_deductions) }} deductions)</small>
+                                                {% endif %}
+                                            </span>
                                             <span class="badge bg-{{ 'success' if payment.payment_method.name == 'CASH' else 'info' if payment.payment_method.name == 'CHECK' else 'secondary' }}">
                                                 {{ payment.payment_method.value }}
                                                 {% if payment.payment_method.name == 'CHECK' and payment.check_number %}
@@ -137,7 +149,11 @@
                             <th></th>
                             <th>${{ "%.2f"|format(weekly_data.values()|sum(attribute='potential_pay')) }}</th>
                             <th>
-                                ${{ "%.2f"|format(payment_method_totals.CASH.total + payment_method_totals.CHECK.total) }}
+                                <div>
+                                    <div><strong>Gross:</strong> ${{ "%.2f"|format(payment_method_totals.CASH.total + payment_method_totals.CHECK.total) }}</div>
+                                    <div><strong>Net:</strong> ${{ "%.2f"|format((payment_method_totals.CASH.total_after_deductions if 'total_after_deductions' in payment_method_totals.CASH else 0) + 
+                                        (payment_method_totals.CHECK.total_after_deductions if 'total_after_deductions' in payment_method_totals.CHECK else 0)) }}</div>
+                                </div>
                             </th>
                             <th></th>
                         </tr>

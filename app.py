@@ -12,8 +12,8 @@ import tempfile
 import io
 import pandas as pd
 
-from models import db, Employee, Project, Timesheet, Material, Expense, PayrollPayment, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User
-from forms import EmployeeForm, ProjectForm, TimesheetForm, MaterialForm, ExpenseForm, PayrollPaymentForm, InvoiceForm, LoginForm
+from models import db, Employee, Project, Timesheet, Material, Expense, PayrollPayment, PayrollDeduction, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User, DeductionType
+from forms import EmployeeForm, ProjectForm, TimesheetForm, MaterialForm, ExpenseForm, PayrollPaymentForm, PayrollDeductionForm, InvoiceForm, LoginForm
 
 load_dotenv()  # Load environment variables if needed
 
@@ -187,6 +187,9 @@ def index():
         Invoice.status != PaymentStatus.PAID
     ).scalar() or 0
     
+    # Calculate total net profit across all projects
+    total_net_profit = sum(project.actual_net_profit for project in all_projects)
+    
     # Timesheet summary for current week
     start_of_week, end_of_week = get_week_start_end()
     # Get timesheets directly instead of using the property in SQL
@@ -237,7 +240,8 @@ def index():
                           project_status_counts=project_status_counts,
                           expenses_total=expenses_total,
                           monthly_expenses=monthly_expenses,
-                          monthly_labels=monthly_labels)
+                          monthly_labels=monthly_labels,
+                          total_net_profit=total_net_profit)
 
 # --- Employee Routes ---
 @app.route('/employees')
@@ -548,12 +552,16 @@ def record_payroll_payment():
     # Populate employee choices
     form.employee_id.choices = [(e.id, e.name) for e in Employee.query.order_by(Employee.name).all()]
     
+    # Get deduction types for the template
+    deduction_types = list(DeductionType)
+    
     if form.validate_on_submit():
+        # Create the payment with gross amount
         new_payment = PayrollPayment(
             employee_id=form.employee_id.data,
             pay_period_start=form.pay_period_start.data,
             pay_period_end=form.pay_period_end.data,
-            amount=form.amount.data,
+            gross_amount=form.gross_amount.data,
             payment_date=form.payment_date.data,
             payment_method=PaymentMethod[form.payment_method.data],
             notes=form.notes.data,
@@ -565,19 +573,40 @@ def record_payroll_payment():
         # Validate that end date is after start date
         if not new_payment.validate_dates():
             flash('Error: Pay period end date must be on or after start date.', 'danger')
-            return render_template('payroll_payment_form.html', form=form, title="Record Payroll Payment")
+            return render_template('payroll_payment_form.html', form=form, deduction_types=deduction_types, title="Record Payroll Payment")
             
         # Validate check details if payment method is Check
         if form.payment_method.data == 'CHECK' and not new_payment.validate_check_details():
             flash('Error: Check number is required for check payments.', 'danger')
-            return render_template('payroll_payment_form.html', form=form, title="Record Payroll Payment")
-            
+            return render_template('payroll_payment_form.html', form=form, deduction_types=deduction_types, title="Record Payroll Payment")
+        
+        # Add the payment first to get an ID
         db.session.add(new_payment)
+        db.session.flush()
+        
+        # Process deductions if any
+        if 'deduction_description[]' in request.form:
+            descriptions = request.form.getlist('deduction_description[]')
+            amounts = request.form.getlist('deduction_amount[]')
+            types = request.form.getlist('deduction_type[]')
+            notes = request.form.getlist('deduction_notes[]')
+            
+            for i in range(len(descriptions)):
+                if descriptions[i] and amounts[i] and float(amounts[i]) > 0:
+                    deduction = PayrollDeduction(
+                        payroll_payment_id=new_payment.id,
+                        description=descriptions[i],
+                        amount=float(amounts[i]),
+                        deduction_type=DeductionType[types[i]],
+                        notes=notes[i] if i < len(notes) else None
+                    )
+                    db.session.add(deduction)
+        
         db.session.commit()
         flash('Payment recorded successfully!', 'success')
         return redirect(url_for('payroll_report'))
     
-    return render_template('payroll_payment_form.html', form=form, title="Record Payment")
+    return render_template('payroll_payment_form.html', form=form, deduction_types=deduction_types, title="Record Payment")
 
 @app.route('/payroll/report')
 @login_required
@@ -617,6 +646,14 @@ def payroll_report():
         PayrollPayment.pay_period_end >= start_of_week,
         PayrollPayment.pay_period_start <= end_of_week
     ).order_by(PayrollPayment.payment_date.desc()).all()
+    
+    # Fetch deductions for each payment
+    for payment in recorded_payments:
+        # Load deductions for the payment
+        payment.deductions = PayrollDeduction.query.filter_by(payroll_payment_id=payment.id).all()
+        
+        # Calculate total deductions
+        payment.total_deductions = sum(deduction.amount for deduction in payment.deductions)
 
     # Add payment info to the weekly data
     for payment in recorded_payments:
@@ -650,7 +687,13 @@ def payroll_report():
             continue
             
         payment_method_totals[method]['count'] += 1
-        payment_method_totals[method]['total'] += payment.amount
+        payment_method_totals[method]['total'] += payment.gross_amount
+        # Calculate net amount (gross amount - total deductions)
+        net_amount = payment.gross_amount - payment.total_deductions
+        # Add net amount to the totals if not already there
+        if 'total_after_deductions' not in payment_method_totals[method]:
+            payment_method_totals[method]['total_after_deductions'] = 0
+        payment_method_totals[method]['total_after_deductions'] += net_amount
         payment_method_totals[method]['payments'].append(payment)
     
     # 4. Calculate total hours across all employees
@@ -998,4 +1041,4 @@ if __name__ == '__main__':
             db.session.commit()
             print('Created default user: patricia')
             
-    app.run(debug=True, host='0.0.0.0', port=5001)  # Runs on localhost and network IP
+    app.run(debug=True, host='0.0.0.0', port=5004)  # Runs on localhost and network IP

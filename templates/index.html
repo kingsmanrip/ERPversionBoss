@@ -6,7 +6,7 @@
 
 <!-- Financial Summary Row -->
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card bg-primary text-white h-100">
             <div class="card-body">
                 <h5 class="card-title">Projects</h5>
@@ -18,7 +18,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card bg-success text-white h-100">
             <div class="card-body">
                 <h5 class="card-title">Invoiced Amount</h5>
@@ -29,7 +29,23 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
+        <div class="card {{ 'bg-success' if total_net_profit > 0 else 'bg-danger' }} text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total Net Profit</h5>
+                <p class="card-text display-4 mb-0">${{ "%.2f"|format(total_net_profit) }}</p>
+                <small class="text-white-50">Actual money made after expenses</small>
+            </div>
+            <div class="card-footer {{ 'bg-success' if total_net_profit > 0 else 'bg-danger' }} border-0 text-end">
+                <a href="{{ url_for('projects') }}" class="btn btn-outline-light btn-sm">View Projects</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second Financial Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
         <div class="card bg-warning text-dark h-100">
             <div class="card-body">
                 <h5 class="card-title">Unpaid Invoices</h5>
@@ -40,7 +56,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="card bg-info text-white h-100">
             <div class="card-body">
                 <h5 class="card-title">Weekly Hours</h5>
@@ -80,10 +96,10 @@
     </div>
 </div>
 
-<!-- Top Projects and Quick Links Row -->
+<!-- Top Projects Row -->
 <div class="row mb-4">
     <!-- Top Profitable Projects -->
-    <div class="col-md-7">
+    <div class="col-md-12">
         <div class="card h-100">
             <div class="card-header bg-light">
                 <h5 class="card-title mb-0">Top Performing Projects</h5>
@@ -125,49 +141,6 @@
                 {% else %}
                 <p class="card-text">No active projects found.</p>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Links -->
-    <div class="col-md-5">
-        <div class="card h-100">
-            <div class="card-header bg-light">
-                <h5 class="card-title mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="row row-cols-1 row-cols-lg-2 g-3">
-                    <div class="col">
-                        <a href="{{ url_for('add_timesheet') }}" class="btn btn-primary d-block">
-                            <i class="bi bi-clock"></i> Add Timesheet
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="{{ url_for('add_project') }}" class="btn btn-success d-block">
-                            <i class="bi bi-building"></i> New Project
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="{{ url_for('add_expense') }}" class="btn btn-warning d-block">
-                            <i class="bi bi-cash"></i> Add Expense
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="{{ url_for('add_invoice') }}" class="btn btn-info d-block text-white">
-                            <i class="bi bi-receipt"></i> New Invoice
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="{{ url_for('employees') }}" class="btn btn-secondary d-block">
-                            <i class="bi bi-people"></i> Employees
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="{{ url_for('record_payroll_payment') }}" class="btn btn-dark d-block">
-                            <i class="bi bi-credit-card"></i> Record Payment
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

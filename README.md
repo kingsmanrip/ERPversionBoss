@@ -15,9 +15,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Materials Management**: Track materials used for each project with cost calculations
 - **Expense Tracking**: Monitor business expenses with or without project association
 - **Invoicing**: Generate and track invoices for completed projects
-- **Payroll Reporting**: Calculate payroll based on recorded timesheets with detailed breakdowns by payment method (Cash vs Check)
+- **Payroll Management**:
+  - Calculate payroll based on recorded timesheets
+  - Track detailed breakdowns by payment method (Cash vs Check)
+  - Manage payroll deductions (taxes, insurance, retirement, advances, etc.)
+  - Calculate gross and net payment amounts
 - **Payment Method Tracking**: Record and track payments by method (Cash/Check) with check numbers and bank information
 - **Cost Analysis**: Automatic calculation of project costs and profitability
+- **Net Profit Tracking**: Real-time calculation of actual net profit (revenue collected minus expenses) for each project and company-wide
 - **Responsive UI Design**: Optimized display of financial data with properly sized elements to ensure readability of large numbers
 
 ## Tech Stack
@@ -28,16 +33,33 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Forms**: WTForms for form handling and validation
 - **Testing**: Comprehensive pytest suite for validation
 
-## Recent Updates (March 2025)
+## Recent Updates (April 2025)
 
+- **Payroll Deductions System**: Implemented comprehensive payroll deductions functionality
+  - Added support for multiple deduction types (taxes, insurance, retirement, advances, etc.)
+  - Created dynamic UI for managing deductions during payment recording
+  - Enhanced reporting to show both gross and net payment amounts
+  - Added tooltips to display detailed deduction information in reports
+  - Fixed edge cases in payroll report calculations
+- **Net Profit Calculation**: Added functionality to track actual net profit (money collected minus expenses) for each project and company-wide
+  - Color-coded profit displays (green for positive, red for negative)
+  - Comprehensive test coverage for the net profit calculation functionality
+- **UI Improvements**:
+  - Streamlined dashboard by removing the Quick Actions section
+  - Removed non-functional buttons and links throughout the interface
+  - Removed Future Enhancements link from navigation
+  - Fixed layout issues for better readability of financial data
+  - Added clear status indicators for non-implemented features
 - **Enhanced Lunch Break Calculations**: Implemented precise rules for lunch break deductions
 - **Improved Payment Method Tracking**: Added capabilities to record check numbers and bank names
 - **Enhanced Payroll Reporting**: Added detailed breakdowns by payment method (Cash vs Check)
-- **UI Improvements**: Optimized display of large financial values in dashboard and reports
+- **Bug Fixes**:
+  - Fixed UndefinedError in payroll reports when no payments exist for certain methods
+  - Fixed BuildError related to non-existent routes
+  - Improved error handling throughout the application
 - **Comprehensive Testing**: Added extensive test suite with all tests passing
 - **Mock Data Generation**: Included a script to populate the system with realistic test data
 - **SQLAlchemy 2.0 Compatibility**: Updated all database queries to use modern patterns
-- **Enhanced Export Capabilities**: Added comprehensive export options in Excel, PDF, and CSV formats
 
 ## Installation
 
@@ -108,7 +130,7 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 1. Generate payroll reports and record payments to employees
 2. Create invoices for completed projects
 3. Update project statuses as they progress
-4. Monitor project profitability through the cost analysis features
+4. Monitor project profitability through the net profit tracking and cost analysis features
 
 ## Project Structure
 
