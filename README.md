@@ -35,6 +35,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Recent Updates (April 2025)
 
+- **Employee Dropdown Search for Payroll**: Added comprehensive employee search functionality to the payroll report
+  - Implemented dropdown menu with all employees for easy selection
+  - Detailed employee summary displaying pay rate, status, and financial metrics
+  - Historical view of employee's recent payments and timesheets
+  - Calculation of total hours worked and total paid amounts
+  - Clear button to toggle between filtered and unfiltered views
+  - Enhanced user experience with selected state maintenance
+
 - **Payroll Deductions System**: Implemented comprehensive payroll deductions functionality
   - Added support for multiple deduction types (taxes, insurance, retirement, advances, etc.)
   - Created dynamic UI for managing deductions during payment recording
@@ -43,12 +51,15 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
   - Fixed edge cases in payroll report calculations
   - Fixed critical issues with the PayrollPayment model to properly handle gross and net amounts
   - Improved validation for payroll payment forms
+
 - **Net Profit Calculation**: Added functionality to track actual net profit (money collected minus expenses) for each project and company-wide
   - Color-coded profit displays (green for positive, red for negative)
   - Comprehensive test coverage for the net profit calculation functionality
+
 - **UI Improvements**:
   - Streamlined dashboard by removing the Quick Actions section
   - Removed non-functional buttons and links throughout the interface
+  - Enhanced payroll report UI with employee filtering capabilities
   - Removed Future Enhancements link from navigation
   - Fixed layout issues for better readability of financial data
   - Added clear status indicators for non-implemented features

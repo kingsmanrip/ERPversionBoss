@@ -618,6 +618,7 @@ def record_payroll_payment():
 def payroll_report():
     """Comprehensive report showing weekly hours and recorded payments with payment method breakdown"""
     target_date_str = request.args.get('date')
+    employee_id = request.args.get('employee_id', '')
     target_date = date.today()
     if target_date_str:
         try:
@@ -626,9 +627,16 @@ def payroll_report():
             flash("Invalid date format. Using today's date.", 'warning')
 
     start_of_week, end_of_week = get_week_start_end(target_date)
+    
+    # Get all employees for the dropdown
+    all_employees = Employee.query.order_by(Employee.name).all()
 
     # 1. Calculate hours worked per employee for the selected week
-    employees = Employee.query.filter_by(is_active=True).all()
+    # Filter employees by selected employee_id if provided
+    employee_query = Employee.query.filter_by(is_active=True)
+    if employee_id and employee_id.isdigit():
+        employee_query = employee_query.filter(Employee.id == int(employee_id))
+    employees = employee_query.all()
     weekly_hours_data = {}
     for emp in employees:
         timesheets_this_week = Timesheet.query.filter(
@@ -707,6 +715,28 @@ def payroll_report():
     prev_week = target_date - timedelta(days=7)
     next_week = target_date + timedelta(days=7)
     
+    # For employee search history feature
+    search_history = []
+    if employee_id and employee_id.isdigit():
+        # Get previous payments and hours for this employee across time periods
+        search_results = {}
+        for employee in employees:
+            emp_payments = PayrollPayment.query.filter_by(employee_id=employee.id).order_by(PayrollPayment.payment_date.desc()).limit(10).all()
+            emp_timesheets = Timesheet.query.filter_by(employee_id=employee.id).order_by(Timesheet.date.desc()).limit(20).all()
+            
+            # Calculate total hours and payments
+            total_paid = sum(payment.amount for payment in emp_payments)
+            total_hours_worked = sum(ts.calculated_hours for ts in emp_timesheets)
+            
+            search_results[employee.id] = {
+                'employee': employee,
+                'recent_payments': emp_payments,
+                'recent_timesheets': emp_timesheets,
+                'total_paid': total_paid,
+                'total_hours_worked': total_hours_worked
+            }
+        search_history = search_results
+    
     return render_template('payroll_report.html', 
                           weekly_data=weekly_hours_data,
                           recorded_payments=recorded_payments,
@@ -715,7 +745,10 @@ def payroll_report():
                           current_week_end=end_of_week,
                           prev_week=prev_week,
                           next_week=next_week,
-                          total_weekly_hours=total_weekly_hours)
+                          total_weekly_hours=total_weekly_hours,
+                          employee_id=employee_id,
+                          search_history=search_history,
+                          all_employees=all_employees)
 
 # --- Invoice Routes (Basic CRUD) ---
 @app.route('/invoices')

@@ -39,7 +39,31 @@
     </div>
     <div class="card-body">
         <div class="row mb-3">
-            <div class="col text-end">
+            <div class="col-md-6">
+                <!-- Employee Dropdown Form -->
+                <form method="GET" action="{{ url_for('payroll_report') }}" class="d-flex">
+                    {% if request.args.get('date') %}
+                        <input type="hidden" name="date" value="{{ request.args.get('date') }}">
+                    {% endif %}
+                    <div class="input-group">
+                        <select name="employee_id" class="form-select" aria-label="Select employee">
+                            <option value="">-- Select an employee --</option>
+                            {% for employee in all_employees %}
+                                <option value="{{ employee.id }}" {% if employee_id == employee.id|string %}selected{% endif %}>{{ employee.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> View Employee
+                        </button>
+                        {% if employee_id %}
+                            <a href="{{ url_for('payroll_report', date=request.args.get('date')) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Clear
+                            </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6 text-end">
             </div>
         </div>
 
@@ -199,6 +223,141 @@
         {% endif %}
     </div>
 </div>
+
+{% if employee_id and search_history %}
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-person-fill"></i> Employee Details: {{ search_history[employee_id|int].employee.name }}</h5>
+    </div>
+    <div class="card-body">
+        {% for emp_id, result in search_history.items() %}
+        <div class="employee-search-result mb-4">
+            <h4>{{ result.employee.name }} <small class="text-muted">#{{ result.employee.employee_id_str }}</small></h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Employee Summary</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Rate:</th>
+                                    <td>${{ "%.2f"|format(result.employee.pay_rate) }}/hour</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Hours:</th>
+                                    <td>{{ "%.2f"|format(result.total_hours_worked) }} hours</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Paid:</th>
+                                    <td>${{ "%.2f"|format(result.total_paid) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        {% if result.employee.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Recent Payments</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if result.recent_payments %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Period</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in result.recent_payments %}
+                                        <tr>
+                                            <td>{{ payment.payment_date.strftime('%m/%d/%Y') }}</td>
+                                            <td>{{ payment.pay_period_start.strftime('%m/%d') }} - {{ payment.pay_period_end.strftime('%m/%d/%Y') }}</td>
+                                            <td>${{ "%.2f"|format(payment.amount) }}</td>
+                                            <td>
+                                                {% if payment.payment_method.name == 'CASH' %}
+                                                    <span class="badge bg-success">Cash</span>
+                                                {% elif payment.payment_method.name == 'CHECK' %}
+                                                    <span class="badge bg-secondary">Check #{{ payment.check_number }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">No payments recorded for this employee.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Recent Timesheets</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if result.recent_timesheets %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Project</th>
+                                            <th>Time In</th>
+                                            <th>Lunch Start</th>
+                                            <th>Lunch End</th>
+                                            <th>Time Out</th>
+                                            <th>Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ts in result.recent_timesheets %}
+                                        <tr>
+                                            <td>{{ ts.date.strftime('%m/%d/%Y') }}</td>
+                                            <td>{{ ts.project.name }}</td>
+                                            <td>{{ ts.time_in.strftime('%H:%M') if ts.time_in else '-' }}</td>
+                                            <td>{{ ts.lunch_start.strftime('%H:%M') if ts.lunch_start else '-' }}</td>
+                                            <td>{{ ts.lunch_end.strftime('%H:%M') if ts.lunch_end else '-' }}</td>
+                                            <td>{{ ts.time_out.strftime('%H:%M') if ts.time_out else '-' }}</td>
+                                            <td>{{ "%.2f"|format(ts.calculated_hours) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">No timesheets recorded for this employee.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if not loop.last %}
+            <hr class="my-4">
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 {% if recorded_payments %}
 <div class="card mb-4">

@@ -321,6 +321,12 @@ The database schema uses SQLAlchemy relationships with proper cascade behavior t
 
 - Calculate payroll based on recorded timesheets
 - Generate payroll reports with detailed breakdowns
+- Employee dropdown search feature for filtering payroll reports:
+  - Quick selection of employees from alphabetically-sorted dropdown menu
+  - Comprehensive view of employee financial information
+  - Display of detailed payment history and timesheet entries
+  - Calculation of total hours worked and total amount paid
+  - Clear interface for toggling between filtered and unfiltered views
 - Record payments to employees with comprehensive deduction tracking
 - Support for multiple deduction types (taxes, insurance, retirement, advances, etc.)
 - Dynamic UI for adding/removing deductions with real-time calculations
@@ -593,20 +599,31 @@ A complete payroll deductions system has been implemented with the following fea
 
 ### UI Improvements
 
-1. **Streamlined Dashboard**:
+1. **Employee Dropdown Search for Payroll Reports**:
+   - Implemented a dropdown-based employee search feature in payroll reports
+   - Replaced text-based search with a complete dropdown list of all employees
+   - Enhanced UI with clear selection state and toggling between filtered/unfiltered views
+   - Added comprehensive employee details panel showing:
+     - Employee summary (pay rate, status, total hours, total paid amount)
+     - Recent payment history with payment method details
+     - Recent timesheet entries with project and hours breakdown
+   - Added clear button to remove filtering and return to full report view
+   - Improved user experience with maintained selection state across page refreshes
+
+2. **Streamlined Dashboard**:
    - Removed the Quick Actions section for a cleaner interface
    - Improved layout to emphasize financial metrics and project performance
 
-2. **Navigation Enhancements**:
+3. **Navigation Enhancements**:
    - Removed Future Enhancements link from navigation menu
    - Focused navigation on implemented functionality
 
-3. **Improved Error Handling**:
+4. **Improved Error Handling**:
    - Fixed BuildError related to non-existent routes
    - Added proper error handling for missing data
    - Improved user feedback for non-implemented features
 
-4. **Invoice Page Improvements**:
+5. **Invoice Page Improvements**:
    - Removed non-functional buttons and export options
    - Added clear indicators for features coming soon
    - Improved layout consistency
