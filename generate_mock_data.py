@@ -406,10 +406,14 @@ def generate_mock_data():
                     check_number = f"{random.randint(1000, 9999)}"
                     bank_name = random.choice(["Chase", "Bank of America", "Wells Fargo", "Citi", "Local Credit Union"])
                 
+                # Calculate gross amount (same as amount before deductions in our mock data)
+                gross_amount = amount
+                
                 payment = PayrollPayment(
                     employee_id=employee.id,
                     pay_period_start=period_start_date,
                     pay_period_end=period_end_date,
+                    gross_amount=gross_amount,  # Set the gross_amount field
                     amount=amount,
                     payment_date=payment_date,
                     payment_method=payment_method,
