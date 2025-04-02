@@ -35,7 +35,7 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
 ## Priority 2: Financial Management System
 
 ### Todo Items:
-- [ ] **Accounts Payable Module**
+- [x] **Accounts Payable Module**
   - Create form for recording accounts payable with all required fields:
     - Vendor/Service Provider
     - Expense description
@@ -43,10 +43,11 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
     - Due date
     - Payment method (Cash, Check, Transfer, Card, Other)
     - Category (Rent, Taxes, Materials, etc.)
-    - Status (Pending, Paid)
+    - Status (Pending, Paid, Overdue)
     - Notes
+    - Project association (optional)
 
-- [ ] **Paid Accounts Module**
+- [x] **Paid Accounts Module**
   - Create form for recording paid accounts with:
     - Vendor/Service Provider
     - Amount paid
@@ -57,21 +58,25 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
     - Option to attach payment proof
     - Notes
 
-- [ ] **Monthly Expenses Tracking**
+- [x] **Monthly Expenses Tracking**
   - Implement expense entry form with:
     - Expense description
     - Amount
     - Date
     - Category
     - Payment method
+    - Project association (optional)
     - Notes
 
-- [ ] **Financial Reporting**
+- [x] **Financial Reporting**
   - Create accounts payable report with due dates and payment methods
   - Add paid accounts report filtered by payment method
   - Implement monthly expense report with categories and payment methods
   - Create payment forecast report with due date alerts
   - Develop report showing payments by payment method
+  - Add interactive charts for financial data visualization
+  - Implement cash flow reporting with income vs expenses
+  - Add expense breakdown by category with percentages
 
 ## Priority 3: Project Invoice Enhancement
 

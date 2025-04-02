@@ -18,6 +18,7 @@
                 <a class="list-group-item list-group-item-action" href="#materiais">Materiais</a>
                 <a class="list-group-item list-group-item-action" href="#despesas">Despesas</a>
                 <a class="list-group-item list-group-item-action" href="#faturas">Faturas</a>
+                <a class="list-group-item list-group-item-action bg-success text-white" href="#financeiro">Sistema Financeiro</a>
                 <a class="list-group-item list-group-item-action" href="#relatorios">Relatórios</a>
                 <a class="list-group-item list-group-item-action" href="#implementacoesfuturas">Implementações Futuras</a>
             </div>
@@ -39,6 +40,7 @@
                         <li>Controle de materiais</li>
                         <li>Gerenciamento de despesas</li>
                         <li>Faturamento</li>
+                        <li>Sistema de Gestão Financeira</li>
                         <li>Análise financeira</li>
                     </ul>
                     
@@ -215,6 +217,27 @@
                                             <li>Revise as horas registradas para todos os funcionários</li>
                                             <li>Clique em <strong>Record Payment</strong> para cada funcionário</li>
                                             <li>Adicione deduções se necessário (impostos, adiantamentos, etc.)</li>
+                                        </ol>
+                                        
+                                        <h6>Gestão de Contas a Pagar:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Financial > Accounts Payable > Add</strong></li>
+                                            <li>Registre as contas a pagar com fornecedor, valor e data de vencimento</li>
+                                            <li>Acompanhe o status (pendente, pago, vencido) na lista de contas</li>
+                                        </ol>
+                                        
+                                        <h6>Registro de Despesas Mensais:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Financial > Monthly Expenses > Add</strong></li>
+                                            <li>Categorize as despesas mensais (aluguel, serviços, etc.)</li>
+                                            <li>Vincule a um projeto quando aplicável</li>
+                                        </ol>
+                                        
+                                        <h6>Contas Pagas:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Financial > Paid Accounts > Add</strong></li>
+                                            <li>Registre pagamentos realizados aos fornecedores</li>
+                                            <li>Inclua informações de método de pagamento e dados bancários</li>
                                         </ol>
                                         
                                         <h6>Faturamento:</h6>
@@ -484,6 +507,106 @@
                 </div>
             </div>
             
+            <div class="card mb-4" id="financeiro">
+                <div class="card-header bg-success text-white">
+                    <h2 class="card-title h4 mb-0">Sistema de Gestão Financeira</h2>
+                </div>
+                <div class="card-body">
+                    <p>O Sistema de Gestão Financeira permite que você gerencie todos os aspectos financeiros do seu negócio, incluindo contas a pagar, contas pagas e despesas mensais.</p>
+                    
+                    <h3 class="h5">Gerenciamento de Contas a Pagar:</h3>
+                    <p>Acompanhe todas as contas a pagar e monitore seus vencimentos:</p>
+                    <ol>
+                        <li>Acesse <strong>Financial > Accounts Payable</strong> para visualizar todas as contas pendentes</li>
+                        <li>Clique em <strong>Add New</strong> para registrar uma nova conta a pagar com:
+                            <ul>
+                                <li>Fornecedor</li>
+                                <li>Descrição</li>
+                                <li>Valor</li>
+                                <li>Data de emissão</li>
+                                <li>Data de vencimento</li>
+                                <li>Método de pagamento</li>
+                                <li>Status (Pendente, Pago, Vencido)</li>
+                                <li>Projeto associado (opcional)</li>
+                            </ul>
+                        </li>
+                        <li>Na página principal, você pode ver:
+                            <ul>
+                                <li>Total de contas pendentes</li>
+                                <li>Contas com vencimento próximo em destaque</li>
+                                <li>Status de cada conta com indicadores visuais</li>
+                            </ul>
+                        </li>
+                        <li>Use os botões <strong>Edit</strong> ou <strong>Delete</strong> para gerenciar cada conta</li>
+                    </ol>
+
+                    <h3 class="h5">Registro de Contas Pagas:</h3>
+                    <p>Mantenha um registro de todos os pagamentos efetuados:</p>
+                    <ol>
+                        <li>Acesse <strong>Financial > Paid Accounts</strong> para visualizar todos os pagamentos</li>
+                        <li>Clique em <strong>Add New</strong> para registrar um novo pagamento com:
+                            <ul>
+                                <li>Fornecedor</li>
+                                <li>Valor pago</li>
+                                <li>Data de pagamento</li>
+                                <li>Método de pagamento</li>
+                                <li>Número do cheque (se aplicável)</li>
+                                <li>Informações bancárias (se aplicável)</li>
+                            </ul>
+                        </li>
+                        <li>A página principal mostra:
+                            <ul>
+                                <li>Total de pagamentos por período</li>
+                                <li>Divisão por método de pagamento</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h3 class="h5">Controle de Despesas Mensais:</h3>
+                    <p>Acompanhe e categorize todas as despesas recorrentes do negócio:</p>
+                    <ol>
+                        <li>Acesse <strong>Financial > Monthly Expenses</strong> para ver todas as despesas</li>
+                        <li>Clique em <strong>Add New</strong> para registrar uma nova despesa com:
+                            <ul>
+                                <li>Descrição</li>
+                                <li>Valor</li>
+                                <li>Data da despesa</li>
+                                <li>Categoria (Aluguel, Serviços, Seguro, Impostos, etc.)</li>
+                                <li>Método de pagamento</li>
+                                <li>Projeto associado (opcional)</li>
+                            </ul>
+                        </li>
+                        <li>A página principal mostra:
+                            <ul>
+                                <li>Total de despesas por mês</li>
+                                <li>Distribuição por categoria</li>
+                                <li>Comparação mês a mês</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h3 class="h5">Relatórios Financeiros:</h3>
+                    <p>Acesse relatórios visuais completos sobre a saúde financeira do negócio:</p>
+                    <ol>
+                        <li>Acesse <strong>Financial > Financial Reports</strong> para visualizar o painel de análise</li>
+                        <li>O painel inclui:
+                            <ul>
+                                <li>Cards de resumo com totais de contas a pagar, contas pagas e despesas mensais</li>
+                                <li>Gráfico de status de pagamento (pendente, pago, vencido)</li>
+                                <li>Gráfico de pizza mostrando despesas por categoria</li>
+                                <li>Gráfico de fluxo de caixa comparando receitas e despesas ao longo do tempo</li>
+                                <li>Lista de próximos pagamentos com alertas de vencimento</li>
+                            </ul>
+                        </li>
+                        <li>Todos os gráficos são interativos e atualizam em tempo real</li>
+                    </ol>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-lightbulb"></i> <strong>Dica:</strong> Use os relatórios financeiros para identificar padrões de gastos, prevenir problemas de fluxo de caixa e tomar decisões mais informadas para o seu negócio.
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-4" id="relatorios">
                 <div class="card-header bg-primary text-white">
                     <h2 class="card-title h4 mb-0">Relatórios</h2>

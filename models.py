@@ -19,6 +19,7 @@ class PaymentMethod(Enum):
     CASH = "Cash"
     CHECK = "Check"
     CREDIT = "Credit Card"
+    TRANSFER = "Bank Transfer"
     DIRECT_DEPOSIT = "Direct Deposit"
     OTHER = "Other"
 
@@ -35,6 +36,21 @@ class DeductionType(Enum):
     RETIREMENT = "Retirement"
     ADVANCE = "Advance Payment"
     LOAN = "Loan Repayment"
+    OTHER = "Other"
+    
+class ExpenseCategory(Enum):
+    RENT = "Rent"
+    UTILITIES = "Utilities"
+    MATERIALS = "Materials"
+    EQUIPMENT = "Equipment"
+    SALARIES = "Salaries"
+    TAXES = "Taxes"
+    INSURANCE = "Insurance"
+    TRANSPORTATION = "Transportation"
+    MAINTENANCE = "Maintenance"
+    OFFICE = "Office Supplies"
+    ADVERTISING = "Advertising"
+    SERVICES = "Professional Services"
     OTHER = "Other"
 
 # --- Models ---
@@ -453,6 +469,89 @@ class Invoice(db.Model):
     
     def __repr__(self):
         return f'<Invoice P:{self.project_id} ${self.amount:.2f}>'
+
+# --- Financial Management Models ---
+class AccountsPayable(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    vendor = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(200), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    issue_date = db.Column(db.Date, nullable=False)
+    due_date = db.Column(db.Date, nullable=False)
+    payment_method = db.Column(db.Enum(PaymentMethod))
+    category = db.Column(db.Enum(ExpenseCategory), nullable=False)
+    status = db.Column(db.Enum(PaymentStatus), default=PaymentStatus.PENDING)
+    notes = db.Column(db.Text)
+    # If the account payable is associated with a project
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='SET NULL'), nullable=True)
+    project = db.relationship('Project', backref=db.backref('accounts_payable', cascade='all, delete-orphan'))
+    # If an accounts payable item has been paid, it will have a paid_account record
+    
+    __table_args__ = (
+        db.Index('idx_payable_vendor', 'vendor'),
+        db.Index('idx_payable_due_date', 'due_date'),
+        db.Index('idx_payable_status', 'status'),
+        db.Index('idx_payable_category', 'category'),
+    )
+    
+    def __repr__(self):
+        return f'<AccountsPayable {self.vendor}: ${self.amount:.2f} due {self.due_date}'
+
+class PaidAccount(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    vendor = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    payment_date = db.Column(db.Date, nullable=False)
+    payment_method = db.Column(db.Enum(PaymentMethod), nullable=False)
+    check_number = db.Column(db.String(50))
+    bank_name = db.Column(db.String(100))
+    receipt_attachment = db.Column(db.String(255))  # Path to uploaded receipt file
+    notes = db.Column(db.Text)
+    category = db.Column(db.Enum(ExpenseCategory), nullable=False)
+    # Link to the original accounts payable item if applicable
+    accounts_payable_id = db.Column(db.Integer, db.ForeignKey('accounts_payable.id', ondelete='SET NULL'), nullable=True)
+    accounts_payable = db.relationship('AccountsPayable', backref=db.backref('paid_account', uselist=False))
+    # If the paid account is associated with a project
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='SET NULL'), nullable=True)
+    project = db.relationship('Project', backref=db.backref('paid_accounts', cascade='all, delete-orphan'))
+    
+    __table_args__ = (
+        db.Index('idx_paid_vendor', 'vendor'),
+        db.Index('idx_paid_payment_date', 'payment_date'),
+        db.Index('idx_paid_payment_method', 'payment_method'),
+        db.Index('idx_paid_category', 'category'),
+    )
+    
+    def validate_check_details(self):
+        """Validate that check details are provided if payment method is Check."""
+        if self.payment_method == PaymentMethod.CHECK:
+            if not self.check_number or not self.bank_name:
+                return False, "Check number and bank name are required for check payments."
+        return True, ""
+    
+    def __repr__(self):
+        return f'<PaidAccount {self.vendor}: ${self.amount:.2f} paid on {self.payment_date}'
+
+class MonthlyExpense(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(200), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    expense_date = db.Column(db.Date, nullable=False)
+    category = db.Column(db.Enum(ExpenseCategory), nullable=False)
+    payment_method = db.Column(db.Enum(PaymentMethod), nullable=False)
+    notes = db.Column(db.Text)
+    # If the expense is associated with a project
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='SET NULL'), nullable=True)
+    project = db.relationship('Project', backref=db.backref('monthly_expenses', cascade='all, delete-orphan'))
+    
+    __table_args__ = (
+        db.Index('idx_expense_date', 'expense_date'),
+        db.Index('idx_expense_category', 'category'),
+        db.Index('idx_expense_payment_method', 'payment_method'),
+    )
+    
+    def __repr__(self):
+        return f'<MonthlyExpense {self.description}: ${self.amount:.2f} on {self.expense_date}'
 
 # Future Enhancement Suggestion tracking
 class EnhancementSuggestion(db.Model):

@@ -23,6 +23,11 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Payment Method Tracking**: Record and track payments by method (Cash/Check) with check numbers and bank information
 - **Cost Analysis**: Automatic calculation of project costs and profitability
 - **Net Profit Tracking**: Real-time calculation of actual net profit (revenue collected minus expenses) for each project and company-wide
+- **Financial Management System**: Comprehensive tracking of accounts payable, paid accounts, and monthly expenses
+  - Track unpaid bills and their status (pending, paid, overdue)
+  - Record all payments to vendors with detailed information
+  - Monitor recurring monthly expenses by category
+  - View financial reports with interactive charts and visualizations
 - **Responsive UI Design**: Optimized display of financial data with properly sized elements to ensure readability of large numbers
 
 ## Tech Stack
@@ -34,6 +39,17 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Testing**: Comprehensive pytest suite for validation
 
 ## Recent Updates (April 2025)
+
+- **Financial Management System**: Added comprehensive financial tracking module
+  - **Accounts Payable Management**: Track unpaid vendor bills with due dates and status tracking
+  - **Paid Accounts Tracking**: Record all payments to vendors with payment method details
+  - **Monthly Expenses Monitoring**: Track recurring expenses with category classification
+  - **Financial Reports Dashboard**: Visualize financial data with interactive charts
+    - Payment status summary with filtering by year/month
+    - Expense breakdown by category with percentage analysis
+    - Cash flow tracking comparing income vs expenses
+    - Upcoming payments alerts with days-to-due indicators
+  - **Financial Data Analysis**: Track financial trends and identify spending patterns
 
 - **Portuguese User Guide**: Added comprehensive documentation in Portuguese
   - Created a dedicated "Guia do Usuário" section in the main navigation

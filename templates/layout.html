@@ -51,12 +51,25 @@
                     Financials
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="financialDropdown">
-                    <li><a class="dropdown-item" href="{{ url_for('expenses') }}">Expenses</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('add_expense') }}">Add Expense</a></li>
+                    <!-- Regular Expenses -->
+                    <li><a class="dropdown-item" href="{{ url_for('expenses') }}">Project Expenses</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('add_expense') }}">Add Project Expense</a></li>
                     <li><hr class="dropdown-divider"></li>
+                    
+                    <!-- Financial Management System -->
+                    <li><h6 class="dropdown-header">Financial Management</h6></li>
+                    <li><a class="dropdown-item" href="{{ url_for('accounts_payable') }}">Accounts Payable</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('add_accounts_payable') }}">Add Accounts Payable</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('paid_accounts') }}">Paid Accounts</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('add_paid_account') }}">Add Paid Account</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('monthly_expenses') }}">Monthly Expenses</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('add_monthly_expense') }}">Add Monthly Expense</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('financial_reports') }}">Financial Reports</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    
+                    <!-- Invoices -->
                     <li><a class="dropdown-item" href="{{ url_for('invoices') }}">Invoices</a></li>
                     <li><a class="dropdown-item" href="{{ url_for('add_invoice') }}">Add Invoice</a></li>
-                    <!-- Add links to reports later -->
                 </ul>
             </li>
             <li class="nav-item">

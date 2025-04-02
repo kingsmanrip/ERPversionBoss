@@ -1,0 +1,299 @@
+{% extends 'layout.html' %}
+
+{% block title %}Financial Reports - Mauricio PDQ ERP{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Financial Reports</h1>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">Accounts Payable</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="display-6">${{ "%.2f"|format(accounts_payable_total) }}</h3>
+                    <p class="card-text">Total unpaid accounts</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('accounts_payable') }}" class="btn btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">{{ accounts_payable_count }} unpaid accounts</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">Paid Accounts</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="display-6">${{ "%.2f"|format(paid_accounts_total) }}</h3>
+                    <p class="card-text">Total payments this month</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('paid_accounts') }}" class="btn btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">{{ paid_accounts_count }} payments this month</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">Monthly Expenses</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="display-6">${{ "%.2f"|format(monthly_expenses_total) }}</h3>
+                    <p class="card-text">Total expenses this month</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('monthly_expenses') }}" class="btn btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">{{ monthly_expenses_count }} expense entries this month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Payment Status Summary</h5>
+                        <form class="d-flex align-items-center">
+                            <select name="year" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                                {% for year in range(current_year-2, current_year+1) %}
+                                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="all" {% if selected_month == 'all' %}selected{% endif %}>All Months</option>
+                                {% for month_num, month_name in [
+                                    (1, 'January'), (2, 'February'), (3, 'March'),
+                                    (4, 'April'), (5, 'May'), (6, 'June'),
+                                    (7, 'July'), (8, 'August'), (9, 'September'),
+                                    (10, 'October'), (11, 'November'), (12, 'December')
+                                ] %}
+                                <option value="{{ month_num }}" {% if selected_month == month_num|string %}selected{% endif %}>{{ month_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Upcoming Payments</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_payments %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Days Left</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in upcoming_payments %}
+                                <tr class="{{ 'table-danger' if payment.days_left <= 3 else 'table-warning' if payment.days_left <= 7 else '' }}">
+                                    <td>{{ payment.vendor }}</td>
+                                    <td>${{ "%.2f"|format(payment.amount) }}</td>
+                                    <td>{{ payment.due_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge rounded-pill {{ 'bg-danger' if payment.days_left <= 3 else 'bg-warning' if payment.days_left <= 7 else 'bg-info' }}">
+                                            {{ payment.days_left }} day{{ 's' if payment.days_left != 1 else '' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No upcoming payments due in the next 30 days.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Monthly Expense Categories</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="expenseCategoriesChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Cash Flow</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="cashFlowChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Payment Status Chart
+    const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
+    const paymentsChart = new Chart(paymentsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ payment_status_labels|tojson }},
+            datasets: [{
+                label: 'Amount ($)',
+                data: {{ payment_status_data|tojson }},
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.5)',  // Paid
+                    'rgba(255, 206, 86, 0.5)',  // Pending
+                    'rgba(255, 99, 132, 0.5)'   // Overdue
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '$' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Expense Categories Chart
+    const categoriesCtx = document.getElementById('expenseCategoriesChart').getContext('2d');
+    const categoriesChart = new Chart(categoriesCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ expense_categories_labels|tojson }},
+            datasets: [{
+                data: {{ expense_categories_data|tojson }},
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'right'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: $${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Cash Flow Chart
+    const cashFlowCtx = document.getElementById('cashFlowChart').getContext('2d');
+    const cashFlowChart = new Chart(cashFlowCtx, {
+        type: 'line',
+        data: {
+            labels: {{ cash_flow_labels|tojson }},
+            datasets: [{
+                label: 'Income',
+                data: {{ income_data|tojson }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                fill: true
+            }, {
+                label: 'Expenses',
+                data: {{ expense_data|tojson }},
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

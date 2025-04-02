@@ -12,8 +12,8 @@ import tempfile
 import io
 import pandas as pd
 
-from models import db, Employee, Project, Timesheet, Material, Expense, PayrollPayment, PayrollDeduction, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User, DeductionType
-from forms import EmployeeForm, ProjectForm, TimesheetForm, MaterialForm, ExpenseForm, PayrollPaymentForm, PayrollDeductionForm, InvoiceForm, LoginForm
+from models import db, Employee, Project, Timesheet, Material, Expense, PayrollPayment, PayrollDeduction, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User, DeductionType, AccountsPayable, PaidAccount, MonthlyExpense, ExpenseCategory
+from forms import EmployeeForm, ProjectForm, TimesheetForm, MaterialForm, ExpenseForm, PayrollPaymentForm, PayrollDeductionForm, InvoiceForm, LoginForm, AccountsPayableForm, PaidAccountForm, MonthlyExpenseForm
 
 load_dotenv()  # Load environment variables if needed
 
@@ -1327,6 +1327,452 @@ def suggest_enhancement():
     enhancements = []  # You would need to repopulate this
     flash('Please correct the errors in your submission.', 'danger')
     return render_template('future_enhancements.html', enhancements=enhancements, form=form)
+
+# --- Financial Management System Routes ---
+
+# Accounts Payable Routes
+@app.route('/accounts_payable')
+@login_required
+def accounts_payable():
+    """Display list of accounts payable."""
+    payables = AccountsPayable.query.order_by(AccountsPayable.due_date).all()
+    return render_template('accounts_payable/index.html', payables=payables)
+
+@app.route('/add_accounts_payable', methods=['GET', 'POST'])
+@login_required
+def add_accounts_payable():
+    """Add a new accounts payable entry."""
+    form = AccountsPayableForm()
+    
+    # Populate project choices
+    projects = Project.query.order_by(Project.name).all()
+    form.project_id.choices = [(0, '-- No Project --')] + [(p.id, p.name) for p in projects]
+    
+    if form.validate_on_submit():
+        payable = AccountsPayable(
+            vendor=form.vendor.data,
+            description=form.description.data,
+            amount=form.amount.data,
+            issue_date=form.issue_date.data,
+            due_date=form.due_date.data,
+            payment_method=form.payment_method.data if form.payment_method.data else None,
+            category=form.category.data,
+            notes=form.notes.data,
+            project_id=form.project_id.data if form.project_id.data else None
+        )
+        db.session.add(payable)
+        db.session.commit()
+        flash('Accounts payable added successfully!', 'success')
+        return redirect(url_for('accounts_payable'))
+    
+    return render_template('accounts_payable/add.html', form=form)
+
+@app.route('/edit_accounts_payable/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_accounts_payable(id):
+    """Edit an existing accounts payable entry."""
+    payable = AccountsPayable.query.get_or_404(id)
+    form = AccountsPayableForm(obj=payable)
+    
+    # Populate project choices
+    projects = Project.query.order_by(Project.name).all()
+    form.project_id.choices = [(0, '-- No Project --')] + [(p.id, p.name) for p in projects]
+    
+    if form.validate_on_submit():
+        payable.vendor = form.vendor.data
+        payable.description = form.description.data
+        payable.amount = form.amount.data
+        payable.issue_date = form.issue_date.data
+        payable.due_date = form.due_date.data
+        payable.payment_method = form.payment_method.data if form.payment_method.data else None
+        payable.category = form.category.data
+        payable.notes = form.notes.data
+        payable.project_id = form.project_id.data if form.project_id.data else None
+        
+        db.session.commit()
+        flash('Accounts payable updated successfully!', 'success')
+        return redirect(url_for('accounts_payable'))
+    
+    return render_template('accounts_payable/edit.html', form=form, payable=payable)
+
+@app.route('/delete_accounts_payable/<int:id>', methods=['POST'])
+@login_required
+def delete_accounts_payable(id):
+    """Delete an accounts payable entry."""
+    payable = AccountsPayable.query.get_or_404(id)
+    
+    # Don't allow deletion if this has a paid account associated
+    if hasattr(payable, 'paid_account') and payable.paid_account:
+        flash('Cannot delete an accounts payable that has been paid. Mark it as paid instead.', 'danger')
+        return redirect(url_for('accounts_payable'))
+    
+    db.session.delete(payable)
+    db.session.commit()
+    flash('Accounts payable deleted successfully!', 'success')
+    return redirect(url_for('accounts_payable'))
+
+# Paid Accounts Routes
+@app.route('/paid_accounts')
+@login_required
+def paid_accounts():
+    """Display list of paid accounts."""
+    accounts = PaidAccount.query.order_by(PaidAccount.payment_date.desc()).all()
+    return render_template('paid_accounts/index.html', accounts=accounts)
+
+@app.route('/add_paid_account', methods=['GET', 'POST'])
+@login_required
+def add_paid_account():
+    """Add a new paid account entry."""
+    form = PaidAccountForm()
+    
+    # Populate project and accounts payable choices
+    projects = Project.query.order_by(Project.name).all()
+    form.project_id.choices = [(0, '-- No Project --')] + [(p.id, p.name) for p in projects]
+    
+    # Only show unpaid accounts payable
+    payables = AccountsPayable.query.filter_by(status=PaymentStatus.PENDING).order_by(AccountsPayable.vendor).all()
+    form.accounts_payable_id.choices = [(0, '-- Not Linked to Payable --')] + [(p.id, f'{p.vendor}: ${p.amount:.2f} due {p.due_date}') for p in payables]
+    
+    if form.validate_on_submit():
+        # First, validate check details if payment method is check
+        if form.payment_method.data == PaymentMethod.CHECK.name:
+            if not form.check_number.data or not form.bank_name.data:
+                flash('Check number and bank name are required for check payments.', 'danger')
+                return render_template('paid_accounts/add.html', form=form)
+        
+        # Create the paid account entry
+        paid_account = PaidAccount(
+            vendor=form.vendor.data,
+            amount=form.amount.data,
+            payment_date=form.payment_date.data,
+            payment_method=form.payment_method.data,
+            check_number=form.check_number.data,
+            bank_name=form.bank_name.data,
+            receipt_attachment=form.receipt_attachment.data,
+            notes=form.notes.data,
+            category=form.category.data,
+            project_id=form.project_id.data if form.project_id.data else None,
+            accounts_payable_id=form.accounts_payable_id.data if form.accounts_payable_id.data else None
+        )
+        db.session.add(paid_account)
+        
+        # If this is linked to an accounts payable, update its status
+        if form.accounts_payable_id.data:
+            payable = AccountsPayable.query.get(form.accounts_payable_id.data)
+            if payable:
+                payable.status = PaymentStatus.PAID
+        
+        db.session.commit()
+        flash('Paid account added successfully!', 'success')
+        return redirect(url_for('paid_accounts'))
+    
+    return render_template('paid_accounts/add.html', form=form)
+
+@app.route('/edit_paid_account/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_paid_account(id):
+    """Edit an existing paid account entry."""
+    account = PaidAccount.query.get_or_404(id)
+    form = PaidAccountForm(obj=account)
+    
+    # Populate project and accounts payable choices
+    projects = Project.query.order_by(Project.name).all()
+    form.project_id.choices = [(0, '-- No Project --')] + [(p.id, p.name) for p in projects]
+    
+    # For editing, include the current accounts payable even if it's already paid
+    payables = AccountsPayable.query.filter(
+        (AccountsPayable.status == PaymentStatus.PENDING) | 
+        (AccountsPayable.id == account.accounts_payable_id)
+    ).order_by(AccountsPayable.vendor).all()
+    form.accounts_payable_id.choices = [(0, '-- Not Linked to Payable --')] + [(p.id, f'{p.vendor}: ${p.amount:.2f} due {p.due_date}') for p in payables]
+    
+    if form.validate_on_submit():
+        # First, validate check details if payment method is check
+        if form.payment_method.data == PaymentMethod.CHECK.name:
+            if not form.check_number.data or not form.bank_name.data:
+                flash('Check number and bank name are required for check payments.', 'danger')
+                return render_template('paid_accounts/edit.html', form=form, account=account)
+        
+        # Check if accounts_payable_id has changed
+        old_payable_id = account.accounts_payable_id
+        new_payable_id = form.accounts_payable_id.data if form.accounts_payable_id.data else None
+        
+        # Update the paid account
+        account.vendor = form.vendor.data
+        account.amount = form.amount.data
+        account.payment_date = form.payment_date.data
+        account.payment_method = form.payment_method.data
+        account.check_number = form.check_number.data
+        account.bank_name = form.bank_name.data
+        account.receipt_attachment = form.receipt_attachment.data
+        account.notes = form.notes.data
+        account.category = form.category.data
+        account.project_id = form.project_id.data if form.project_id.data else None
+        account.accounts_payable_id = new_payable_id
+        
+        # Handle changes to accounts payable associations
+        if old_payable_id != new_payable_id:
+            # Reset old payable to PENDING if it exists
+            if old_payable_id:
+                old_payable = AccountsPayable.query.get(old_payable_id)
+                if old_payable:
+                    old_payable.status = PaymentStatus.PENDING
+            
+            # Set new payable to PAID if it exists
+            if new_payable_id:
+                new_payable = AccountsPayable.query.get(new_payable_id)
+                if new_payable:
+                    new_payable.status = PaymentStatus.PAID
+        
+        db.session.commit()
+        flash('Paid account updated successfully!', 'success')
+        return redirect(url_for('paid_accounts'))
+    
+    return render_template('paid_accounts/edit.html', form=form, account=account)
+
+@app.route('/delete_paid_account/<int:id>', methods=['POST'])
+@login_required
+def delete_paid_account(id):
+    """Delete a paid account entry."""
+    account = PaidAccount.query.get_or_404(id)
+    
+    # If this is linked to an accounts payable, reset its status
+    if account.accounts_payable_id:
+        payable = AccountsPayable.query.get(account.accounts_payable_id)
+        if payable:
+            payable.status = PaymentStatus.PENDING
+    
+    db.session.delete(account)
+    db.session.commit()
+    flash('Paid account deleted successfully!', 'success')
+    return redirect(url_for('paid_accounts'))
+
+# Monthly Expenses Routes
+@app.route('/monthly_expenses')
+@login_required
+def monthly_expenses():
+    """Display list of monthly expenses."""
+    expenses = MonthlyExpense.query.order_by(MonthlyExpense.expense_date.desc()).all()
+    return render_template('monthly_expenses/index.html', expenses=expenses)
+
+@app.route('/add_monthly_expense', methods=['GET', 'POST'])
+@login_required
+def add_monthly_expense():
+    """Add a new monthly expense entry."""
+    form = MonthlyExpenseForm()
+    
+    # Populate project choices
+    projects = Project.query.order_by(Project.name).all()
+    form.project_id.choices = [(0, '-- No Project --')] + [(p.id, p.name) for p in projects]
+    
+    if form.validate_on_submit():
+        expense = MonthlyExpense(
+            description=form.description.data,
+            amount=form.amount.data,
+            expense_date=form.expense_date.data,
+            category=form.category.data,
+            payment_method=form.payment_method.data,
+            notes=form.notes.data,
+            project_id=form.project_id.data if form.project_id.data else None
+        )
+        db.session.add(expense)
+        db.session.commit()
+        flash('Monthly expense added successfully!', 'success')
+        return redirect(url_for('monthly_expenses'))
+    
+    return render_template('monthly_expenses/add.html', form=form)
+
+@app.route('/edit_monthly_expense/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_monthly_expense(id):
+    """Edit an existing monthly expense entry."""
+    expense = MonthlyExpense.query.get_or_404(id)
+    form = MonthlyExpenseForm(obj=expense)
+    
+    # Populate project choices
+    projects = Project.query.order_by(Project.name).all()
+    form.project_id.choices = [(0, '-- No Project --')] + [(p.id, p.name) for p in projects]
+    
+    if form.validate_on_submit():
+        expense.description = form.description.data
+        expense.amount = form.amount.data
+        expense.expense_date = form.expense_date.data
+        expense.category = form.category.data
+        expense.payment_method = form.payment_method.data
+        expense.notes = form.notes.data
+        expense.project_id = form.project_id.data if form.project_id.data else None
+        
+        db.session.commit()
+        flash('Monthly expense updated successfully!', 'success')
+        return redirect(url_for('monthly_expenses'))
+    
+    return render_template('monthly_expenses/edit.html', form=form, expense=expense)
+
+@app.route('/delete_monthly_expense/<int:id>', methods=['POST'])
+@login_required
+def delete_monthly_expense(id):
+    """Delete a monthly expense entry."""
+    expense = MonthlyExpense.query.get_or_404(id)
+    db.session.delete(expense)
+    db.session.commit()
+    flash('Monthly expense deleted successfully!', 'success')
+    return redirect(url_for('monthly_expenses'))
+
+# Financial Reports
+@app.route('/financial_reports')
+@login_required
+def financial_reports():
+    """Display financial reports."""
+    # Get current date for calculations
+    today = date.today()
+    current_year = today.year
+    current_month = today.month
+    
+    # Get accounts payable statistics
+    accounts_payable_total = db.session.query(db.func.sum(AccountsPayable.amount)).filter(
+        AccountsPayable.status != PaymentStatus.PAID
+    ).scalar() or 0
+    
+    accounts_payable_count = AccountsPayable.query.filter(
+        AccountsPayable.status != PaymentStatus.PAID
+    ).count()
+    
+    # Get paid accounts statistics for the current month
+    month_start = date(current_year, current_month, 1)
+    if current_month == 12:
+        month_end = date(current_year, 12, 31)
+    else:
+        month_end = date(current_year, current_month + 1, 1) - timedelta(days=1)
+    
+    paid_accounts_total = db.session.query(db.func.sum(PaidAccount.amount)).filter(
+        PaidAccount.payment_date >= month_start,
+        PaidAccount.payment_date <= month_end
+    ).scalar() or 0
+    
+    paid_accounts_count = PaidAccount.query.filter(
+        PaidAccount.payment_date >= month_start,
+        PaidAccount.payment_date <= month_end
+    ).count()
+    
+    # Get monthly expenses statistics for the current month
+    monthly_expenses_total = db.session.query(db.func.sum(MonthlyExpense.amount)).filter(
+        MonthlyExpense.expense_date >= month_start,
+        MonthlyExpense.expense_date <= month_end
+    ).scalar() or 0
+    
+    monthly_expenses_count = MonthlyExpense.query.filter(
+        MonthlyExpense.expense_date >= month_start,
+        MonthlyExpense.expense_date <= month_end
+    ).count()
+    
+    # Get payment status data for the chart
+    payment_status_labels = ['Paid', 'Pending', 'Overdue']
+    
+    paid_amount = db.session.query(db.func.sum(PaidAccount.amount)).scalar() or 0
+    pending_amount = db.session.query(db.func.sum(AccountsPayable.amount)).filter(
+        AccountsPayable.status == PaymentStatus.PENDING
+    ).scalar() or 0
+    overdue_amount = db.session.query(db.func.sum(AccountsPayable.amount)).filter(
+        AccountsPayable.status == PaymentStatus.OVERDUE
+    ).scalar() or 0
+    
+    payment_status_data = [paid_amount, pending_amount, overdue_amount]
+    
+    # Get upcoming payments (due in next 30 days)
+    upcoming_payments = []
+    unpaid_accounts = AccountsPayable.query.filter(
+        AccountsPayable.status != PaymentStatus.PAID,
+        AccountsPayable.due_date <= today + timedelta(days=30)
+    ).order_by(AccountsPayable.due_date).all()
+    
+    for account in unpaid_accounts:
+        days_left = (account.due_date - today).days
+        upcoming_payments.append({
+            'vendor': account.vendor,
+            'amount': account.amount,
+            'due_date': account.due_date,
+            'days_left': max(0, days_left)  # Ensure non-negative days
+        })
+    
+    # Get expense categories data for the chart
+    expense_categories = {}
+    for expense in MonthlyExpense.query.all():
+        category = expense.category.value
+        if category in expense_categories:
+            expense_categories[category] += expense.amount
+        else:
+            expense_categories[category] = expense.amount
+    
+    expense_categories_labels = list(expense_categories.keys())
+    expense_categories_data = list(expense_categories.values())
+    
+    # Calculate cash flow data (income vs expenses) for the past 6 months
+    cash_flow_labels = []
+    income_data = []
+    expense_data = []
+    
+    for i in range(6):
+        # Calculate month offset from current month
+        month_offset = i
+        target_month = current_month - month_offset
+        target_year = current_year
+        
+        # Adjust for previous year if needed
+        if target_month <= 0:
+            target_month += 12
+            target_year -= 1
+            
+        # Calculate start and end of month
+        start_date = date(target_year, target_month, 1)
+        if target_month == 12:
+            end_date = date(target_year, 12, 31)
+        else:
+            end_date = date(target_year, target_month + 1, 1) - timedelta(days=1)
+            
+        # Add month label (format: 'Jan', 'Feb', etc.)
+        cash_flow_labels.insert(0, start_date.strftime('%b'))
+        
+        # Calculate monthly income (from paid accounts)
+        monthly_income = db.session.query(db.func.sum(PaidAccount.amount)).filter(
+            PaidAccount.payment_date >= start_date,
+            PaidAccount.payment_date <= end_date
+        ).scalar() or 0
+        income_data.insert(0, round(monthly_income, 2))
+        
+        # Calculate monthly expenses
+        monthly_expense = db.session.query(db.func.sum(MonthlyExpense.amount)).filter(
+            MonthlyExpense.expense_date >= start_date,
+            MonthlyExpense.expense_date <= end_date
+        ).scalar() or 0
+        expense_data.insert(0, round(monthly_expense, 2))
+    
+    # Prepare data for the template
+    selected_year = current_year
+    selected_month = 'all'  # Default to show all months
+    
+    return render_template('financial_reports/index.html',
+                          # Summary cards data
+                          accounts_payable_total=accounts_payable_total,
+                          accounts_payable_count=accounts_payable_count,
+                          paid_accounts_total=paid_accounts_total,
+                          paid_accounts_count=paid_accounts_count,
+                          monthly_expenses_total=monthly_expenses_total,
+                          monthly_expenses_count=monthly_expenses_count,
+                          
+                          # Chart data
+                          payment_status_labels=payment_status_labels,
+                          payment_status_data=payment_status_data,
+                          expense_categories_labels=expense_categories_labels,
+                          expense_categories_data=expense_categories_data,
+                          cash_flow_labels=cash_flow_labels,
+                          income_data=income_data,
+                          expense_data=expense_data,
+                          
+                          # Other data
+                          upcoming_payments=upcoming_payments,
+                          current_year=current_year,
+                          selected_year=selected_year,
+                          selected_month=selected_month)
 
 # --- Create DB tables ---
 @app.cli.command('init-db')

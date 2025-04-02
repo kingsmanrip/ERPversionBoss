@@ -49,6 +49,24 @@ pdq_erp/
 │   ├── payroll_report.html # Payroll reporting page
 │   ├── payroll_payment_form.html # Record payroll payment form
 │   │
+│   ├── accounts_payable/        # Accounts Payable templates
+│   │   ├── index.html          # Main accounts payable listing
+│   │   ├── add.html            # Add new accounts payable entry
+│   │   └── edit.html           # Edit existing accounts payable entry
+│   │
+│   ├── paid_accounts/          # Paid Accounts templates
+│   │   ├── index.html          # Main paid accounts listing
+│   │   ├── add.html            # Add new paid account entry
+│   │   └── edit.html           # Edit existing paid account entry
+│   │
+│   ├── monthly_expenses/       # Monthly Expenses templates
+│   │   ├── index.html          # Main monthly expenses listing
+│   │   ├── add.html            # Add new monthly expense entry
+│   │   └── edit.html           # Edit existing monthly expense entry
+│   │
+│   ├── financial_reports/      # Financial Reports templates
+│   │   └── index.html          # Dashboard with financial visualizations
+│   │
 │   ├── generate_mock_data.py   # Script for generating test data for the application
 │   ├── update_schema.py        # Script for updating database schema with new fields
 │

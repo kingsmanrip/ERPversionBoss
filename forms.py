@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, FloatField, IntegerField, DateField, SelectField, TextAreaField, SubmitField, TimeField, BooleanField, PasswordField
 from wtforms.validators import DataRequired, Optional, NumberRange, Email, ValidationError
-from models import ProjectStatus, PaymentMethod, PaymentStatus, DeductionType
+from models import ProjectStatus, PaymentMethod, PaymentStatus, DeductionType, ExpenseCategory
 from datetime import date
 
 # Custom validators
@@ -141,6 +141,59 @@ class InvoiceForm(FlaskForm):
         """Validate that payment received date is provided when status is PAID."""
         if form.status.data == PaymentStatus.PAID.name and not field.data:
             raise ValidationError('Payment received date is required when status is PAID.')
+
+# --- Financial Management System Forms ---
+
+class AccountsPayableForm(FlaskForm):
+    vendor = StringField('Vendor/Supplier', validators=[DataRequired()])
+    description = StringField('Description', validators=[DataRequired()])
+    amount = FloatField('Amount ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
+    issue_date = DateField('Issue Date', validators=[DataRequired()], format='%Y-%m-%d')
+    due_date = DateField('Due Date', validators=[DataRequired(), validate_future_date], format='%Y-%m-%d')
+    payment_method = SelectField('Payment Method', choices=[('', '-- Select --')] + [(pm.name, pm.value) for pm in PaymentMethod], validators=[Optional()])
+    category = SelectField('Expense Category', choices=[(ec.name, ec.value) for ec in ExpenseCategory], validators=[DataRequired()])
+    project_id = SelectField('Link to Project', coerce=lambda x: int(x) if x else None, validators=[Optional()])
+    notes = TextAreaField('Notes')
+    submit = SubmitField('Save Accounts Payable')
+    
+    def validate_due_date(form, field):
+        """Validate that due date is not earlier than issue date."""
+        if form.issue_date.data and field.data and field.data < form.issue_date.data:
+            raise ValidationError('Due date should not be earlier than issue date.')
+
+class PaidAccountForm(FlaskForm):
+    vendor = StringField('Vendor/Supplier', validators=[DataRequired()])
+    amount = FloatField('Amount Paid ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
+    payment_date = DateField('Payment Date', validators=[DataRequired()], format='%Y-%m-%d')
+    payment_method = SelectField('Payment Method', choices=[(pm.name, pm.value) for pm in PaymentMethod], validators=[DataRequired()])
+    accounts_payable_id = SelectField('Related to Accounts Payable', coerce=lambda x: int(x) if x else None, validators=[Optional()])
+    check_number = StringField('Check Number (if applicable)')
+    bank_name = StringField('Bank Name (if applicable)')
+    receipt_attachment = StringField('Receipt File Path')
+    category = SelectField('Expense Category', choices=[(ec.name, ec.value) for ec in ExpenseCategory], validators=[DataRequired()])
+    project_id = SelectField('Link to Project', coerce=lambda x: int(x) if x else None, validators=[Optional()])
+    notes = TextAreaField('Notes')
+    submit = SubmitField('Save Paid Account')
+    
+    def validate_check_number(form, field):
+        """Validate that check number is provided when payment method is Check."""
+        if form.payment_method.data == PaymentMethod.CHECK.name and not field.data:
+            raise ValidationError('Check number is required when payment method is Check.')
+            
+    def validate_bank_name(form, field):
+        """Validate that bank name is provided when payment method is Check."""
+        if form.payment_method.data == PaymentMethod.CHECK.name and not field.data:
+            raise ValidationError('Bank name is required when payment method is Check.')
+
+class MonthlyExpenseForm(FlaskForm):
+    description = StringField('Description', validators=[DataRequired()])
+    amount = FloatField('Amount ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
+    expense_date = DateField('Expense Date', validators=[DataRequired()], format='%Y-%m-%d')
+    category = SelectField('Expense Category', choices=[(ec.name, ec.value) for ec in ExpenseCategory], validators=[DataRequired()])
+    payment_method = SelectField('Payment Method', choices=[(pm.name, pm.value) for pm in PaymentMethod], validators=[DataRequired()])
+    project_id = SelectField('Link to Project', coerce=lambda x: int(x) if x else None, validators=[Optional()])
+    notes = TextAreaField('Notes')
+    submit = SubmitField('Save Monthly Expense')
 
 # Form for suggesting new enhancements
 class EnhancementSuggestionForm(FlaskForm):

@@ -437,6 +437,91 @@ Recommended additions for production:
 - Check validation rules in forms.py
 - Enable debug mode for detailed error messages
 
+## Financial Management System
+
+The Financial Management System has been implemented to provide comprehensive tracking and analysis of the company's financial operations. This module includes tools for managing accounts payable, recording paid accounts, tracking monthly expenses, and generating financial reports with interactive visualizations.
+
+### Data Models
+
+#### Accounts Payable
+- **Description**: Tracks unpaid vendor bills and their status
+- **Key Fields**:
+  - Vendor name
+  - Description
+  - Amount
+  - Issue date
+  - Due date
+  - Payment method (Cash, Check, Transfer, Card, Other)
+  - Status (Pending, Paid, Overdue)
+  - Project association (optional)
+- **Key Features**:
+  - Status tracking with visual indicators
+  - Due date alerts
+  - Filtering by vendor, date range, and status
+  - Summary statistics with total amounts
+
+#### Paid Accounts
+- **Description**: Records all payments made to vendors
+- **Key Fields**:
+  - Vendor name
+  - Amount paid
+  - Payment date
+  - Payment method
+  - Check number (for check payments)
+  - Bank information (for check payments)
+- **Key Features**:
+  - Payment method breakdown
+  - Date-based filtering
+  - Total payments by method and vendor
+
+#### Monthly Expenses
+- **Description**: Tracks recurring business expenses by category
+- **Key Fields**:
+  - Description
+  - Amount
+  - Expense date
+  - Category (Rent, Utilities, Insurance, Taxes, Materials, Tools, Payroll, Vehicle, Office, Travel, Marketing, Professional Services, Other)
+  - Payment method
+  - Project association (optional)
+- **Key Features**:
+  - Category-based filtering and reporting
+  - Month-over-month expense comparison
+  - Project-specific expense tracking
+
+### Financial Reports
+
+The Financial Reports dashboard provides a comprehensive view of the company's financial status with interactive visualizations and key metrics.
+
+#### Dashboard Components
+- **Summary Cards**:
+  - Total Accounts Payable
+  - Total Paid Accounts (current month)
+  - Total Monthly Expenses (current month)
+  - Net Cash Flow (income vs expenses)
+
+#### Interactive Charts
+- **Payment Status Summary**:
+  - Visualization of pending, paid, and overdue amounts
+  - Filtering by date range
+
+- **Monthly Expense Categories**:
+  - Pie chart showing distribution of expenses by category
+  - Percentage breakdown with color coding
+
+- **Cash Flow Analysis**:
+  - Line chart comparing income vs expenses over time
+  - Month-by-month trend visualization
+
+- **Upcoming Payments**:
+  - List of payments due in the next 30 days
+  - Days-to-due indicators with color coding
+
+#### Implementation Details
+- Uses Chart.js for interactive visualizations
+- Implements responsive design with Bootstrap 5
+- Data refreshes on page load for real-time accuracy
+- Optimized query structure for performance
+
 ## Future Enhancements
 
 The following enhancements have been identified as priority items for future development:

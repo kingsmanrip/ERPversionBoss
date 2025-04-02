@@ -1,6 +1,7 @@
 from app import app, db
 from models import (Employee, Project, Timesheet, Material, Expense, PayrollPayment, 
-                   Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User)
+                   Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User,
+                   AccountsPayable, PaidAccount, MonthlyExpense, ExpenseCategory)
 from datetime import date, timedelta, datetime, time
 import random
 from werkzeug.security import generate_password_hash
@@ -56,6 +57,9 @@ def generate_mock_data():
         Material.query.delete()
         Expense.query.delete()
         Invoice.query.delete()
+        AccountsPayable.query.delete()
+        PaidAccount.query.delete()
+        MonthlyExpense.query.delete()
         Employee.query.delete()
         Project.query.delete()
         db.session.commit()
@@ -181,6 +185,208 @@ def generate_mock_data():
         
         db.session.commit()
         print(f"Added {len(projects)} projects")
+        
+        # --- Create Accounts Payable ---
+        print("Adding accounts payable entries...")
+        
+        vendors = [
+            "ABC Supply Co.", "XYZ Building Materials", "Smith Hardware", "Johnson Paint Supply",
+            "City Electric Supply", "Metro Lumber", "Premium Tools Inc.", "Quality Drywall Supply",
+            "Sunrise Building Materials", "Professional Painting Supplies", "United Equipment Rental",
+            "Martin's Tool Shed", "Commercial Plumbing Supply", "The Hardware Store", "Budget Materials"
+        ]
+        
+        ap_descriptions = [
+            "Materials for project", "Tool rentals", "Paint supplies", "Drywall materials",
+            "Electrical supplies", "Plumbing fixtures", "Hardware supplies", "Safety equipment",
+            "Cleaning supplies", "Landscaping materials", "Subcontractor services", "Equipment purchase",
+            "Insurance premium", "Office supplies", "Marketing materials"
+        ]
+        
+        accounts_payable_entries = []
+        for i in range(40):
+            # Choose a random project, but only active or completed ones
+            valid_projects = [p for p in projects if p.status in [ProjectStatus.IN_PROGRESS, ProjectStatus.COMPLETED, ProjectStatus.INVOICED]]
+            if not valid_projects:
+                continue
+            
+            project = random.choice(valid_projects)
+            
+            # Generate dates
+            issue_date = random_date(date.today() - timedelta(days=60), date.today() - timedelta(days=1))
+            due_date = issue_date + timedelta(days=random.choice([15, 30, 45, 60]))
+            
+            # Set amount based on project contract value
+            amount = round(random.uniform(50, project.contract_value * 0.2), 2)
+            
+            # Determine status with weighted distribution
+            status_weights = [
+                (PaymentStatus.PAID, 40),
+                (PaymentStatus.PENDING, 50),
+                (PaymentStatus.OVERDUE, 10)
+            ]
+            status = random.choices(
+                [s[0] for s in status_weights],
+                weights=[s[1] for s in status_weights]
+            )[0]
+            
+            # If due date is past today and status is still PENDING, mark as OVERDUE
+            if due_date < date.today() and status == PaymentStatus.PENDING:
+                status = PaymentStatus.OVERDUE
+            
+            ap_entry = AccountsPayable(
+                vendor=random.choice(vendors),
+                description=random.choice(ap_descriptions),
+                amount=amount,
+                issue_date=issue_date,
+                due_date=due_date,
+                payment_method=random.choice(list(PaymentMethod)),
+                status=status,
+                project_id=project.id if random.random() > 0.2 else None,  # 80% linked to a project
+                category=random.choice(list(ExpenseCategory)),
+                notes=f"Invoice #{random_string(8)}" if random.random() > 0.5 else ""
+            )
+            db.session.add(ap_entry)
+            accounts_payable_entries.append(ap_entry)
+        
+        db.session.commit()
+        print(f"Added {len(accounts_payable_entries)} accounts payable entries")
+        
+        # --- Create Paid Accounts ---
+        print("Adding paid account entries...")
+        
+        paid_accounts = []
+        # Convert some accounts payable to paid accounts
+        for ap in accounts_payable_entries:
+            if ap.status == PaymentStatus.PAID:
+                payment_date = random_date(ap.issue_date, min(ap.due_date, date.today()))
+                
+                payment_method = random.choice(list(PaymentMethod))
+                check_number = random_string(6) if payment_method == PaymentMethod.CHECK else None
+                bank_name = random.choice(["First National Bank", "Community Bank", "United Credit Union", "City Bank"]) if check_number else None
+                
+                paid_account = PaidAccount(
+                    vendor=ap.vendor,
+                    amount=ap.amount,
+                    payment_date=payment_date,
+                    payment_method=payment_method,
+                    project_id=ap.project_id,
+                    accounts_payable_id=ap.id,
+                    category=ap.category,
+                    check_number=check_number,
+                    bank_name=bank_name,
+                    receipt_attachment=f"receipt_{random_string(8)}.pdf" if random.random() > 0.7 else None,
+                    notes=f"Payment for invoice #{random_string(8)}" if random.random() > 0.5 else ""
+                )
+                db.session.add(paid_account)
+                paid_accounts.append(paid_account)
+        
+        # Add some standalone paid accounts (not linked to accounts payable)
+        for i in range(20):
+            valid_projects = [p for p in projects if p.status in [ProjectStatus.IN_PROGRESS, ProjectStatus.COMPLETED, ProjectStatus.INVOICED, ProjectStatus.PAID]]
+            if not valid_projects:
+                continue
+                
+            project = random.choice(valid_projects)
+            payment_date = random_date(date.today() - timedelta(days=90), date.today())
+            payment_method = random.choice(list(PaymentMethod))
+            check_number = random_string(6) if payment_method == PaymentMethod.CHECK else None
+            bank_name = random.choice(["First National Bank", "Community Bank", "United Credit Union", "City Bank"]) if check_number else None
+            
+            paid_account = PaidAccount(
+                vendor=random.choice(vendors),
+                amount=round(random.uniform(50, 2000), 2),
+                payment_date=payment_date,
+                payment_method=payment_method,
+                project_id=project.id if random.random() > 0.2 else None,
+                category=random.choice(list(ExpenseCategory)),
+                check_number=check_number,
+                bank_name=bank_name,
+                receipt_attachment=f"receipt_{random_string(8)}.pdf" if random.random() > 0.7 else None,
+                notes=f"Direct payment" if random.random() > 0.5 else ""
+            )
+            db.session.add(paid_account)
+            paid_accounts.append(paid_account)
+        
+        db.session.commit()
+        print(f"Added {len(paid_accounts)} paid account entries")
+        
+        # --- Create Monthly Expenses ---
+        print("Adding monthly expenses...")
+        
+        expense_descriptions = [
+            "Office rent", "Utilities payment", "Phone service", "Internet service",
+            "Vehicle maintenance", "Fuel expenses", "Insurance premium", "Software subscription",
+            "Office supplies", "Equipment maintenance", "Professional services", "Employee benefits",
+            "Marketing expenses", "Training and education", "Miscellaneous expenses", "Legal fees"
+        ]
+        
+        monthly_expenses = []
+        # Create expenses for the past 6 months
+        for month in range(6, 0, -1):
+            # Calculate the first day of the month that is 'month' months ago
+            current_month = date.today().month
+            current_year = date.today().year
+            target_month = current_month - month
+            target_year = current_year
+            
+            # Adjust for negative months by rolling back years
+            while target_month <= 0:
+                target_month += 12
+                target_year -= 1
+                
+            # Create start (1st day) and end (last day) of the month
+            expense_month_start = date(target_year, target_month, 1)
+            
+            # Calculate the last day of the month
+            if target_month == 12:  # December
+                next_month_year = target_year + 1
+                next_month = 1
+            else:
+                next_month_year = target_year
+                next_month = target_month + 1
+                
+            expense_month_end = date(next_month_year, next_month, 1) - timedelta(days=1)
+            
+            # Create 10-15 expenses per month
+            num_expenses = random.randint(10, 15)
+            for i in range(num_expenses):
+                expense_date = random_date(expense_month_start, expense_month_end)
+                
+                # Some expenses are recurrent in each month with similar amounts
+                if i < 5:  # First few entries in each month are recurring expenses
+                    description = expense_descriptions[i]
+                    # Consistent amounts with slight variations
+                    if description == "Office rent":
+                        amount = round(random.uniform(1800, 2000), 2)
+                    elif description == "Utilities payment":
+                        amount = round(random.uniform(300, 500), 2)
+                    elif description == "Phone service":
+                        amount = round(random.uniform(150, 200), 2)
+                    elif description == "Internet service":
+                        amount = round(random.uniform(80, 120), 2)
+                    elif description == "Insurance premium":
+                        amount = round(random.uniform(400, 600), 2)
+                    else:
+                        amount = round(random.uniform(50, 800), 2)
+                else:
+                    description = random.choice(expense_descriptions[5:])
+                    amount = round(random.uniform(50, 1500), 2)
+                
+                monthly_expense = MonthlyExpense(
+                    description=description,
+                    amount=amount,
+                    expense_date=expense_date,
+                    category=random.choice(list(ExpenseCategory)),
+                    payment_method=random.choice(list(PaymentMethod)),
+                    project_id=random.choice(projects).id if random.random() > 0.7 else None,  # 30% linked to projects
+                    notes=f"Monthly expense for {expense_date.strftime('%B %Y')}" if random.random() > 0.5 else ""
+                )
+                db.session.add(monthly_expense)
+                monthly_expenses.append(monthly_expense)
+        
+        db.session.commit()
+        print(f"Added {len(monthly_expenses)} monthly expense entries")
         
         # --- Create Timesheets ---
         print("Adding timesheets...")
