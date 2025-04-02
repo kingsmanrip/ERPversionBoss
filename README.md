@@ -42,6 +42,9 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
   - Visual emphasis with color-coded navigation element
   - "Implementações Futuras" section outlining upcoming features
   - Designed with a responsive, card-based layout for easy reading
+  - **NEW:** Added interactive Recommended Workflow section with visual timeline
+  - Step-by-step workflow guide with accordion panels for detailed instructions
+  - Color-coded best practices and tips for optimal system usage
 
 - **Employee Dropdown Search for Payroll**: Added comprehensive employee search functionality to the payroll report
   - Implemented dropdown menu with all employees for easy selection
@@ -71,6 +74,13 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
   - Removed Future Enhancements link from navigation
   - Fixed layout issues for better readability of financial data
   - Added clear status indicators for non-implemented features
+
+- **Custom Invoice PDF Generation**:
+  - Added professional invoice PDF generation with consistent branding
+  - Implemented clean, modern design with proper spacing and visual hierarchy
+  - Created organized sections for client info, project scope, and pricing
+  - Added "Print" button to invoices page for easy PDF generation
+  - Included automated contractor signature and date information
 - **Enhanced Lunch Break Calculations**: Implemented precise rules for lunch break deductions
 - **Improved Payment Method Tracking**: Added capabilities to record check numbers and bank names
 - **Enhanced Payroll Reporting**: Added detailed breakdowns by payment method (Cash vs Check)

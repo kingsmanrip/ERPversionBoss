@@ -804,6 +804,77 @@ The payroll report functionality has been improved to:
    - Consistent spacing and alignment for financial data
    - Mobile-responsive design for field technicians
 
+### Custom Invoice PDF Generation
+
+Implemented a professional invoice PDF generator with the following features:
+
+1. **Professional Layout and Design**:
+   - Modern, clean design with consistent branding elements
+   - Clear section headings with visual separators
+   - Proper spacing and alignment for improved readability
+   - Professional color scheme with corporate blues and accent colors
+
+2. **Enhanced Information Organization**:
+   - Dedicated sections for client information, project details, and pricing
+   - Tabular format for pricing with clear itemization
+   - Well-defined project scope section with highlighted heading
+   - Professional signature area with pre-filled contractor signature
+
+3. **Integration with Existing System**:
+   - Accessible directly from the invoices page via a "Print" button
+   - Automatic population of project and invoice data
+   - Automatic date formatting and document generation
+   - Consistent with company branding and professional standards
+
+```python
+# Example of the PDF generation with professional styling
+def generate_customer_invoice_pdf(invoice_id):
+    # [...]
+    # Define colors for consistent branding
+    header_blue = (16, 52, 166)  # Darker blue for headers
+    accent_blue = (0, 83, 214)   # Bright blue for accents
+    text_gray = (80, 80, 80)     # Dark gray for main text
+    
+    # Add project description section with proper styling
+    pdf.set_font('Arial', 'B', 11)
+    pdf.set_text_color(*header_blue)
+    pdf.cell(0, 7, 'PROJECT SCOPE', 0, 1, 'L')
+    # [...]
+```
+
+### Enhanced Portuguese User Guide
+
+The Portuguese User Guide has been expanded with a comprehensive workflow section:
+
+1. **Interactive Workflow Guide**:
+   - Visual timeline showing the 5 key stages of system usage
+   - Highlighted in navigation with distinct blue color for visibility
+   - Step-by-step guidance for proper data entry sequence
+
+2. **Detailed Process Documentation**:
+   - Interactive accordion panels for each workflow stage
+   - Specific navigation instructions with menu paths
+   - Color-coded alerts highlighting best practices and important warnings
+
+3. **System Usage Optimization**:
+   - Clear recommendations for sequencing data entry
+   - Best practices for invoice PDF generation
+   - Guidelines for effective financial analysis and reporting
+
+```html
+<!-- Example of workflow timeline implementation -->
+<div class="timeline-steps">
+    <div class="timeline-step">
+        <div class="timeline-content">
+            <div class="inner-circle bg-primary"><span class="text-white">1</span></div>
+            <h5 class="mt-3">Configuração Inicial</h5>
+            <!-- Employee setup steps -->
+        </div>
+    </div>
+    <!-- Additional workflow steps -->
+</div>
+```
+
 ### Mock Data Generation
 
 A dedicated script (`generate_mock_data.py`) has been implemented to generate realistic test data, including:

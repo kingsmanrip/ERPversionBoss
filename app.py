@@ -105,6 +105,262 @@ def export_to_pdf(data, title, filename):
         mimetype='application/pdf'
     )
 
+def generate_customer_invoice_pdf(invoice_id):
+    """Generate a professional customer-facing invoice PDF with clear formatting and layout"""
+    # Get the invoice data
+    invoice = db.session.get(Invoice, invoice_id)
+    if not invoice:
+        return None
+    
+    project = invoice.project
+    today = date.today().strftime("%m/%d/%Y")
+    
+    # Create PDF instance - using portrait orientation
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Define colors for consistent branding
+    header_blue = (16, 52, 166)  # Darker blue for headers
+    accent_blue = (0, 83, 214)   # Bright blue for accents
+    text_gray = (80, 80, 80)     # Dark gray for main text
+    highlight_red = (214, 0, 0)  # Red for highlights
+    
+    # Add custom header with logo space and company info
+    pdf.set_fill_color(240, 240, 240)  # Light gray background for header
+    pdf.rect(10, 10, 190, 30, 'F')     # Header background
+    
+    # Company name and info (left side of header)
+    pdf.set_font('Arial', 'B', 16)
+    pdf.set_text_color(*header_blue)
+    pdf.set_xy(15, 12)
+    pdf.cell(100, 8, 'Mauricio PDQ Paint & Drywall Llc', 0, 1)
+    
+    pdf.set_font('Arial', '', 10)
+    pdf.set_text_color(*text_gray)
+    pdf.set_x(15)
+    pdf.cell(100, 5, '968 WPA RD, Sumrall MS, 39482', 0, 1)
+    
+    pdf.set_font('Arial', 'B', 9)
+    pdf.set_x(15)
+    pdf.set_text_color(*highlight_red)
+    pdf.cell(100, 5, 'TEL: 601-596-3130  FAX: 601-752-3519', 0, 0)
+    
+    # Document title (right side of header)
+    pdf.set_font('Arial', 'B', 18)
+    pdf.set_text_color(*header_blue)
+    pdf.set_xy(130, 18)
+    pdf.cell(65, 10, 'PROJECT PROPOSAL', 0, 0, 'R')
+    
+    # Add invoice information section
+    pdf.set_text_color(*text_gray)
+    pdf.set_font('Arial', 'B', 10)
+    pdf.set_xy(10, 45)
+    pdf.cell(95, 6, 'CLIENT INFORMATION', 0, 0)
+    pdf.cell(95, 6, f'DATE: {today}', 0, 1, 'R')
+    
+    # Separator line
+    pdf.set_draw_color(*accent_blue)
+    pdf.line(10, 52, 200, 52)
+    
+    # Client details table
+    pdf.set_font('Arial', '', 10)
+    pdf.set_xy(10, 55)
+    
+    # Left column - client details
+    pdf.set_fill_color(246, 246, 246)  # Very light gray for alternating rows
+    
+    # Client name row
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(30, 7, 'Client:', 0, 0, 'L')
+    pdf.set_font('Arial', '', 10)
+    pdf.set_text_color(*accent_blue)  
+    pdf.cell(65, 7, project.client_name or 'N/A', 0, 0, 'L')
+    pdf.set_text_color(*text_gray)
+    
+    # Project ID row on the right
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(30, 7, 'Project ID:', 0, 0, 'L')
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(65, 7, project.project_id_str or f'#{project.id}', 0, 1, 'L')
+    
+    # Address row
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(30, 7, 'Address:', 0, 0, 'L', 1)
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(65, 7, 'N/A', 0, 0, 'L', 1)
+    
+    # Invoice number on the right
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(30, 7, 'Invoice #:', 0, 0, 'L', 1)
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(65, 7, invoice.invoice_number or f'{invoice.id}', 0, 1, 'L', 1)
+    
+    # Phone row
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(30, 7, 'Phone:', 0, 0, 'L')
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(65, 7, 'N/A', 0, 0, 'L')
+    
+    # Job location on the right
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(30, 7, 'Job Location:', 0, 0, 'L')
+    pdf.set_font('Arial', '', 10)
+    pdf.set_text_color(*accent_blue)  
+    pdf.cell(65, 7, project.location or 'N/A', 0, 1, 'L')
+    pdf.set_text_color(*text_gray)
+    
+    # Add project description section
+    pdf.ln(5)
+    pdf.set_font('Arial', 'B', 11)
+    pdf.set_text_color(*header_blue)
+    pdf.cell(0, 7, 'PROJECT SCOPE', 0, 1, 'L')
+    pdf.set_text_color(*text_gray)
+    
+    # Separator line
+    pdf.set_draw_color(*accent_blue)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(2)
+    
+    # Project scope text
+    pdf.set_font('Arial', '', 10)
+    pdf.multi_cell(0, 6, 'I propose to furnish all materials and perform all necessary labor to complete the following work:', 0, 'L')
+    pdf.ln(3)
+    
+    # Project description box
+    pdf.set_draw_color(200, 200, 200)  # Light gray border
+    pdf.set_fill_color(246, 246, 246)  # Very light gray fill
+    pdf.rect(10, pdf.get_y(), 190, 40, 'DF')  # Draw box
+    
+    # Description text inside box
+    pdf.set_xy(12, pdf.get_y() + 2)
+    pdf.set_text_color(*accent_blue)
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(0, 6, 'Scope of Work:', 0, 1, 'L')
+    pdf.set_text_color(*text_gray)
+    pdf.set_font('Arial', '', 10)
+    
+    # Format the description with proper breaks
+    description_text = project.description or 'No description provided.'
+    pdf.set_x(12)
+    pdf.multi_cell(186, 6, description_text, 0, 'L')
+    
+    # Move to below the box
+    pdf.set_y(pdf.get_y() + 15)
+    
+    # Amount section
+    pdf.ln(5)
+    pdf.set_font('Arial', 'B', 11)
+    pdf.set_text_color(*header_blue)
+    pdf.cell(0, 7, 'PROJECT PRICING', 0, 1, 'L')
+    pdf.set_text_color(*text_gray)
+    
+    # Separator line
+    pdf.set_draw_color(*accent_blue)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(2)
+    
+    # Pricing summary table
+    pdf.set_fill_color(246, 246, 246)  # Very light gray fill
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(140, 8, 'Description', 1, 0, 'L', 1)
+    pdf.cell(50, 8, 'Amount', 1, 1, 'C', 1)
+    
+    # Item details
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(140, 8, 'Materials and Labor', 1, 0, 'L')
+    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R')
+    
+    # Add empty Tax row
+    pdf.cell(140, 8, 'Tax', 1, 0, 'L')
+    pdf.cell(50, 8, '$0.00', 1, 1, 'R')
+    
+    # Total row
+    pdf.set_font('Arial', 'B', 10)
+    pdf.set_fill_color(230, 230, 230)  # Slightly darker gray for total row
+    pdf.cell(140, 8, 'TOTAL', 1, 0, 'L', 1)
+    pdf.set_text_color(*accent_blue)
+    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R', 1)
+    pdf.set_text_color(*text_gray)
+    
+    # Terms and conditions
+    pdf.ln(5)
+    pdf.set_font('Arial', 'B', 11)
+    pdf.set_text_color(*header_blue)
+    pdf.cell(0, 7, 'TERMS & CONDITIONS', 0, 1, 'L')
+    pdf.set_text_color(*text_gray)
+    
+    # Separator line
+    pdf.set_draw_color(*accent_blue)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(2)
+    
+    # Terms text
+    pdf.set_font('Arial', '', 9)
+    pdf.multi_cell(0, 5, 'The entire amount of the contract to be paid upon completion. Any alterations or deviation from the above specifications involving extra cost of material or labor will be executed upon written order for same and will become an extra charge over the sum mentioned in this contract. All agreements must be made in writing.', 0, 'L')
+    pdf.ln(3)
+    
+    # Acceptance section
+    pdf.set_font('Arial', 'B', 10)
+    pdf.cell(0, 7, 'ACCEPTANCE', 0, 1, 'L')
+    pdf.set_font('Arial', '', 9)
+    pdf.multi_cell(0, 5, 'I hereby authorize Mauricio PDQ Painting and Drywall to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.', 0, 'L')
+    pdf.ln(5)
+    
+    # Signature section
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())  # Separator
+    pdf.ln(8)
+    
+    # Customer signature
+    pdf.line(10, pdf.get_y(), 90, pdf.get_y())  # Signature line
+    pdf.set_font('Arial', '', 8)
+    pdf.set_xy(10, pdf.get_y() + 1)
+    pdf.cell(80, 5, 'Customer Signature', 0, 0, 'C')
+    
+    # Date
+    pdf.line(120, pdf.get_y() - 1, 200, pdf.get_y() - 1)  # Date line
+    pdf.set_xy(120, pdf.get_y())
+    pdf.cell(80, 5, 'Date', 0, 1, 'C')
+    pdf.ln(10)
+    
+    # Contractor signature - pre-filled
+    pdf.line(10, pdf.get_y(), 90, pdf.get_y())  # Signature line
+    pdf.set_font('Arial', '', 8)
+    pdf.set_xy(10, pdf.get_y() + 1)
+    pdf.set_text_color(*highlight_red)
+    pdf.set_font('Arial', 'I', 12)  # Italic signature
+    pdf.set_xy(25, pdf.get_y() - 8)  # Position signature above the line
+    pdf.cell(60, 8, 'Mauricio Septa', 0, 0)
+    pdf.set_text_color(*text_gray)
+    pdf.set_font('Arial', '', 8)
+    pdf.set_xy(10, pdf.get_y())
+    pdf.cell(80, 5, 'Contractor Signature', 0, 0, 'C')
+    
+    # Date - pre-filled with today
+    pdf.line(120, pdf.get_y() - 1, 200, pdf.get_y() - 1)  # Date line
+    pdf.set_xy(120, pdf.get_y() - 8)  # Position date above the line
+    pdf.cell(80, 8, today, 0, 0, 'C')
+    pdf.set_xy(120, pdf.get_y())
+    pdf.cell(80, 5, 'Date', 0, 0, 'C')
+    
+    # Footer with page number
+    pdf.ln(20)
+    pdf.set_font('Arial', 'I', 8)
+    pdf.set_text_color(128, 128, 128)  # Light gray for footer
+    pdf.cell(0, 5, f'Invoice #{invoice.invoice_number or invoice.id} - Generated on {today}', 0, 0, 'C')
+    
+    # Create temp file and write PDF to it
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+        pdf_path = tmp.name
+        pdf.output(pdf_path)
+    
+    # Return the created PDF file
+    return send_file(
+        pdf_path,
+        as_attachment=True,
+        download_name=f'invoice_{invoice.invoice_number}.pdf',
+        mimetype='application/pdf'
+    )
+
 def export_to_csv(data, prefix):
     """Helper function to export data to CSV"""
     df = pd.DataFrame(data)
@@ -762,6 +1018,16 @@ def user_guide():
 def invoices():
     all_invoices = Invoice.query.join(Project).order_by(Invoice.invoice_date.desc()).all()
     return render_template('invoices.html', invoices=all_invoices)
+
+@app.route('/invoice/print/<int:id>')
+@login_required
+def print_customer_invoice(id):
+    """Generate and download a customer-facing invoice PDF"""
+    try:
+        return generate_customer_invoice_pdf(id)
+    except Exception as e:
+        flash(f'Error generating invoice PDF: {str(e)}', 'danger')
+        return redirect(url_for('invoices'))
 
 @app.route('/invoice/add', methods=['GET', 'POST'])
 @login_required

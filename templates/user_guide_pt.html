@@ -10,6 +10,7 @@
         <div class="col-md-3">
             <div class="list-group sticky-top" style="top: 20px;">
                 <a class="list-group-item list-group-item-action" href="#introducao">Introdução</a>
+                <a class="list-group-item list-group-item-action bg-info text-white" href="#fluxodetrabalho">Fluxo de Trabalho Recomendado</a>
                 <a class="list-group-item list-group-item-action" href="#funcionarios">Gerenciamento de Funcionários</a>
                 <a class="list-group-item list-group-item-action" href="#projetos">Projetos</a>
                 <a class="list-group-item list-group-item-action" href="#folhaponto">Folha de Ponto</a>
@@ -42,6 +43,218 @@
                     </ul>
                     
                     <p>Este guia fornece instruções detalhadas sobre como utilizar cada recurso do sistema.</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="fluxodetrabalho">
+                <div class="card-header bg-info text-white">
+                    <h2 class="card-title h4 mb-0">Fluxo de Trabalho Recomendado</h2>
+                </div>
+                <div class="card-body">
+                    <p>Para garantir que o sistema ERP seja utilizado de maneira eficiente, recomendamos seguir a sequência de inserção de dados abaixo:</p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-primary">
+                                <strong>Dica:</strong> Seguir este fluxo de trabalho ajudará a manter a integridade dos dados e facilitará o rastreamento financeiro de projetos e custos.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="timeline-steps">
+                                <div class="timeline-step">
+                                    <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="" data-original-title="1">
+                                        <div class="inner-circle bg-primary"><span class="text-white">1</span></div>
+                                        <h5 class="mt-3">Configuração Inicial</h5>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Cadastrar funcionários</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Configurar taxas de pagamento</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="" data-original-title="2">
+                                        <div class="inner-circle bg-primary"><span class="text-white">2</span></div>
+                                        <h5 class="mt-3">Criar Projetos</h5>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Adicionar informações do cliente</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Definir escopo e local do projeto</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="" data-original-title="3">
+                                        <div class="inner-circle bg-primary"><span class="text-white">3</span></div>
+                                        <h5 class="mt-3">Registros Diários</h5>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Registrar horas trabalhadas</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Adicionar materiais utilizados</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Registrar despesas do projeto</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="" data-original-title="4">
+                                        <div class="inner-circle bg-primary"><span class="text-white">4</span></div>
+                                        <h5 class="mt-3">Gestão Financeira</h5>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Processar folha de pagamento</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Gerar faturas para clientes</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Imprimir PDFs personalizados</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="timeline-step mb-0">
+                                    <div class="timeline-content" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="" data-original-title="5">
+                                        <div class="inner-circle bg-primary"><span class="text-white">5</span></div>
+                                        <h5 class="mt-3">Análise e Relatórios</h5>
+                                        <ul class="list-unstyled small text-muted">
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Gerar relatórios financeiros</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Analisar lucratividade</li>
+                                            <li><i class="fas fa-chevron-right me-2 text-primary"></i>Tomar decisões baseadas em dados</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5">
+                        <h4>Fluxo de Trabalho Detalhado</h4>
+                        
+                        <div class="accordion" id="workflowAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        <i class="fas fa-user-plus me-2"></i> Etapa 1: Configuração Inicial
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#workflowAccordion">
+                                    <div class="accordion-body">
+                                        <p>Comece configurando todos os funcionários no sistema antes de criar projetos ou registrar horas:</p>
+                                        <ol>
+                                            <li>Acesse <strong>Employees > Add Employee</strong> para adicionar cada funcionário</li>
+                                            <li>Certifique-se de configurar a taxa horária correta para cada funcionário</li>
+                                            <li>Verifique a lista de funcionários em <strong>Employees > All Employees</strong></li>
+                                        </ol>
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i> <strong>Importante:</strong> A correta configuração dos funcionários é essencial para cálculos precisos de folha de pagamento mais tarde.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        <i class="fas fa-project-diagram me-2"></i> Etapa 2: Criar Projetos
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#workflowAccordion">
+                                    <div class="accordion-body">
+                                        <p>Crie projetos para cada trabalho antes de começar a registrar horas ou materiais:</p>
+                                        <ol>
+                                            <li>Acesse <strong>Projects > Add Project</strong> para criar um novo projeto</li>
+                                            <li>Preencha todos os detalhes do cliente e informações do local</li>
+                                            <li>Descreva claramente o escopo do trabalho no campo descrição</li>
+                                            <li>Defina o status inicial do projeto (geralmente "Em Andamento")</li>
+                                        </ol>
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> <strong>Dica:</strong> Uma descrição clara e detalhada do escopo aparecerá nas faturas geradas posteriormente.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        <i class="fas fa-calendar-day me-2"></i> Etapa 3: Registros Diários
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#workflowAccordion">
+                                    <div class="accordion-body">
+                                        <p>Diariamente, registre as atividades relacionadas aos projetos:</p>
+                                        <h6>Registro de Horas:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Timesheets > Add Timesheet</strong></li>
+                                            <li>Selecione o funcionário e o projeto</li>
+                                            <li>Registre as horas trabalhadas e o intervalo de almoço</li>
+                                        </ol>
+                                        
+                                        <h6>Registro de Materiais:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Projects > Add Material</strong></li>
+                                            <li>Selecione o projeto e registre os materiais utilizados</li>
+                                            <li>Inclua custos precisos para cálculos de lucratividade</li>
+                                        </ol>
+                                        
+                                        <h6>Registro de Despesas:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Financials > Add Expense</strong></li>
+                                            <li>Associe a despesa ao projeto relevante</li>
+                                            <li>Categorize a despesa adequadamente</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingFour">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                        <i class="fas fa-dollar-sign me-2"></i> Etapa 4: Gestão Financeira
+                                    </button>
+                                </h2>
+                                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#workflowAccordion">
+                                    <div class="accordion-body">
+                                        <p>Processe pagamentos e faturas com base nos registros anteriores:</p>
+                                        
+                                        <h6>Folha de Pagamento:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Payroll > Payroll Report</strong></li>
+                                            <li>Selecione o período de pagamento desejado</li>
+                                            <li>Revise as horas registradas para todos os funcionários</li>
+                                            <li>Clique em <strong>Record Payment</strong> para cada funcionário</li>
+                                            <li>Adicione deduções se necessário (impostos, adiantamentos, etc.)</li>
+                                        </ol>
+                                        
+                                        <h6>Faturamento:</h6>
+                                        <ol>
+                                            <li>Acesse <strong>Financials > Add Invoice</strong></li>
+                                            <li>Selecione o projeto concluído ou em fase de faturamento</li>
+                                            <li>Verifique os detalhes da fatura e o valor</li>
+                                            <li>Salve a fatura e então use <strong>Print</strong> para gerar um PDF profissional</li>
+                                        </ol>
+                                        
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle"></i> <strong>Recomendação:</strong> Sempre gere o PDF da fatura usando o botão Print para ter um documento profissional para enviar aos clientes.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingFive">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                        <i class="fas fa-chart-line me-2"></i> Etapa 5: Análise e Relatórios
+                                    </button>
+                                </h2>
+                                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#workflowAccordion">
+                                    <div class="accordion-body">
+                                        <p>Analise o desempenho do negócio e dos projetos:</p>
+                                        <ol>
+                                            <li>Acesse o <strong>Dashboard</strong> para uma visão geral rápida</li>
+                                            <li>Revise <strong>Projects > All Projects</strong> para análise de rentabilidade por projeto</li>
+                                            <li>Utilize <strong>Financials > Financial Report</strong> para análises detalhadas</li>
+                                            <li>Compare custos de mão de obra e materiais com valores faturados</li>
+                                            <li>Identifique projetos mais lucrativos e áreas para melhoria</li>
+                                        </ol>
+                                        <div class="alert alert-primary">
+                                            <i class="fas fa-lightbulb"></i> <strong>Melhor prática:</strong> Revise os relatórios financeiros semanalmente para identificar rapidamente tendências ou problemas.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -246,6 +459,20 @@
                         <li>Insira a descrição dos serviços, valor e data de vencimento</li>
                         <li>Clique em <strong>Save</strong> para criar a fatura</li>
                     </ol>
+                    
+                    <h3 class="h5">Como gerar PDF de fatura personalizado:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Invoices</strong></li>
+                        <li>Localize a fatura desejada na lista</li>
+                        <li>Clique no botão <strong>Print</strong> ao lado da fatura</li>
+                        <li>O sistema gerará automaticamente um PDF profissional com o layout personalizado da empresa</li>
+                        <li>O arquivo PDF será baixado automaticamente para seu computador</li>
+                        <li>Abra o PDF para visualizar a fatura formatada profissionalmente com todas as informações do projeto</li>
+                    </ol>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> <strong>Novo recurso:</strong> O PDF de fatura agora inclui um design moderno e profissional com seções bem organizadas para informações do cliente, escopo do projeto e precificação. O documento também inclui a assinatura do contratante pré-preenchida e a data atual.
+                    </div>
                     
                     <h3 class="h5">Como gerenciar faturas:</h3>
                     <ol>

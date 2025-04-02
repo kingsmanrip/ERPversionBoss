@@ -45,7 +45,9 @@
                     </td>
                     <td>{{ invoice.payment_received_date.strftime('%Y-%m-%d') if invoice.payment_received_date else 'Not paid' }}</td>
                     <td>
-                        <span class="text-muted"><small>Actions coming soon</small></span>
+                        <a href="{{ url_for('print_customer_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-primary" title="Print Customer Invoice">
+                            <i class="bi bi-printer"></i> Print
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}
