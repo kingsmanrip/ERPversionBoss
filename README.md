@@ -35,6 +35,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Recent Updates (April 2025)
 
+- **Portuguese User Guide**: Added comprehensive documentation in Portuguese
+  - Created a dedicated "Guia do Usuário" section in the main navigation
+  - Detailed step-by-step instructions for all system features
+  - Clear explanations of the workflow for each module
+  - Visual emphasis with color-coded navigation element
+  - "Implementações Futuras" section outlining upcoming features
+  - Designed with a responsive, card-based layout for easy reading
+
 - **Employee Dropdown Search for Payroll**: Added comprehensive employee search functionality to the payroll report
   - Implemented dropdown menu with all employees for easy selection
   - Detailed employee summary displaying pay rate, status, and financial metrics

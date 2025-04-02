@@ -1,0 +1,361 @@
+{% extends "layout.html" %}
+
+{% block title %}Guia do Usuário - Mauricio PDQ ERP{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Guia do Usuário - Sistema ERP Mauricio PDQ</h1>
+    
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <div class="list-group sticky-top" style="top: 20px;">
+                <a class="list-group-item list-group-item-action" href="#introducao">Introdução</a>
+                <a class="list-group-item list-group-item-action" href="#funcionarios">Gerenciamento de Funcionários</a>
+                <a class="list-group-item list-group-item-action" href="#projetos">Projetos</a>
+                <a class="list-group-item list-group-item-action" href="#folhaponto">Folha de Ponto</a>
+                <a class="list-group-item list-group-item-action" href="#folhapagamento">Folha de Pagamento</a>
+                <a class="list-group-item list-group-item-action" href="#materiais">Materiais</a>
+                <a class="list-group-item list-group-item-action" href="#despesas">Despesas</a>
+                <a class="list-group-item list-group-item-action" href="#faturas">Faturas</a>
+                <a class="list-group-item list-group-item-action" href="#relatorios">Relatórios</a>
+                <a class="list-group-item list-group-item-action" href="#implementacoesfuturas">Implementações Futuras</a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card mb-4" id="introducao">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Introdução ao Sistema</h2>
+                </div>
+                <div class="card-body">
+                    <p>Bem-vindo ao Sistema ERP Mauricio PDQ, uma solução completa desenvolvida especificamente para Mauricio PDQ Paint & Drywall. Este sistema foi projetado para facilitar o gerenciamento das operações diárias da empresa, incluindo:</p>
+                    
+                    <ul>
+                        <li>Gerenciamento de funcionários</li>
+                        <li>Controle de projetos</li>
+                        <li>Registro de tempo de trabalho</li>
+                        <li>Folha de pagamento</li>
+                        <li>Controle de materiais</li>
+                        <li>Gerenciamento de despesas</li>
+                        <li>Faturamento</li>
+                        <li>Análise financeira</li>
+                    </ul>
+                    
+                    <p>Este guia fornece instruções detalhadas sobre como utilizar cada recurso do sistema.</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="funcionarios">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Gerenciamento de Funcionários</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como adicionar um novo funcionário:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Employees</strong></li>
+                        <li>Clique no botão <strong>Add New Employee</strong></li>
+                        <li>Preencha todos os campos obrigatórios (Nome, Telefone, Taxa horária)</li>
+                        <li>Selecione o status do funcionário (Ativo ou Inativo)</li>
+                        <li>Clique em <strong>Save</strong> para adicionar o funcionário ao sistema</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como editar informações de funcionários:</h3>
+                    <ol>
+                        <li>Na lista de funcionários, localize o funcionário desejado</li>
+                        <li>Clique no botão <strong>Edit</strong> ao lado do nome do funcionário</li>
+                        <li>Atualize as informações necessárias</li>
+                        <li>Clique em <strong>Save</strong> para salvar as alterações</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como inativar um funcionário:</h3>
+                    <ol>
+                        <li>Edite o funcionário conforme as instruções acima</li>
+                        <li>Altere o status para <strong>Inactive</strong></li>
+                        <li>Clique em <strong>Save</strong> para confirmar a alteração</li>
+                        <li>Funcionários inativos não aparecerão nas listas de seleção para novas entradas</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="projetos">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Projetos</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como adicionar um novo projeto:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Projects</strong> e selecione <strong>All Projects</strong></li>
+                        <li>Clique no botão <strong>Add New Project</strong></li>
+                        <li>Preencha os detalhes do projeto, incluindo nome do cliente, endereço e descrição</li>
+                        <li>Defina as datas de início e término previstas</li>
+                        <li>Selecione o status do projeto (Em andamento, Completo, etc.)</li>
+                        <li>Clique em <strong>Save</strong> para adicionar o projeto</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como visualizar detalhes de um projeto:</h3>
+                    <ol>
+                        <li>Na lista de projetos, encontre o projeto desejado</li>
+                        <li>Clique no nome do projeto ou no botão <strong>View</strong></li>
+                        <li>A página de detalhes mostrará todas as informações relacionadas, incluindo:</li>
+                        <ul>
+                            <li>Informações gerais do projeto</li>
+                            <li>Materiais associados</li>
+                            <li>Horas de trabalho registradas</li>
+                            <li>Despesas</li>
+                            <li>Faturamento</li>
+                            <li>Análise de lucratividade</li>
+                        </ul>
+                    </ol>
+                    
+                    <h3 class="h5">Como atualizar o status de um projeto:</h3>
+                    <ol>
+                        <li>Acesse os detalhes do projeto conforme descrito acima</li>
+                        <li>Clique no botão <strong>Edit</strong></li>
+                        <li>Atualize o status do projeto conforme necessário</li>
+                        <li>Clique em <strong>Save</strong> para confirmar as alterações</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="folhaponto">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Folha de Ponto</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como registrar horas trabalhadas:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Add Timesheet Entry</strong></li>
+                        <li>Selecione o funcionário, projeto e data</li>
+                        <li>Insira os horários de início e término do trabalho</li>
+                        <li>Se aplicável, insira os horários de início e término do almoço</li>
+                        <li>O sistema calculará automaticamente o total de horas trabalhadas</li>
+                        <li>Clique em <strong>Save</strong> para registrar as horas</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como visualizar registros de ponto:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Timesheets</strong></li>
+                        <li>A página exibirá todos os registros de ponto em ordem cronológica</li>
+                        <li>Use os filtros disponíveis para localizar registros específicos por funcionário, projeto ou data</li>
+                    </ol>
+                    
+                    <div class="alert alert-info">
+                        <strong>Dica:</strong> O sistema calcula automaticamente o intervalo de almoço e subtrai do tempo total trabalhado.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="folhapagamento">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Folha de Pagamento</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como usar o novo recurso de busca por funcionário:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Payroll Report</strong></li>
+                        <li>Utilize o menu dropdown para selecionar um funcionário específico</li>
+                        <li>O sistema exibirá automaticamente:
+                            <ul>
+                                <li>Resumo de informações do funcionário (taxa de pagamento, status)</li>
+                                <li>Histórico de pagamentos recentes</li>
+                                <li>Entradas recentes de folha de ponto</li>
+                                <li>Total de horas trabalhadas e valores pagos</li>
+                            </ul>
+                        </li>
+                        <li>Use o botão <strong>Clear</strong> para voltar à visualização completa do relatório</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como registrar um pagamento:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Record Payment</strong></li>
+                        <li>Selecione o funcionário e preencha as informações de pagamento</li>
+                        <li>Adicione as deduções aplicáveis (impostos, seguro, adiantamentos, etc.)</li>
+                        <li>O sistema calculará automaticamente o valor líquido</li>
+                        <li>Selecione o método de pagamento (dinheiro ou cheque)</li>
+                        <li>Se for por cheque, preencha o número do cheque e o nome do banco</li>
+                        <li>Clique em <strong>Save</strong> para registrar o pagamento</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como gerar relatórios de folha de pagamento:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Payroll Report</strong></li>
+                        <li>O relatório exibirá todos os pagamentos registrados em ordem cronológica</li>
+                        <li>Utilize a funcionalidade de busca por funcionário para filtrar por pessoa específica</li>
+                        <li>Visualize os totais calculados por método de pagamento</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="materiais">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Materiais</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como registrar materiais utilizados:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Projects</strong> e selecione <strong>Add Material</strong></li>
+                        <li>Selecione o projeto associado ao material</li>
+                        <li>Insira a descrição do material, quantidade e custo</li>
+                        <li>Adicione informações sobre o fornecedor, se disponíveis</li>
+                        <li>Clique em <strong>Save</strong> para registrar o material</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como visualizar registros de materiais:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Projects</strong> e selecione <strong>Materials Log</strong></li>
+                        <li>A página exibirá todos os materiais registrados</li>
+                        <li>Utilize os filtros para localizar materiais específicos por projeto ou data</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="despesas">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Despesas</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como registrar despesas:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Add Expense</strong></li>
+                        <li>Selecione o projeto associado, se aplicável (opcional)</li>
+                        <li>Descreva a despesa e insira o valor</li>
+                        <li>Selecione a categoria e o método de pagamento</li>
+                        <li>Adicione notas adicionais, se necessário</li>
+                        <li>Clique em <strong>Save</strong> para registrar a despesa</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como visualizar despesas:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Expenses</strong></li>
+                        <li>A página exibirá todas as despesas registradas</li>
+                        <li>Utilize os filtros para localizar despesas específicas por projeto, categoria ou data</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="faturas">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Faturas</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Como criar uma fatura:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Add Invoice</strong></li>
+                        <li>Selecione o projeto para o qual está gerando a fatura</li>
+                        <li>O sistema preencherá automaticamente as informações do cliente</li>
+                        <li>Insira a descrição dos serviços, valor e data de vencimento</li>
+                        <li>Clique em <strong>Save</strong> para criar a fatura</li>
+                    </ol>
+                    
+                    <h3 class="h5">Como gerenciar faturas:</h3>
+                    <ol>
+                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Invoices</strong></li>
+                        <li>A página exibirá todas as faturas com status de pagamento</li>
+                        <li>Para registrar o pagamento de uma fatura, clique no botão <strong>Mark as Paid</strong></li>
+                        <li>Insira a data e informações de pagamento quando solicitado</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="relatorios">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Relatórios</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">Relatório de Folha de Pagamento:</h3>
+                    <p>O relatório de folha de pagamento fornece uma visão completa de todos os pagamentos feitos aos funcionários.</p>
+                    <ol>
+                        <li>Acesse <strong>Payroll</strong> → <strong>Payroll Report</strong></li>
+                        <li>Utilize o menu dropdown para filtrar por funcionário específico</li>
+                        <li>Visualize totais por método de pagamento e funcionário</li>
+                    </ol>
+                    
+                    <h3 class="h5">Análise de Lucratividade de Projetos:</h3>
+                    <p>Cada página de detalhes do projeto inclui uma análise completa de lucratividade:</p>
+                    <ol>
+                        <li>Acesse <strong>Projects</strong> → <strong>All Projects</strong> e clique em um projeto</li>
+                        <li>A seção de análise de lucratividade mostra:
+                            <ul>
+                                <li>Valor faturado total</li>
+                                <li>Custos de materiais</li>
+                                <li>Custos de mão de obra (baseados na folha de ponto)</li>
+                                <li>Outras despesas</li>
+                                <li>Lucro bruto e margem de lucro</li>
+                                <li>Lucro líquido (considerando apenas valores efetivamente recebidos)</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3 class="h5">Exportação de Relatórios:</h3>
+                    <p>Diversos relatórios podem ser exportados em diferentes formatos:</p>
+                    <ol>
+                        <li>Navegue até o relatório desejado</li>
+                        <li>Localize o botão de exportação na parte superior da página</li>
+                        <li>Selecione o formato desejado:
+                            <ul>
+                                <li>Excel (.xlsx)</li>
+                                <li>PDF</li>
+                                <li>CSV</li>
+                            </ul>
+                        </li>
+                        <li>O arquivo será gerado e baixado automaticamente</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="implementacoesfuturas">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">Implementações Futuras</h2>
+                </div>
+                <div class="card-body">
+                    <p>O Sistema ERP Mauricio PDQ está em constante evolução. As seguintes funcionalidades estão planejadas para implementação futura:</p>
+                    
+                    <h3 class="h5">1. Portal do Cliente</h3>
+                    <ul>
+                        <li>Acesso limitado para clientes acompanharem o status de seus projetos</li>
+                        <li>Visualização de faturas e opção de pagamento online</li>
+                        <li>Compartilhamento de documentos relacionados aos projetos</li>
+                        <li>Comunicação direta com a equipe do projeto</li>
+                    </ul>
+                    
+                    <h3 class="h5">2. Aplicativo Móvel para Registro de Tempo</h3>
+                    <ul>
+                        <li>Permitirá que funcionários registrem horas trabalhadas diretamente em seus smartphones</li>
+                        <li>Recursos de geolocalização para verificar a presença no local de trabalho</li>
+                        <li>Captura de fotos do progresso do trabalho</li>
+                        <li>Aprovações de horas trabalhadas em tempo real</li>
+                    </ul>
+                    
+                    <h3 class="h5">3. Sistema de Orçamentos Avançado</h3>
+                    <ul>
+                        <li>Criação de orçamentos detalhados com itens de linha para materiais e mão de obra</li>
+                        <li>Comparação de orçamento vs. custos reais durante a execução do projeto</li>
+                        <li>Geração automática de orçamentos baseados em projetos similares anteriores</li>
+                        <li>Integração com fornecedores para cotações automáticas de materiais</li>
+                    </ul>
+                    
+                    <h3 class="h5">4. Dashboard Personalizado</h3>
+                    <ul>
+                        <li>Widgets configuráveis para cada tipo de usuário</li>
+                        <li>Gráficos e indicadores personalizáveis</li>
+                        <li>Visualização de tendências e comparativos</li>
+                        <li>Alertas e notificações personalizados</li>
+                    </ul>
+                    
+                    <h3 class="h5">5. Integração com Sistemas Contábeis</h3>
+                    <ul>
+                        <li>Exportação automatizada de dados para sistemas contábeis populares</li>
+                        <li>Sincronização bidirecional de informações financeiras</li>
+                        <li>Geração de relatórios fiscais</li>
+                        <li>Controle de impostos e obrigações fiscais</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning mt-4">
+                        <strong>Nota:</strong> As funcionalidades listadas acima estão em desenvolvimento e serão implementadas gradualmente em versões futuras do sistema. As datas de lançamento serão comunicadas através de notificações no sistema.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

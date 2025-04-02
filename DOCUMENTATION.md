@@ -599,7 +599,24 @@ A complete payroll deductions system has been implemented with the following fea
 
 ### UI Improvements
 
-1. **Employee Dropdown Search for Payroll Reports**:
+1. **Portuguese User Guide ("Guia do Usuário")**: 
+   - Added comprehensive system documentation in Portuguese
+   - Created a dedicated route `/user-guide` with its own template
+   - Implemented color-highlighted navigation item in the main menu
+   - Organized content in a user-friendly card-based layout with:
+     - Side navigation for quick access to specific sections
+     - Step-by-step instructions for all system features
+     - Visual cues and alerts for important information
+     - Detailed examples of workflows for each module
+   - Added "Implementações Futuras" (Future Implementations) section outlining:
+     - Client Portal
+     - Mobile Time Tracking App
+     - Advanced Budgeting System
+     - Customizable Dashboard
+     - Accounting System Integration
+   - Responsive design ensures proper display on all device sizes
+
+2. **Employee Dropdown Search for Payroll Reports**:
    - Implemented a dropdown-based employee search feature in payroll reports
    - Replaced text-based search with a complete dropdown list of all employees
    - Enhanced UI with clear selection state and toggling between filtered/unfiltered views
@@ -610,20 +627,20 @@ A complete payroll deductions system has been implemented with the following fea
    - Added clear button to remove filtering and return to full report view
    - Improved user experience with maintained selection state across page refreshes
 
-2. **Streamlined Dashboard**:
+3. **Streamlined Dashboard**:
    - Removed the Quick Actions section for a cleaner interface
    - Improved layout to emphasize financial metrics and project performance
 
-3. **Navigation Enhancements**:
+4. **Navigation Enhancements**:
    - Removed Future Enhancements link from navigation menu
    - Focused navigation on implemented functionality
 
-4. **Improved Error Handling**:
+5. **Improved Error Handling**:
    - Fixed BuildError related to non-existent routes
    - Added proper error handling for missing data
    - Improved user feedback for non-implemented features
 
-5. **Invoice Page Improvements**:
+6. **Invoice Page Improvements**:
    - Removed non-functional buttons and export options
    - Added clear indicators for features coming soon
    - Improved layout consistency

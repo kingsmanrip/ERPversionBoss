@@ -750,6 +750,12 @@ def payroll_report():
                           search_history=search_history,
                           all_employees=all_employees)
 
+# --- User Guide Route ---
+@app.route('/user-guide')
+@login_required
+def user_guide():
+    return render_template('user_guide_pt.html')
+
 # --- Invoice Routes (Basic CRUD) ---
 @app.route('/invoices')
 @login_required
