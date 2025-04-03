@@ -198,12 +198,16 @@ This roadmap provides a structured approach to completing the Mauricio PDQ ERP S
 - Implemented comprehensive payroll deductions system
 - Added net profit calculation functionality
 - Enhanced UI for better readability and usability
+- Implemented custom work week definition (Friday-Thursday)
+- Enhanced PDF exports with automatic totals for numerical fields
+- Added comprehensive payment summary with cash/check breakdown and grand total
 - Implemented comprehensive export functionality
 - Fixed critical issues in PayrollPayment model and form validation
 - Enhanced test suite with improved coverage and reliability
+- Completed Accounts Payable and Paid Accounts modules
 
 ### Next Priorities
-- Complete Accounts Payable and Paid Accounts modules
 - Implement remaining financial reporting features
 - Develop enhanced dashboard with financial metrics
 - Add mobile-responsive design for field use
+- Implement batch export for multiple reports

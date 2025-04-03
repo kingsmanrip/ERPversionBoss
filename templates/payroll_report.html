@@ -416,6 +416,59 @@
     </div>
 </div>
 
+<!-- Payment Summary Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Payment Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-success">Cash Payments</h6>
+                                <h3 class="mb-2">${{ "%.2f"|format(payment_method_totals.CASH.total) }}</h3>
+                                <p class="card-text text-muted mb-0">{{ payment_method_totals.CASH.count }} payment(s)</p>
+                                <div class="mt-2">
+                                    <span class="badge bg-success">{{ "%.1f"|format(payment_method_totals.CASH.total / (payment_method_totals.CASH.total + payment_method_totals.CHECK.total) * 100 if payment_method_totals.CASH.total + payment_method_totals.CHECK.total > 0 else 0) }}%</span>
+                                    <span class="text-muted small">of total</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-info">Check Payments</h6>
+                                <h3 class="mb-2">${{ "%.2f"|format(payment_method_totals.CHECK.total) }}</h3>
+                                <p class="card-text text-muted mb-0">{{ payment_method_totals.CHECK.count }} payment(s)</p>
+                                <div class="mt-2">
+                                    <span class="badge bg-info">{{ "%.1f"|format(payment_method_totals.CHECK.total / (payment_method_totals.CASH.total + payment_method_totals.CHECK.total) * 100 if payment_method_totals.CASH.total + payment_method_totals.CHECK.total > 0 else 0) }}%</span>
+                                    <span class="text-muted small">of total</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">GRAND TOTAL</h6>
+                                <h3 class="mb-2">${{ "%.2f"|format(payment_method_totals.CASH.total + payment_method_totals.CHECK.total) }}</h3>
+                                <p class="card-text mb-0">{{ payment_method_totals.CASH.count + payment_method_totals.CHECK.count }} total payment(s)</p>
+                                <div class="mt-2">
+                                    <span class="badge bg-light text-dark">{{ "%.2f"|format(total_weekly_hours) }} hours</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Payment Method Breakdown -->
 <div class="row">
     <div class="col-md-6">

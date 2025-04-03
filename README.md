@@ -40,6 +40,21 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Recent Updates (April 2025)
 
+- **Enhanced PDF Reports**: Added comprehensive totals to all PDF exports
+  - **Automatic Total Calculation**: Intelligent detection and summation of all numerical values
+  - **Properly Formatted Totals**: Currency amounts, hours, and percentages formatted appropriately
+  - **Visual Enhancements**: Clear separation of totals with styling for better readability
+
+- **Work Week Definition**: Implemented company-specific Friday to Thursday work week definition
+  - **Custom Week Calculation**: All weekly reports and dashboards use Friday-Thursday period
+  - **Consistent Implementation**: Applied throughout timesheets, payroll, and reporting modules
+
+- **Payment Method Summary**: Added comprehensive payment summary visualization
+  - **Cash vs Check Breakdown**: Clear visual separation of payment methods with totals
+  - **Percentage Calculations**: Visual indicators showing proportion of each payment method
+  - **Grand Total Display**: Prominent display of combined payment totals across methods
+  - **Payment Count Metrics**: Tracking of payment counts by method and in total
+
 - **Financial Management System**: Added comprehensive financial tracking module
   - **Accounts Payable Management**: Track unpaid vendor bills with due dates and status tracking
   - **Paid Accounts Tracking**: Record all payments to vendors with payment method details

@@ -9,7 +9,7 @@ env/
 ENV/
 
 # Database files
-# *.db  # Uncomment this if you don't want to track database changes
+*.db  # Temporarily ignoring database changes
 
 # Other
 .pytest_cache/

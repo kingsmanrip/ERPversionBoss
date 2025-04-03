@@ -46,10 +46,16 @@ def login_required(f):
 
 # --- Helper Functions ---
 def get_week_start_end(dt=None):
-    """Gets the start (Monday) and end (Sunday) dates of the week for a given date."""
+    """Gets the start (Friday) and end (Thursday) dates of the work week for a given date.
+    Work weeks are defined as running from Friday through Thursday.
+    """
     dt = dt or date.today()
-    start = dt - timedelta(days=dt.weekday())
-    end = start + timedelta(days=6)
+    # Calculate days to go back to reach Friday
+    # weekday() returns: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+    # So to get to Friday: if today is Mon (0), go back 3 days; if today is Fri (4), go back 0 days, etc.
+    days_to_friday = (dt.weekday() - 4) % 7
+    start = dt - timedelta(days=days_to_friday)
+    end = start + timedelta(days=6)  # 6 days after Friday is Thursday
     return start, end
 
 # --- Export Helpers ---
@@ -68,7 +74,7 @@ def export_to_excel(data, prefix):
     )
 
 def export_to_pdf(data, title, filename):
-    """Helper function to export data to PDF"""
+    """Helper function to export data to PDF with totals for numerical fields"""
     pdf = FPDF()
     pdf.add_page('L')  # Landscape orientation for more columns
     
@@ -79,18 +85,84 @@ def export_to_pdf(data, title, filename):
     
     # Add header
     if data:
+        # Initialize totals dictionary for numerical columns
+        totals = {}
+        column_keys = list(data[0].keys())
+        
+        # Add header row
         pdf.set_font('Arial', 'B', 8)
-        col_width = 270 / len(data[0].keys())
-        for key in data[0].keys():
+        col_width = 270 / len(column_keys)
+        for key in column_keys:
             pdf.cell(col_width, 10, str(key), 1)
+            # Initialize totals for columns that might contain numbers
+            totals[key] = 0
         pdf.ln()
         
-        # Add data
+        # Add data rows and calculate totals for numerical fields
         pdf.set_font('Arial', '', 8)
         for item in data:
             for key, value in item.items():
                 pdf.cell(col_width, 10, str(value)[:20], 1)
+                # Update total if the value is numerical (uses string checking since data might be pre-formatted)
+                string_value = str(value)
+                if string_value.replace('.', '', 1).replace(',', '', 1).replace('$', '', 1).replace('-', '', 1).isdigit():
+                    # Extract and clean the numerical value
+                    clean_value = string_value.replace('$', '').replace(',', '')
+                    try:
+                        # Try to convert to float and add to total
+                        totals[key] += float(clean_value)
+                    except ValueError:
+                        pass
+                elif string_value.startswith('$') and string_value[1:].replace('.', '', 1).replace(',', '', 1).isdigit():
+                    # Handle currency values starting with $
+                    clean_value = string_value.replace('$', '').replace(',', '')
+                    try:
+                        totals[key] += float(clean_value)
+                    except ValueError:
+                        pass
             pdf.ln()
+        
+        # Add a separating line
+        pdf.ln(5)
+        pdf.line(10, pdf.get_y(), 285, pdf.get_y())
+        pdf.ln(2)
+        
+        # Add totals row with bold formatting
+        pdf.set_font('Arial', 'B', 8)
+        pdf.set_fill_color(240, 240, 240)  # Light gray background
+        
+        # First cell is the 'TOTALS' label
+        pdf.cell(col_width, 10, 'TOTALS', 1, 0, 'L', True)
+        
+        # Add total values for each column
+        for key in column_keys[1:]:  # Skip the first column which usually has labels
+            # Check if this column had numerical values
+            if totals[key] > 0:
+                # Format the total based on the column content (currency, decimals, etc.)
+                if any('$' in str(item[key]) for item in data):
+                    # Currency format
+                    formatted_total = f'${totals[key]:,.2f}'
+                elif any('hours' in str(key).lower() for item in data) or \
+                     any('hrs' in str(key).lower() for item in data):
+                    # Hours format - 2 decimal places
+                    formatted_total = f'{totals[key]:.2f}'
+                elif isinstance(totals[key], float):
+                    # Regular float format
+                    formatted_total = f'{totals[key]:,.2f}'
+                else:
+                    # Integer format
+                    formatted_total = f'{int(totals[key]):,}'
+                
+                pdf.cell(col_width, 10, formatted_total, 1, 0, 'R', True)
+            else:
+                # Non-numerical column
+                pdf.cell(col_width, 10, '', 1, 0, 'C', True)
+        pdf.ln()
+        
+        # Add note about totals
+        pdf.ln(5)
+        pdf.set_font('Arial', 'I', 8)
+        pdf.cell(0, 10, 'Note: Totals are calculated for numerical fields only.', 0, 1, 'L')
     
     # Create temp file and write PDF to it
     with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:

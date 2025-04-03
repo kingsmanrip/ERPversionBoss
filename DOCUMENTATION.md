@@ -615,6 +615,126 @@ The following enhancements have been identified as priority items for future dev
 
 ## Recent Enhancements
 
+### Enhanced PDF Export with Comprehensive Totals
+
+The PDF export functionality has been enhanced to automatically calculate and display totals for all numerical fields:
+
+```python
+def export_to_pdf(data, title, filename):
+    """Helper function to export data to PDF with totals for numerical fields"""
+    # ...
+    # Calculate totals for numerical columns
+    totals = {}
+    for key in column_keys:
+        totals[key] = 0
+        
+    # Process data and update totals
+    for item in data:
+        for key, value in item.items():
+            # ...
+            # Detect numerical values and add to totals
+            string_value = str(value)
+            if string_value.replace('.', '', 1).replace(',', '', 1).replace('$', '', 1).replace('-', '', 1).isdigit():
+                clean_value = string_value.replace('$', '').replace(',', '')
+                try:
+                    totals[key] += float(clean_value)
+                except ValueError:
+                    pass
+    
+    # Display totals row with appropriate formatting
+    pdf.set_font('Arial', 'B', 8)
+    pdf.set_fill_color(240, 240, 240)  # Light gray background
+    # ...
+```
+
+Key improvements include:
+
+1. **Intelligent Numerical Detection**: The system identifies numerical values even when formatted with currency symbols, commas, or other non-numeric characters
+2. **Format-Aware Display**: Totals are displayed using the same formatting as the source data (currency, decimal places, etc.)
+3. **Visual Distinction**: Totals row has a light gray background and bold text for clear separation
+4. **Contextual Note**: Includes an explanatory note about the calculation method
+
+### Custom Work Week Definition (Friday-Thursday)
+
+Implemented a company-specific definition of the work week as running from Friday to Thursday instead of the standard Monday-Sunday:
+
+```python
+def get_week_start_end(dt=None):
+    """Gets the start (Friday) and end (Thursday) dates of the work week for a given date.
+    Work weeks are defined as running from Friday through Thursday.
+    """
+    dt = dt or date.today()
+    # Calculate days to go back to reach Friday
+    # weekday() returns: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+    # So to get to Friday: if today is Mon (0), go back 3 days; if today is Fri (4), go back 0 days, etc.
+    days_to_friday = (dt.weekday() - 4) % 7
+    start = dt - timedelta(days=days_to_friday)
+    end = start + timedelta(days=6)  # 6 days after Friday is Thursday
+    return start, end
+```
+
+This change affects:
+
+1. **Dashboard Weekly Hours**: Hours displayed on the dashboard now reflect Friday-Thursday periods
+2. **Payroll Reports**: All weekly payroll reports use Friday-Thursday as the standard period
+3. **Timesheet Calculations**: Weekly timesheet summaries align with the custom work week definition
+
+### Payment Method Summary Visualization
+
+Enhanced the payroll report with a comprehensive payment summary that clearly separates Cash and Check payments and provides a grand total:
+
+```html
+<!-- Payment Summary Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Payment Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-success">Cash Payments</h6>
+                                <h3 class="mb-2">${{ "%.2f"|format(payment_method_totals.CASH.total) }}</h3>
+                                <!-- Payment count and percentage of total -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title text-info">Check Payments</h6>
+                                <h3 class="mb-2">${{ "%.2f"|format(payment_method_totals.CHECK.total) }}</h3>
+                                <!-- Payment count and percentage of total -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 bg-dark text-white">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">GRAND TOTAL</h6>
+                                <h3 class="mb-2">${{ "%.2f"|format(payment_method_totals.CASH.total + payment_method_totals.CHECK.total) }}</h3>
+                                <!-- Total payment count and hours -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+Key features of the payment summary include:
+
+1. **Method-Specific Totals**: Clear separation of Cash and Check payment totals
+2. **Payment Counts**: Display of how many payments were made using each method
+3. **Percentage Visualization**: Visual indicators showing the proportion of each payment method
+4. **Grand Total**: Prominent display of the combined total across all payment methods
+5. **Hours Worked Context**: Inclusion of total hours worked during the period for context
+
 ### SQLAlchemy 2.0 Compatibility Updates
 
 All database access patterns have been modernized to align with SQLAlchemy 2.0 best practices:
