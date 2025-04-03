@@ -437,6 +437,53 @@ Recommended additions for production:
 - Check validation rules in forms.py
 - Enable debug mode for detailed error messages
 
+### Database Backup and Restoration
+
+A robust automated backup and restoration system has been implemented to ensure data integrity and disaster recovery capabilities.
+
+#### Automated Backup System
+
+**Configuration:**
+- **Schedule**: Daily backups at 3:00 AM (UTC)
+- **Location**: `/root/backups/erp/`
+- **Naming Convention**: `erp_db_backup_YYYY-MM-DD.db.gz`
+- **Retention Period**: 30 days (older backups are automatically pruned)
+- **Compression**: GZip compression to minimize storage requirements
+
+**Components:**
+- **Backup Script**: `/root/backup_erp_db.sh` - Creates compressed, date-stamped backups
+- **Cron Job**: `/etc/cron.d/erp_backup` - Schedules automatic execution
+- **Logging**: Detailed logs stored in `/root/backups/erp/backup_log.txt`
+
+#### Database Restoration
+
+**Restoration Tool:**
+- **Script**: `/root/restore_erp_db.sh YYYY-MM-DD`
+- **Safety Features**: Creates a pre-restoration backup before proceeding
+- **Service Management**: Automatically handles stopping/starting the application
+
+**Restoration Process:**
+1. System creates a timestamped safety backup of the current database
+2. ERP service is safely stopped
+3. Selected backup is decompressed and restored
+4. ERP service is restarted
+5. Detailed feedback is provided on operation success
+
+**Usage Example:**
+```bash
+# List available backups
+/root/restore_erp_db.sh
+
+# Restore from specific date
+/root/restore_erp_db.sh 2025-04-03
+```
+
+**Manual Backup:**
+To create an on-demand backup at any time:
+```bash
+/root/backup_erp_db.sh
+```
+
 ## Financial Management System
 
 The Financial Management System has been implemented to provide comprehensive tracking and analysis of the company's financial operations. This module includes tools for managing accounts payable, recording paid accounts, tracking monthly expenses, and generating financial reports with interactive visualizations.

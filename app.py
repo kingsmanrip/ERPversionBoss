@@ -1796,4 +1796,4 @@ if __name__ == '__main__':
             db.session.commit()
             print('Created default user: patricia')
             
-    app.run(debug=True, host='0.0.0.0', port=5004)  # Runs on localhost and network IP
+    app.run(debug=False, host='0.0.0.0', port=3002)  # Run on port 3002 for Nginx proxy
