@@ -1,0 +1,33 @@
+<!-- Simple Feedback Modal -->
+<div class="modal fade" id="userNeedsModal" tabindex="-1" aria-labelledby="userNeedsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="userNeedsModalLabel">Tell us what you need</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('submit_user_needs') }}" method="POST" id="userNeedsForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="section" value="{{ request.path }}">
+          
+          <div class="mb-3">
+            <label for="user-needs" class="form-label">What changes or improvements would you like to see?</label>
+            <textarea class="form-control" id="user-needs" name="content" rows="4" placeholder="Tell us what you need..." required></textarea>
+          </div>
+          
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Simple Feedback Button -->
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userNeedsModal">
+    <i class="fas fa-comment"></i> Feedback
+  </button>
+</div>

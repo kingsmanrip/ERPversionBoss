@@ -112,6 +112,11 @@
         {% endblock %}
     </main>
 
+    {% if session.get('user_id') %}
+    <!-- Simple Feedback Component -->
+    {% include 'components/simple_feedback.html' %}
+    {% endif %}
+
     <footer class="container mt-5 text-center text-muted">
         <hr>
         <p> Mauricio PDQ Paint & Drywall ERP - Basic</p>

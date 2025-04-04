@@ -11,6 +11,8 @@ from fpdf import FPDF
 import tempfile
 import io
 import pandas as pd
+import json
+import uuid
 
 from models import db, Employee, Project, Timesheet, Material, Expense, PayrollPayment, PayrollDeduction, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User, DeductionType, AccountsPayable, PaidAccount, MonthlyExpense, ExpenseCategory
 from forms import EmployeeForm, ProjectForm, TimesheetForm, MaterialForm, ExpenseForm, PayrollPaymentForm, PayrollDeductionForm, InvoiceForm, LoginForm, AccountsPayableForm, PaidAccountForm, MonthlyExpenseForm
@@ -1489,6 +1491,42 @@ def suggest_enhancement():
     enhancements = []  # You would need to repopulate this
     flash('Please correct the errors in your submission.', 'danger')
     return render_template('future_enhancements.html', enhancements=enhancements, form=form)
+
+# --- User Needs Feedback System ---
+@app.route('/submit_user_needs', methods=['POST'])
+def submit_user_needs():
+    if not session.get('user_id'):
+        flash('Please log in to submit feedback.', 'danger')
+        return redirect(url_for('login'))
+        
+    # Get feedback content from form
+    content = request.form.get('content', '')
+    section = request.form.get('section', '/')
+    
+    # Create feedback entry
+    feedback_entry = {
+        'id': str(uuid.uuid4()),
+        'user_id': session.get('user_id'),
+        'username': session.get('username', 'Anonymous'),
+        'content': content,
+        'section': section,
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    # Load existing feedback from JSON file
+    try:
+        with open('userneeds.json', 'r') as f:
+            feedback_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        feedback_data = []
+        
+    # Add new feedback and save back to JSON file
+    feedback_data.append(feedback_entry)
+    with open('userneeds.json', 'w') as f:
+        json.dump(feedback_data, f, indent=4)
+        
+    flash('Thank you for your feedback! We value your input.', 'success')
+    return redirect(request.referrer or url_for('index'))
 
 # --- Financial Management System Routes ---
 
