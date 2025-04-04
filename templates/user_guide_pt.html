@@ -6,9 +6,23 @@
 <div class="container">
     <h1 class="mb-4">Guia do Usuário - Sistema ERP Mauricio PDQ</h1>
     
+    <!-- New Latest Changes Alert -->
+    <div class="alert alert-danger mb-4">
+        <h4><i class="fas fa-bell"></i> Novidades - Abril 2025</h4>
+        <p><strong>Novas funcionalidades importantes foram adicionadas ao sistema:</strong></p>
+        <ul>
+            <li><strong>Bônus de Sábado ($5/hora):</strong> Pagamento adicional de $5 por hora para trabalho realizado aos sábados, exibido automaticamente na folha de ponto</li>
+            <li><strong>Edição de Folha de Ponto:</strong> Agora é possível editar registros existentes na folha de ponto, mantendo associações com projetos mesmo após sua conclusão</li>
+            <li><strong>Horas sem Projeto:</strong> Nova opção para registrar horas de trabalho sem associação a projetos específicos</li>
+            <li><strong>Exclusão de Projetos:</strong> Funcionalidade aprimorada para excluir projetos com confirmação e exclusão em cascata de registros associados</li>
+        </ul>
+        <p>Confira as seções relevantes deste guia para mais detalhes sobre essas e outras melhorias.</p>
+    </div>
+    
     <div class="row mb-5">
         <div class="col-md-3">
             <div class="list-group sticky-top" style="top: 20px;">
+                <a class="list-group-item list-group-item-action bg-danger text-white" href="#novidades">Últimas Novidades</a>
                 <a class="list-group-item list-group-item-action" href="#introducao">Introdução</a>
                 <a class="list-group-item list-group-item-action bg-info text-white" href="#fluxodetrabalho">Fluxo de Trabalho Recomendado</a>
                 <a class="list-group-item list-group-item-action" href="#funcionarios">Gerenciamento de Funcionários</a>
@@ -25,6 +39,49 @@
         </div>
         
         <div class="col-md-9">
+            <!-- New Latest Changes Section -->
+            <div class="card mb-4" id="novidades">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="card-title h4 mb-0">Últimas Novidades (Abril 2025)</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Bônus de Sábado (+$5/hora)</h3>
+                    <p>Uma nova funcionalidade de bônus para trabalho aos sábados foi implementada:</p>
+                    <ul>
+                        <li>Funcionários que trabalham aos sábados recebem automaticamente um adicional de $5,00 por hora</li>
+                        <li>O sistema identifica automaticamente datas de sábado na folha de ponto</li>
+                        <li>Na listagem de horas trabalhadas, os registros de sábado são marcados com o selo "Sat"</li>
+                        <li>A taxa horária efetiva (taxa normal + bônus) é exibida claramente na interface</li>
+                        <li>O cálculo da folha de pagamento incorpora automaticamente este bônus</li>
+                    </ul>
+
+                    <h3 class="h5 mb-3 mt-4">Edição de Folha de Ponto</h3>
+                    <p>A funcionalidade de edição de folha de ponto foi aprimorada:</p>
+                    <ul>
+                        <li>Possibilidade de editar entradas existentes na folha de ponto</li>
+                        <li>Seleção inteligente de projetos que mantém projetos associados mesmo quando concluídos</li>
+                        <li>Interface visual clara mostrando o status de cada projeto durante a edição</li>
+                        <li>Prevenção de registros órfãos ao modificar dados da folha de ponto</li>
+                    </ul>
+
+                    <h3 class="h5 mb-3 mt-4">Registro de Horas sem Projeto</h3>
+                    <p>Nova opção para registrar horas trabalhadas sem associá-las a um projeto específico:</p>
+                    <ul>
+                        <li>Opção "Nenhum - Sem Projeto" disponível no menu suspenso de projetos</li>
+                        <li>Útil para registrar tempo administrativo, treinamento ou outras atividades não relacionadas a projetos</li>
+                        <li>Estes registros são contabilizados normalmente para cálculo de folha de pagamento</li>
+                    </ul>
+
+                    <h3 class="h5 mb-3 mt-4">Exclusão de Projetos com Segurança</h3>
+                    <p>Funcionalidade aperfeiçoada para exclusão de projetos:</p>
+                    <ul>
+                        <li>Diálogo de confirmação para prevenir exclusões acidentais</li>
+                        <li>Exclusão em cascata que gerencia automaticamente todos os registros associados (folhas de ponto, materiais, despesas)</li>
+                        <li>Informações claras sobre o impacto da exclusão antes da confirmação</li>
+                    </ul>
+                </div>
+            </div>
+            
             <div class="card mb-4" id="introducao">
                 <div class="card-header bg-primary text-white">
                     <h2 class="card-title h4 mb-0">Introdução ao Sistema</h2>

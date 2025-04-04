@@ -798,6 +798,33 @@ Key features of the payment summary include:
 ### UI Improvements
 {{ ... }}
 
+### Special Features and Implementation Details
+
+### Saturday Premium Pay
+
+The system automatically applies a $5.00/hour premium for all work performed on Saturdays:
+
+- The premium is applied automatically based on the date of the timesheet entry
+- For Saturday work, employees receive their regular hourly rate plus the $5.00 premium
+- The timesheet listing displays:
+  - A "Sat" badge next to Saturday dates
+  - The effective hourly rate (base rate + premium)
+  - A breakdown showing the base rate and premium
+  - The total amount calculated using the effective rate
+- This premium is automatically incorporated into all payroll reports and calculations
+- The calculation is handled through the `effective_hourly_rate` property in the Timesheet model
+
+Implementation example:
+```python
+@property
+def effective_hourly_rate(self):
+    # Apply $5/hour premium for Saturday work
+    base_rate = self.employee.pay_rate
+    if self.date.weekday() == 5:  # 5 = Saturday
+        return base_rate + 5.0
+    return base_rate
+```
+
 ### SQLAlchemy 2.0 Compatibility Updates
 
 All database access patterns have been modernized to align with SQLAlchemy 2.0 best practices:
@@ -865,5 +892,5 @@ A complete payroll deductions system has been implemented with the following fea
    - Resolved UndefinedError in payroll reports when no payments exist for certain methods
    - Improved error handling throughout the payroll workflow
 
-### UI Improvements
+### Custom Lunch Break Handling
 {{ ... }}
