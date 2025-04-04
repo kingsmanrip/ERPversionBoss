@@ -41,6 +41,7 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 ## Recent Updates (April 2025)
 
 - **New Timesheet and Project Management Features** (April 4, 2025):
+  - **Simple Feedback System**: Added a feedback button allowing users to easily share their needs and suggestions
   - **Saturday Premium Pay**: Added $5.00/hour premium for Saturday work with visual indicators
   - **Timesheet Editing Functionality**: Added ability to edit existing timesheet entries with preserved project associations
   - **"No Project" Timesheet Option**: Added ability to record employee hours without associating them with any project

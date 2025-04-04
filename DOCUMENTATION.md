@@ -800,6 +800,21 @@ Key features of the payment summary include:
 
 ### Special Features and Implementation Details
 
+### User Feedback Collection System
+
+A simple feedback collection system has been implemented to gather user input on desired features and improvements:
+
+- A "Feedback" button is present on every page in the application (bottom-right corner)
+- Users can submit feedback through a simple text input field
+- All feedback is stored in `userneeds.json` with the following data:
+  - Unique ID for each piece of feedback
+  - User ID and username who submitted the feedback
+  - Content of the feedback
+  - Section (URL) where the feedback was submitted from
+  - Timestamp of submission
+- The system enables direct communication from users about their needs
+- This feedback can be used to prioritize future development efforts
+
 ### Saturday Premium Pay
 
 The system automatically applies a $5.00/hour premium for all work performed on Saturdays:

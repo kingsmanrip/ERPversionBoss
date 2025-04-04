@@ -94,6 +94,12 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
   - [x] Create automatic calculation of effective hourly rates
   - [x] Update payroll reporting to account for premium pay
 
+- [x] **User Feedback Collection** (April 4, 2025)
+  - [x] Implement simple feedback system with "Feedback" button on all pages
+  - [x] Create feedback collection mechanism with JSON storage
+  - [x] Add context tracking (user, timestamp, section)
+  - [x] Enable direct user input for system improvement suggestions
+
 ### Todo Items:
 - [ ] **Complete Invoice Structure**
   - Add all required invoice fields:
