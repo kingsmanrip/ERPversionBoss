@@ -219,7 +219,7 @@ class Project(db.Model):
 class Timesheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id', ondelete='CASCADE'), nullable=False)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id', ondelete='CASCADE'), nullable=True)
     date = db.Column(db.Date, nullable=False)
     entry_time = db.Column(db.Time, nullable=False)
     exit_time = db.Column(db.Time, nullable=False)
@@ -276,6 +276,27 @@ class Timesheet(db.Model):
                 
             return hours - lunch_deduction
         return 0
+    
+    @property
+    def effective_hourly_rate(self):
+        """Calculate the effective hourly rate including any premiums.
+        - Saturday work receives a $5/hour premium
+        """
+        if not self.date or not self.employee:
+            return 0
+            
+        base_rate = self.employee.pay_rate
+        
+        # Apply Saturday premium of $5/hour
+        if self.date.weekday() == 5:  # 5 is Saturday (0 is Monday, 6 is Sunday)
+            return base_rate + 5.0
+            
+        return base_rate
+    
+    @property
+    def calculated_amount(self):
+        """Calculate the total pay amount for this timesheet including any premiums."""
+        return self.calculated_hours * self.effective_hourly_rate
     
     @property
     def employee_name(self):

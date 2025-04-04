@@ -37,20 +37,35 @@
                     <th>Hours</th>
                     <th>Pay Rate</th>
                     <th>Amount</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for timesheet in timesheets.items %}
                 <tr>
-                    <td>{{ timesheet.date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ timesheet.date.strftime('%Y-%m-%d') }}
+                        {% if timesheet.date.weekday() == 5 %}
+                            <span class="badge bg-info" title="Saturday premium: +$5/hour">Sat</span>
+                        {% endif %}
+                    </td>
                     <td>{{ timesheet.employee.name }}</td>
-                    <td>{{ timesheet.project.name }}</td>
+                    <td>{% if timesheet.project %}{{ timesheet.project.name }}{% else %}No Project{% endif %}</td>
                     <td>{{ timesheet.entry_time.strftime('%H:%M') }}</td>
                     <td>{{ timesheet.exit_time.strftime('%H:%M') }}</td>
                     <td>{{ timesheet.lunch_duration_minutes }}</td>
                     <td>{{ "%.2f"|format(timesheet.calculated_hours) }}</td>
-                    <td>${{ "%.2f"|format(timesheet.employee.pay_rate) }}</td>
-                    <td>${{ "%.2f"|format(timesheet.calculated_hours * timesheet.employee.pay_rate) }}</td>
+                    <td>
+                        {% if timesheet.date.weekday() == 5 %}
+                            <span class="text-success">${{ "%.2f"|format(timesheet.effective_hourly_rate) }}</span>
+                            <small class="text-muted">${{ "%.2f"|format(timesheet.employee.pay_rate) }} + $5</small>
+                        {% else %}
+                            ${{ "%.2f"|format(timesheet.employee.pay_rate) }}
+                        {% endif %}
+                    </td>
+                    <td>${{ "%.2f"|format(timesheet.calculated_hours * timesheet.effective_hourly_rate) }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_timesheet', id=timesheet.id) }}" class="btn btn-sm btn-info">Edit</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

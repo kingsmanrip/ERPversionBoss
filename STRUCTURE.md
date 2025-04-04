@@ -23,6 +23,16 @@ pdq_erp/
 │   └── (CSS, JS files)    # For future custom styling and scripts
 │
 ├── templates/             # HTML templates
+│
+│
+├── /root/backups/erp/     # Database backup storage (external to application)
+│   ├── erp_db_backup_*.db.gz  # Compressed date-stamped backups
+│   ├── backup_log.txt     # Log of backup activity
+│   └── backup_cron.log    # Log of automated backup cron job
+│
+├── /root/backup_erp_db.sh # Backup script for database
+├── /root/restore_erp_db.sh # Restore script for database recovery
+├── /etc/cron.d/erp_backup # Cron job for scheduled automatic backups
 │   ├── layout.html        # Base template with navigation and structure
 │   ├── login.html         # User authentication login form
 │   ├── index.html         # Dashboard/home page

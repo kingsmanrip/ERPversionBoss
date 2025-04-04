@@ -80,6 +80,20 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
 
 ## Priority 3: Project Invoice Enhancement
 
+### Completed:
+- [x] **Project Management Improvements** (April 4, 2025)
+  - [x] Add "No Project" option to timesheet entries to allow tracking time without an associated project
+  - [x] Implement project deletion functionality with confirmation dialog
+  - [x] Add cascade delete for associated records (timesheets, materials, expenses)
+  - [x] Create timesheet editing functionality with smart project selection
+  - [x] Improve project dropdown to retain completed projects when editing timesheets
+
+- [x] **Enhanced Pay Rate Features** (April 4, 2025)
+  - [x] Implement $5.00/hour premium for Saturday work
+  - [x] Add visual indicators for premium pay in timesheet listing
+  - [x] Create automatic calculation of effective hourly rates
+  - [x] Update payroll reporting to account for premium pay
+
 ### Todo Items:
 - [ ] **Complete Invoice Structure**
   - Add all required invoice fields:
@@ -142,6 +156,15 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
   - [ ] Implement batch operations for common tasks
   - [ ] Add keyboard shortcuts for common operations
   - [ ] Create mobile-responsive design for field use
+
+- [x] **System Administration**
+  - [x] Implement automated daily database backups
+  - [x] Create database restoration system with safety features
+  - [x] Add detailed logging for backup operations
+  - [x] Implement backup retention policy (30 days)
+  - [x] Create comprehensive documentation for backup and restore procedures
+  - [ ] Add email notifications for backup success/failure
+  - [ ] Implement offsite backup storage for disaster recovery
 
 ## Implementation Timeline
 

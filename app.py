@@ -397,7 +397,6 @@ def generate_customer_invoice_pdf(invoice_id):
     # Contractor signature - pre-filled
     pdf.line(10, pdf.get_y(), 90, pdf.get_y())  # Signature line
     pdf.set_font('Arial', '', 8)
-    pdf.set_xy(10, pdf.get_y() + 1)
     pdf.set_text_color(*highlight_red)
     pdf.set_font('Arial', 'I', 12)  # Italic signature
     pdf.set_xy(25, pdf.get_y() - 8)  # Position signature above the line
@@ -751,6 +750,23 @@ def project_detail(id):
                            expenses=expenses,
                            invoices=invoices)
 
+@app.route('/project/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_project(id):
+    project = db.session.get(Project, id)
+    if not project:
+        flash('Project not found.', 'danger')
+        return redirect(url_for('projects')), 404
+        
+    try:
+        db.session.delete(project)
+        db.session.commit()
+        flash(f'Project {project.name} deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting project: {e}. It might have associated records.', 'danger')
+    return redirect(url_for('projects'))
+
 # --- Timesheet Routes ---
 @app.route('/timesheets')
 @login_required
@@ -770,9 +786,12 @@ def add_timesheet():
     # Populate the employee and project choices
     form.employee_id.choices = [(emp.id, f"{emp.name} ({emp.employee_id_str or 'No ID'})") 
                                for emp in Employee.query.filter_by(is_active=True).order_by(Employee.name).all()]
-    form.project_id.choices = [(proj.id, f"{proj.name} ({proj.project_id_str or 'No ID'})") 
-                              for proj in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]))
-                              .order_by(Project.name).all()]
+    
+    # Add a "None" option for projects
+    active_projects = [(proj.id, f"{proj.name} ({proj.project_id_str or 'No ID'})") 
+                      for proj in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]))
+                      .order_by(Project.name).all()]
+    form.project_id.choices = [(None, "None - No Project")] + active_projects
     
     if form.validate_on_submit():
         # Create new timesheet
@@ -791,16 +810,87 @@ def add_timesheet():
             db.session.add(timesheet)
             db.session.commit()
             
-            # Get the names for the flash message
+            # Get the employee name for the flash message
             employee = db.session.get(Employee, form.employee_id.data)
-            project = db.session.get(Project, form.project_id.data)
             
-            flash(f'Timesheet for {employee.name} on project {project.name} added successfully!', 'success')
+            # Customize message based on if project is selected or not
+            if form.project_id.data:
+                project = db.session.get(Project, form.project_id.data)
+                flash(f'Timesheet for {employee.name} on project {project.name} added successfully!', 'success')
+            else:
+                flash(f'Timesheet for {employee.name} (no project) added successfully!', 'success')
+                
             return redirect(url_for('timesheets'))
         else:
             flash(f'Error adding timesheet: {message}', 'danger')
     
     return render_template('timesheet_form.html', form=form, title="Add Timesheet Entry")
+
+@app.route('/timesheet/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_timesheet(id):
+    # Find the timesheet record
+    timesheet = db.session.get(Timesheet, id)
+    if not timesheet:
+        flash('Timesheet not found.', 'danger')
+        return redirect(url_for('timesheets'))
+    
+    form = TimesheetForm(obj=timesheet)
+    
+    # Populate the employee and project choices
+    form.employee_id.choices = [(emp.id, f"{emp.name} ({emp.employee_id_str or 'No ID'})") 
+                               for emp in Employee.query.filter_by(is_active=True).order_by(Employee.name).all()]
+    
+    # Get active projects (pending and in-progress)
+    active_projects = [(proj.id, f"{proj.name} ({proj.project_id_str or 'No ID'})") 
+                      for proj in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]))
+                      .order_by(Project.name).all()]
+    
+    # Make sure the current project is in the list, even if it's completed or cancelled
+    current_project_in_list = False
+    if timesheet.project_id:
+        for proj_id, _ in active_projects:
+            if proj_id == timesheet.project_id:
+                current_project_in_list = True
+                break
+        
+        # If current project is not in the list, add it
+        if not current_project_in_list and timesheet.project:
+            active_projects.append((timesheet.project.id, 
+                                  f"{timesheet.project.name} ({timesheet.project.project_id_str or 'No ID'}) - {timesheet.project.status.value}"))
+    
+    # Add the None option at the beginning
+    form.project_id.choices = [(None, "None - No Project")] + active_projects
+    
+    if form.validate_on_submit():
+        # Update the timesheet record
+        timesheet.employee_id = form.employee_id.data
+        timesheet.project_id = form.project_id.data
+        timesheet.date = form.date.data
+        timesheet.entry_time = form.entry_time.data
+        timesheet.exit_time = form.exit_time.data
+        timesheet.lunch_duration_minutes = form.lunch_duration_minutes.data
+        
+        # Validate the timesheet
+        is_valid, message = timesheet.is_valid()
+        if is_valid:
+            db.session.commit()
+            
+            # Get the employee name for the flash message
+            employee = db.session.get(Employee, form.employee_id.data)
+            
+            # Customize message based on if project is selected or not
+            if form.project_id.data:
+                project = db.session.get(Project, form.project_id.data)
+                flash(f'Timesheet for {employee.name} on project {project.name} updated successfully!', 'success')
+            else:
+                flash(f'Timesheet for {employee.name} (no project) updated successfully!', 'success')
+                
+            return redirect(url_for('timesheets'))
+        else:
+            flash(f'Error updating timesheet: {message}', 'danger')
+    
+    return render_template('timesheet_form.html', form=form, title="Edit Timesheet Entry")
 
 # --- Material Routes ---
 @app.route('/materials')
@@ -1868,4 +1958,4 @@ if __name__ == '__main__':
             db.session.commit()
             print('Created default user: patricia')
             
-    app.run(debug=True, host='0.0.0.0', port=5004)  # Runs on localhost and network IP
+    app.run(debug=False, host='0.0.0.0', port=3002)  # Run on port 3002 for Nginx proxy

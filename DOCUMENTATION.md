@@ -292,12 +292,24 @@ The database schema uses SQLAlchemy relationships with proper cascade behavior t
 - Full project lifecycle handling
 - Status tracking (Pending → In Progress → Completed → Invoiced → Paid)
 - Financial analysis with real-time cost and profit calculations
+- Project deletion functionality with confirmation dialog and cascade delete
+- Secure handling of project removal with proper database cleanup
 
 ### Time Tracking
 
 - Daily timesheet entry by employee and project
+- Option to record time without associating with a project
+- Comprehensive timesheet editing with smart project handling:
+  - Edit any timesheet field including employee, project, date, times, and lunch duration
+  - Intelligent project dropdown retains associated projects even when they're completed
+  - Clear visual indication of project status when editing timesheets
+  - Prevention of orphaned records when modifying timesheet data
 - Automatic calculation of hours with lunch break handling
 - Special handling for overnight shifts
+- Saturday premium pay:
+  - $5.00/hour additional pay for Saturday work
+  - Automatic visual indication of premium pay in timesheet listing
+  - Premium automatically factored into payroll calculations
 
 ### Materials Management
 
@@ -436,6 +448,53 @@ Recommended additions for production:
 - Ensure all required fields are properly filled
 - Check validation rules in forms.py
 - Enable debug mode for detailed error messages
+
+### Database Backup and Restoration
+
+A robust automated backup and restoration system has been implemented to ensure data integrity and disaster recovery capabilities.
+
+#### Automated Backup System
+
+**Configuration:**
+- **Schedule**: Daily backups at 3:00 AM (UTC)
+- **Location**: `/root/backups/erp/`
+- **Naming Convention**: `erp_db_backup_YYYY-MM-DD.db.gz`
+- **Retention Period**: 30 days (older backups are automatically pruned)
+- **Compression**: GZip compression to minimize storage requirements
+
+**Components:**
+- **Backup Script**: `/root/backup_erp_db.sh` - Creates compressed, date-stamped backups
+- **Cron Job**: `/etc/cron.d/erp_backup` - Schedules automatic execution
+- **Logging**: Detailed logs stored in `/root/backups/erp/backup_log.txt`
+
+#### Database Restoration
+
+**Restoration Tool:**
+- **Script**: `/root/restore_erp_db.sh YYYY-MM-DD`
+- **Safety Features**: Creates a pre-restoration backup before proceeding
+- **Service Management**: Automatically handles stopping/starting the application
+
+**Restoration Process:**
+1. System creates a timestamped safety backup of the current database
+2. ERP service is safely stopped
+3. Selected backup is decompressed and restored
+4. ERP service is restarted
+5. Detailed feedback is provided on operation success
+
+**Usage Example:**
+```bash
+# List available backups
+/root/restore_erp_db.sh
+
+# Restore from specific date
+/root/restore_erp_db.sh 2025-04-03
+```
+
+**Manual Backup:**
+To create an on-demand backup at any time:
+```bash
+/root/backup_erp_db.sh
+```
 
 ## Financial Management System
 
@@ -643,7 +702,8 @@ def export_to_pdf(data, title, filename):
     
     # Display totals row with appropriate formatting
     pdf.set_font('Arial', 'B', 8)
-    pdf.set_fill_color(240, 240, 240)  # Light gray background
+    pdf.set_text_color(*header_blue)
+    pdf.cell(0, 7, 'PROJECT SCOPE', 0, 1, 'L')
     # ...
 ```
 
@@ -735,6 +795,9 @@ Key features of the payment summary include:
 4. **Grand Total**: Prominent display of the combined total across all payment methods
 5. **Hours Worked Context**: Inclusion of total hours worked during the period for context
 
+### UI Improvements
+{{ ... }}
+
 ### SQLAlchemy 2.0 Compatibility Updates
 
 All database access patterns have been modernized to align with SQLAlchemy 2.0 best practices:
@@ -803,311 +866,4 @@ A complete payroll deductions system has been implemented with the following fea
    - Improved error handling throughout the payroll workflow
 
 ### UI Improvements
-
-1. **Portuguese User Guide ("Guia do Usuário")**: 
-   - Added comprehensive system documentation in Portuguese
-   - Created a dedicated route `/user-guide` with its own template
-   - Implemented color-highlighted navigation item in the main menu
-   - Organized content in a user-friendly card-based layout with:
-     - Side navigation for quick access to specific sections
-     - Step-by-step instructions for all system features
-     - Visual cues and alerts for important information
-     - Detailed examples of workflows for each module
-   - Added "Implementações Futuras" (Future Implementations) section outlining:
-     - Client Portal
-     - Mobile Time Tracking App
-     - Advanced Budgeting System
-     - Customizable Dashboard
-     - Accounting System Integration
-   - Responsive design ensures proper display on all device sizes
-
-2. **Employee Dropdown Search for Payroll Reports**:
-   - Implemented a dropdown-based employee search feature in payroll reports
-   - Replaced text-based search with a complete dropdown list of all employees
-   - Enhanced UI with clear selection state and toggling between filtered/unfiltered views
-   - Added comprehensive employee details panel showing:
-     - Employee summary (pay rate, status, total hours, total paid amount)
-     - Recent payment history with payment method details
-     - Recent timesheet entries with project and hours breakdown
-   - Added clear button to remove filtering and return to full report view
-   - Improved user experience with maintained selection state across page refreshes
-
-3. **Streamlined Dashboard**:
-   - Removed the Quick Actions section for a cleaner interface
-   - Improved layout to emphasize financial metrics and project performance
-
-4. **Navigation Enhancements**:
-   - Removed Future Enhancements link from navigation menu
-   - Focused navigation on implemented functionality
-
-5. **Improved Error Handling**:
-   - Fixed BuildError related to non-existent routes
-   - Added proper error handling for missing data
-   - Improved user feedback for non-implemented features
-
-6. **Invoice Page Improvements**:
-   - Removed non-functional buttons and export options
-   - Added clear indicators for features coming soon
-   - Improved layout consistency
-
-### Enhanced Export Capabilities
-
-New comprehensive export functionality has been implemented, supporting three formats:
-
-1. **Excel (.xlsx)**:
-   - Formatted spreadsheets with all data
-   - Uses pandas and openpyxl for generation
-   - Preserves data types and formatting
-
-2. **PDF**:
-   - Printable reports with consistent layout
-   - Includes title and proper column headers
-   - Formatted for readability
-
-3. **CSV**:
-   - Simple, universal format for data exchange
-   - Compatible with most data analysis tools
-   - Useful for importing into other systems
-
-The export system is built on reusable helper functions:
-
-```python
-def export_to_excel(data, prefix):
-    """Helper function to export data to Excel"""
-    df = pd.DataFrame(data)
-    excel_file = io.BytesIO()
-    df.to_excel(excel_file, index=False, engine='openpyxl')
-    excel_file.seek(0)
-    
-    return send_file(
-        excel_file,
-        as_attachment=True,
-        download_name=f'{prefix}_report.xlsx',
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-```
-
-Each data type (Projects, Timesheets, Expenses, etc.) has its own dedicated export route:
-
-```python
-@app.route('/export/timesheets/<format>')
-@login_required
-def export_timesheets(format):
-    """Export timesheets to Excel, PDF, or CSV"""
-    timesheets = Timesheet.query.order_by(Timesheet.date.desc()).all()
-    
-    timesheets_data = []
-    for timesheet in timesheets:
-        employee = db.session.get(Employee, timesheet.employee_id)
-        project = db.session.get(Project, timesheet.project_id)
-        
-        timesheets_data.append({
-            'Date': timesheet.date.strftime('%Y-%m-%d'),
-            'Employee': employee.name if employee else 'Unknown',
-            'Project': project.name if project else 'Unknown',
-            'Entry Time': timesheet.entry_time.strftime('%H:%M'),
-            'Exit Time': timesheet.exit_time.strftime('%H:%M'),
-            'Lunch (mins)': timesheet.lunch_duration_minutes or 0,
-            'Raw Hours': f"{timesheet.raw_hours:.2f}",
-            'Calculated Hours': f"{timesheet.calculated_hours:.2f}",
-            'Labor Cost': f"${timesheet.calculated_hours * (employee.pay_rate if employee else 0):.2f}"
-        })
-    
-    # Handle different format types
-    if format == 'excel':
-        return export_to_excel(timesheets_data, 'timesheets')
-    elif format == 'pdf':
-        return export_to_pdf(timesheets_data, 'Timesheets', 'timesheets.pdf')
-    elif format == 'csv':
-        return export_to_csv(timesheets_data, 'timesheets')
-    else:
-        flash('Invalid export format', 'error')
-        return redirect(url_for('timesheets'))
-```
-
-The UI has been updated with dropdown menus for all export options:
-
-```html
-<div class="dropdown me-2">
-    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        Export
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-        <li><a class="dropdown-item" href="{{ url_for('export_projects', format='excel') }}">Excel (.xlsx)</a></li>
-        <li><a class="dropdown-item" href="{{ url_for('export_projects', format='pdf') }}">PDF</a></li>
-        <li><a class="dropdown-item" href="{{ url_for('export_projects', format='csv') }}">CSV</a></li>
-    </ul>
-</div>
-```
-
-### Enhanced Timesheet Calculations
-
-The Timesheet model has been updated to implement precise lunch break rules:
-
-```python
-@property
-def calculated_hours(self):
-    """Calculate the actual working hours after deducting lunch break.
-    Rules:
-    - Lunch breaks ≥ 60 minutes: Only deduct 30 minutes
-    - Lunch breaks < 30 minutes: No deduction
-    - Lunch breaks 30-59 minutes: Deduct actual time
-    """
-    if self.lunch_duration_minutes is None:
-        return self.raw_hours
-    
-    # Apply lunch deduction rules
-    if self.lunch_duration_minutes >= 60:
-        # For lunch breaks 1 hour or longer, deduct only 30 minutes
-        return self.raw_hours - 0.5
-    elif self.lunch_duration_minutes < 30:
-        # For lunch breaks less than 30 minutes, no deduction
-        return self.raw_hours
-    else:
-        # For lunch breaks between 30-59 minutes, deduct the actual time
-        return self.raw_hours - (self.lunch_duration_minutes / 60.0)
-```
-
-This enhancement ensures fair and accurate calculation of employee working hours.
-
-### Improved Payment Method Tracking
-
-The PayrollPayment model has been enhanced to track detailed payment information:
-
-```python
-# New fields in PayrollPayment model
-check_number = db.Column(db.String(50))  # Track check numbers for CHECK payments
-bank_name = db.Column(db.String(100))    # Track bank information for CHECK payments
-
-def validate_check_details(self):
-    """Validate that check payments have a check number."""
-    if self.payment_method == PaymentMethod.CHECK:
-        return self.check_number is not None and self.check_number.strip() != ''
-    return True
-```
-
-These additions allow tracking:
-- Check numbers for check payments
-- Bank names for better financial record-keeping
-- Validation to ensure check payments have associated check numbers
-
-### Enhanced Payroll Reporting
-
-The payroll report functionality has been improved to:
-
-1. **Display Payment Method Breakdowns**:
-   - Separate sections for Cash and Check payments
-   - Summary cards showing total amounts per payment method
-
-2. **Improved Visualization**:
-   - Color-coded indicators (green for Cash, blue for Check)
-   - Check numbers displayed for Check payments
-   - Comprehensive payment status tracking
-
-3. **UI Optimizations**:
-   - Properly sized numeric displays for large dollar amounts
-   - Consistent spacing and alignment for financial data
-   - Mobile-responsive design for field technicians
-
-### Custom Invoice PDF Generation
-
-Implemented a professional invoice PDF generator with the following features:
-
-1. **Professional Layout and Design**:
-   - Modern, clean design with consistent branding elements
-   - Clear section headings with visual separators
-   - Proper spacing and alignment for improved readability
-   - Professional color scheme with corporate blues and accent colors
-
-2. **Enhanced Information Organization**:
-   - Dedicated sections for client information, project details, and pricing
-   - Tabular format for pricing with clear itemization
-   - Well-defined project scope section with highlighted heading
-   - Professional signature area with pre-filled contractor signature
-
-3. **Integration with Existing System**:
-   - Accessible directly from the invoices page via a "Print" button
-   - Automatic population of project and invoice data
-   - Automatic date formatting and document generation
-   - Consistent with company branding and professional standards
-
-```python
-# Example of the PDF generation with professional styling
-def generate_customer_invoice_pdf(invoice_id):
-    # [...]
-    # Define colors for consistent branding
-    header_blue = (16, 52, 166)  # Darker blue for headers
-    accent_blue = (0, 83, 214)   # Bright blue for accents
-    text_gray = (80, 80, 80)     # Dark gray for main text
-    
-    # Add project description section with proper styling
-    pdf.set_font('Arial', 'B', 11)
-    pdf.set_text_color(*header_blue)
-    pdf.cell(0, 7, 'PROJECT SCOPE', 0, 1, 'L')
-    # [...]
-```
-
-### Enhanced Portuguese User Guide
-
-The Portuguese User Guide has been expanded with a comprehensive workflow section:
-
-1. **Interactive Workflow Guide**:
-   - Visual timeline showing the 5 key stages of system usage
-   - Highlighted in navigation with distinct blue color for visibility
-   - Step-by-step guidance for proper data entry sequence
-
-2. **Detailed Process Documentation**:
-   - Interactive accordion panels for each workflow stage
-   - Specific navigation instructions with menu paths
-   - Color-coded alerts highlighting best practices and important warnings
-
-3. **System Usage Optimization**:
-   - Clear recommendations for sequencing data entry
-   - Best practices for invoice PDF generation
-   - Guidelines for effective financial analysis and reporting
-
-```html
-<!-- Example of workflow timeline implementation -->
-<div class="timeline-steps">
-    <div class="timeline-step">
-        <div class="timeline-content">
-            <div class="inner-circle bg-primary"><span class="text-white">1</span></div>
-            <h5 class="mt-3">Configuração Inicial</h5>
-            <!-- Employee setup steps -->
-        </div>
-    </div>
-    <!-- Additional workflow steps -->
-</div>
-```
-
-### Mock Data Generation
-
-A dedicated script (`generate_mock_data.py`) has been implemented to generate realistic test data, including:
-
-- 15 employees with various pay rates and skills
-- 25 projects with different statuses and contract values
-- 344 timesheets with various lunch break durations
-- 96 materials with costs and categories
-- 72 expenses with different payment methods
-- 24 payroll payments (both Cash and Check methods)
-- 3 invoices in various states
-
-This data is crucial for stress testing and validating the system's performance with realistic volumes.
-
-### Database Schema Updates
-
-Added script (`update_schema.py`) to upgrade existing databases with the new payment tracking fields:
-
-```python
-# Adding new columns to payroll_payment table
-conn.execute(sa.text('ALTER TABLE payroll_payment ADD COLUMN check_number VARCHAR(50)'))
-conn.execute(sa.text('ALTER TABLE payroll_payment ADD COLUMN bank_name VARCHAR(100)'))
-```
-
-### UI Improvements
-
-Enhanced the display of large financial values throughout the application:
-
-- Changed from `display-4` to `display-6` class for dashboard cards
-- Replaced `h2` with `h3` elements for payment summary cards
-- Added consistent margin and padding for financial data
+{{ ... }}

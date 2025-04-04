@@ -62,7 +62,7 @@ class ProjectForm(FlaskForm):
 
 class TimesheetForm(FlaskForm):
     employee_id = SelectField('Employee', coerce=int, validators=[DataRequired()])
-    project_id = SelectField('Project', coerce=int, validators=[DataRequired()])
+    project_id = SelectField('Project', coerce=lambda x: int(x) if x else None, validators=[Optional()])
     date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d')
     entry_time = TimeField('Entry Time', validators=[DataRequired()], format='%H:%M')
     exit_time = TimeField('Exit Time', validators=[DataRequired()], format='%H:%M')

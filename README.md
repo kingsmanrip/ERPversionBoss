@@ -40,6 +40,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Recent Updates (April 2025)
 
+- **New Timesheet and Project Management Features** (April 4, 2025):
+  - **Saturday Premium Pay**: Added $5.00/hour premium for Saturday work with visual indicators
+  - **Timesheet Editing Functionality**: Added ability to edit existing timesheet entries with preserved project associations
+  - **"No Project" Timesheet Option**: Added ability to record employee hours without associating them with any project
+  - **Project Deletion Functionality**: Implemented secure project deletion with confirmation dialog to prevent accidental deletions
+  - **Cascading Delete**: Project deletion automatically handles all associated records (timesheets, materials, expenses)
+  - **Smart Project Selection**: Improved project dropdown to retain completed projects when editing timesheets
+
 - **Enhanced PDF Reports**: Added comprehensive totals to all PDF exports
   - **Automatic Total Calculation**: Intelligent detection and summation of all numerical values
   - **Properly Formatted Totals**: Currency amounts, hours, and percentages formatted appropriately
@@ -250,6 +258,46 @@ This version includes basic user authentication. For enhanced security in produc
   ```
   python app.py --port=5001
   ```
+
+## Database Backup and Restore
+
+This application includes an automated backup and restore system for the SQLite database.
+
+### Automated Daily Backups
+
+The system is configured to automatically create daily backups of the database at 3:00 AM:
+
+- **Backup Location**: `/root/backups/erp/`
+- **Backup Naming**: `erp_db_backup_YYYY-MM-DD.db.gz` (date-stamped and compressed)
+- **Retention Policy**: Backups are kept for 30 days before being automatically deleted
+
+### Database Restoration
+
+To restore the database from a backup, use the provided restore script:
+
+```bash
+/root/restore_erp_db.sh YYYY-MM-DD
+```
+
+For example, to restore from April 3, 2025:
+```bash
+/root/restore_erp_db.sh 2025-04-03
+```
+
+The restore process:
+1. Creates a safety backup of the current database
+2. Stops the application service
+3. Restores the selected backup
+4. Restarts the application service
+
+If no date is specified, the script will list all available backups.
+
+### Manual Backup
+
+To manually create a backup at any time, run:
+```bash
+/root/backup_erp_db.sh
+```
 
 ## Contributing
 
