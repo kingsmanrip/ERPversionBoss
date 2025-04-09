@@ -101,7 +101,7 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
   - [x] Enable direct user input for system improvement suggestions
 
 ### Todo Items:
-- [ ] **Complete Invoice Structure**
+- [x] **Complete Invoice Structure**
   - Add all required invoice fields:
     - Invoice number
     - Issue date
@@ -110,32 +110,32 @@ This document outlines the roadmap and task list to complete the Mauricio PDQ ER
     - Client details
     - Terms and conditions
 
-- [ ] **Project Details Enhancement**
+- [x] **Project Details Enhancement**
   - Expand project record to include:
     - More detailed project description
     - Start and end dates
     - Complete list of workers involved
     - Hours worked per employee on project
 
-- [ ] **Cost Tracking Enhancement**
+- [x] **Cost Tracking Enhancement**
   - Improve material cost tracking with more details
   - Add labor cost detailed breakdown
   - Implement total project cost calculation
 
-- [ ] **Billing and Payment Tracking**
+- [x] **Billing and Payment Tracking**
   - Add fields for tracking the amount charged to client
   - Implement discounts/surcharges
   - Add tax calculation
   - Include payment receipt tracking
 
-- [ ] **Project Financial Reporting**
+- [x] **Project Financial Reporting**
   - [x] Implement net profit tracking (actual revenue minus expenses)
   - [x] Add color-coded profit displays (green for positive, red for negative)
   - [x] Create comprehensive test coverage for net profit calculation
-  - [ ] Create detailed project billing report
-  - [ ] Implement project cost breakdown report
-  - [ ] Add profit margin analysis report
-  - [ ] Add historical profit trend analysis
+  - [x] Create detailed project billing report
+  - [x] Implement project cost breakdown report
+  - [x] Add profit margin analysis report
+  - [x] Add historical profit trend analysis
 
 ## Priority 4: Dashboard and System Improvements
 

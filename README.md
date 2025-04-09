@@ -40,6 +40,15 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Recent Updates (April 2025)
 
+- **Bug Fixes and Enhancements** (April 9, 2025):
+  - **"No Project" Timesheet Selection**: Fixed an issue where selecting "None - No Project" in the timesheet form was causing validation errors
+  - **Invoice Listing Display**: Resolved an issue where invoices weren't displaying in the invoice list view
+  - **Invoice Deletion Functionality**: Added the ability to delete invoices with a confirmation dialog to prevent accidental deletions
+  - **Invoice PDF Improvements**: 
+    - Fixed text overlap issues in the signature and date sections
+    - Changed document title from "PROJECT PROPOSAL" to "INVOICE" for clarity
+    - Improved overall layout and spacing for better readability
+
 - **New Timesheet and Project Management Features** (April 4, 2025):
   - **Simple Feedback System**: Added a feedback button allowing users to easily share their needs and suggestions
   - **Saturday Premium Pay**: Added $5.00/hour premium for Saturday work with visual indicators

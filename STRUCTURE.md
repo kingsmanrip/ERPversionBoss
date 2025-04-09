@@ -110,6 +110,28 @@ pdq_erp/
   - Request handling logic
   - Form processing
   - Helper functions
+  - **Authentication Routes**
+    - `/login`, `/logout` - User authentication
+    - `/register` - New user registration (admin only)
+  - **Main Routes**
+    - `/` - Dashboard with KPIs and visualizations
+    - `/employees` - Employee management (CRUD operations)
+    - `/projects` - Project management (CRUD operations)
+    - `/invoices` - Invoice listing with print and delete functionality
+    - `/timesheets` - Timesheet management (CRUD operations)
+    - `/payroll` - Payroll management and reporting
+    - `/materials` - Materials tracking and reporting
+    - `/expenses` - Expense tracking and reporting
+    - `/reports` - Report generation and PDF exports
+  - **PDF Generation Functions**
+    - `generate_customer_invoice_pdf()` - Creates professional client-facing invoices
+    - `generate_payroll_report_pdf()` - Creates detailed payroll reports
+    - `generate_timesheet_report_pdf()` - Creates timesheet reports
+    - `generate_materials_report_pdf()` - Creates materials usage reports
+    - `generate_expense_report_pdf()` - Creates expense reports
+    - All PDF generation includes proper spacing and formatting with a consistent layout
+    - Client-facing PDF documents use professional branding elements
+  - **Utility Functions**
 
 #### `config.py`
 - **Purpose**: Configuration settings for the application
@@ -224,7 +246,7 @@ All database relationships are carefully designed with proper cascade behavior t
 - Has many expenses (one-to-many)
 - Has many invoices (one-to-many)
 - Includes properties for cost and profit calculations
-- Features actual_revenue property to calculate revenue from paid invoices
+- Features actual revenue property to calculate revenue from paid invoices
 - Includes actual_net_profit property to calculate real profit (actual revenue minus costs)
 
 #### Timesheet
