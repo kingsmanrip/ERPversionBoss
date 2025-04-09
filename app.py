@@ -357,63 +357,52 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_text_color(*text_gray)
     
     # Terms and conditions
-    pdf.ln(5)
-    pdf.set_font('Arial', 'B', 11)
     pdf.set_text_color(*header_blue)
-    pdf.cell(0, 7, 'TERMS & CONDITIONS', 0, 1, 'L')
+    pdf.set_font('Arial', 'B', 11)
+    pdf.ln(10)
+    pdf.cell(0, 8, 'TERMS & CONDITIONS', 0, 1)
+    
     pdf.set_text_color(*text_gray)
-    
-    # Separator line
-    pdf.set_draw_color(*accent_blue)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(2)
-    
-    # Terms text
     pdf.set_font('Arial', '', 9)
-    pdf.multi_cell(0, 5, 'The entire amount of the contract to be paid upon completion. Any alterations or deviation from the above specifications involving extra cost of material or labor will be executed upon written order for same and will become an extra charge over the sum mentioned in this contract. All agreements must be made in writing.', 0, 'L')
-    pdf.ln(3)
+    pdf.multi_cell(0, 5, 'The entire amount of the contract to be paid upon completion. Any alterations or deviation from the above specifications involving extra cost of material or labor will be executed upon written order for same and will become an extra charge over the sum mentioned in this contract. All agreements must be made in writing.')
     
     # Acceptance section
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(0, 7, 'ACCEPTANCE', 0, 1, 'L')
-    pdf.set_font('Arial', '', 9)
-    pdf.multi_cell(0, 5, 'I hereby authorize Mauricio PDQ Painting and Drywall to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.', 0, 'L')
+    pdf.set_text_color(*header_blue)
+    pdf.set_font('Arial', 'B', 11)
     pdf.ln(5)
+    pdf.cell(0, 8, 'ACCEPTANCE', 0, 1)
     
-    # Signature section
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())  # Separator
-    pdf.ln(8)
-    
-    # Customer signature
-    pdf.line(10, pdf.get_y(), 90, pdf.get_y())  # Signature line
-    pdf.set_font('Arial', '', 8)
-    pdf.set_xy(10, pdf.get_y() + 1)
-    pdf.cell(80, 5, 'Customer Signature', 0, 0, 'C')
-    
-    # Date
-    pdf.line(120, pdf.get_y() - 1, 200, pdf.get_y() - 1)  # Date line
-    pdf.set_xy(120, pdf.get_y())
-    pdf.cell(80, 5, 'Date', 0, 1, 'C')
-    pdf.ln(10)
-    
-    # Contractor signature - pre-filled
-    pdf.line(10, pdf.get_y(), 90, pdf.get_y())  # Signature line
-    pdf.set_font('Arial', '', 8)
-    pdf.set_text_color(*highlight_red)
-    pdf.set_font('Arial', 'I', 12)  # Italic signature
-    pdf.set_xy(25, pdf.get_y() - 8)  # Position signature above the line
-    pdf.cell(60, 8, 'Mauricio Septa', 0, 0)
     pdf.set_text_color(*text_gray)
-    pdf.set_font('Arial', '', 8)
-    pdf.set_xy(10, pdf.get_y())
-    pdf.cell(80, 5, 'Contractor Signature', 0, 0, 'C')
+    pdf.set_font('Arial', '', 9)
+    pdf.multi_cell(0, 5, 'I hereby authorize Mauricio PDQ Painting and Drywall to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.')
     
-    # Date - pre-filled with today
-    pdf.line(120, pdf.get_y() - 1, 200, pdf.get_y() - 1)  # Date line
-    pdf.set_xy(120, pdf.get_y() - 8)  # Position date above the line
-    pdf.cell(80, 8, today, 0, 0, 'C')
-    pdf.set_xy(120, pdf.get_y())
-    pdf.cell(80, 5, 'Date', 0, 0, 'C')
+    # Signature section with correct spacing
+    pdf.ln(20)  # More space between acceptance text and signature lines
+    
+    # Customer signature line
+    pdf.line(10, pdf.get_y(), 150, pdf.get_y())
+    pdf.set_xy(10, pdf.get_y() + 2)  # Position label below the line
+    pdf.set_font('Arial', '', 8)
+    pdf.cell(140, 5, 'Customer Signature', 0, 1, 'C')
+    
+    # Date line
+    pdf.line(160, pdf.get_y() - 7, 200, pdf.get_y() - 7)  # Date line
+    pdf.set_xy(160, pdf.get_y() - 5)  # Position date below the line
+    pdf.cell(40, 5, today, 0, 1, 'C')
+    pdf.set_xy(160, pdf.get_y())
+    pdf.cell(40, 5, 'Date', 0, 1, 'C')
+    
+    # Contractor signature with proper positioning
+    pdf.ln(10)  # Space between customer and contractor signature
+    pdf.line(10, pdf.get_y(), 150, pdf.get_y())
+    pdf.set_font('Arial', 'I', 10)  # Italic signature
+    pdf.set_text_color(*highlight_red)
+    pdf.set_xy(70, pdf.get_y() - 5)  # Position signature above the line
+    pdf.cell(60, 5, 'Mauricio Sosa', 0, 1, 'C')
+    pdf.set_font('Arial', '', 8)
+    pdf.set_text_color(*text_gray)
+    pdf.set_xy(10, pdf.get_y())
+    pdf.cell(140, 5, 'Contractor Signature', 0, 1, 'C')
     
     # Footer with page number
     pdf.ln(20)
