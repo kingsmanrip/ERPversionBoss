@@ -1261,7 +1261,22 @@ def delete_invoice(id):
         return redirect(url_for('invoices')), 404
     
     try:
+        # Get the project and status before deleting the invoice
+        project = invoice.project
+        project_has_other_invoices = Invoice.query.filter(Invoice.project_id == project.id, Invoice.id != invoice.id).count() > 0
+        was_paid = invoice.status == PaymentStatus.PAID
+
+        # Delete the invoice
         db.session.delete(invoice)
+        
+        # Update project status if needed
+        if was_paid and not project_has_other_invoices:
+            # If this was the only paid invoice, revert project to completed
+            project.status = ProjectStatus.COMPLETED
+        elif not project_has_other_invoices and project.status == ProjectStatus.INVOICED:
+            # If this was the only invoice and not paid, revert to completed
+            project.status = ProjectStatus.COMPLETED
+            
         db.session.commit()
         flash(f'Invoice {invoice.invoice_number} deleted.', 'success')
     except Exception as e:

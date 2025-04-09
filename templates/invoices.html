@@ -48,6 +48,30 @@
                         <a href="{{ url_for('print_customer_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-primary" title="Print Customer Invoice">
                             <i class="bi bi-printer"></i> Print
                         </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInvoiceModal{{ invoice.id }}" title="Delete Invoice">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                        
+                        <!-- Delete Invoice Modal -->
+                        <div class="modal fade" id="deleteInvoiceModal{{ invoice.id }}" tabindex="-1" aria-labelledby="deleteInvoiceModalLabel{{ invoice.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteInvoiceModalLabel{{ invoice.id }}">Confirm Delete</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to delete invoice #{{ invoice.invoice_number }}? This action cannot be undone.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form action="{{ url_for('delete_invoice', id=invoice.id) }}" method="POST" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
