@@ -185,7 +185,8 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
    ```
 
 6. **Access the application**:
-   - Open your browser and navigate to: http://127.0.0.1:5000
+   - **Production Environment**: https://mauriciopdq.site
+   - **Local Development**: Open your browser and navigate to: http://127.0.0.1:5000
    - Login with the default credentials (username: `patricia`, password: `Patri2025`)
 
 7. **Run tests**:

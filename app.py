@@ -1180,8 +1180,20 @@ def user_guide():
 @app.route('/invoices')
 @login_required
 def invoices():
-    all_invoices = Invoice.query.join(Project).order_by(Invoice.invoice_date.desc()).all()
-    return render_template('invoices.html', invoices=all_invoices)
+    try:
+        # Use outerjoin instead of join to include invoices even if project relationship is broken
+        all_invoices = Invoice.query.outerjoin(Project).order_by(Invoice.invoice_date.desc()).all()
+        
+        # Debug info to help diagnose issues
+        invoice_count = len(all_invoices) if all_invoices else 0
+        flash(f'Found {invoice_count} invoices in the system.', 'info')
+        
+        return render_template('invoices.html', invoices=all_invoices)
+    except Exception as e:
+        # Log the error and show a user-friendly message
+        print(f"Error in invoices route: {str(e)}")
+        flash(f'Error loading invoices: {str(e)}', 'danger')
+        return render_template('invoices.html', invoices=[])
 
 @app.route('/invoice/print/<int:id>')
 @login_required
