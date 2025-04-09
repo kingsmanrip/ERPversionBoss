@@ -223,7 +223,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('Arial', 'B', 18)
     pdf.set_text_color(*header_blue)
     pdf.set_xy(130, 18)
-    pdf.cell(65, 10, 'PROJECT PROPOSAL', 0, 0, 'R')
+    pdf.cell(65, 10, 'INVOICE', 0, 0, 'R')
     
     # Add invoice information section
     pdf.set_text_color(*text_gray)
