@@ -676,6 +676,17 @@ The following enhancements have been identified as priority items for future dev
 
 ### April 10, 2025 Updates
 
+#### Invoice Template Redesign
+- **Compact Information-Focused Layout**: Completely redesigned the invoice PDF template with a focus on information density and professional appearance:
+  - Implemented smaller fonts throughout (8-9pt) to maximize space utilization while maintaining readability
+  - Created a streamlined header with company name and contact information side-by-side
+  - Designed a two-column layout for client information with label-value pairs
+  - Reduced vertical spacing between sections for a more compact presentation
+  - Added subtle background colors to visually separate sections without wasting space
+  - Optimized form fields with better alignment and underlines instead of blank spaces
+  - Used a more professional color palette with darker shades of blue and red
+  - Improved overall information hierarchy with consistent text styles and spacing
+
 #### Payroll System Improvements
 - **Payroll Report Calculation Fix**: Fixed a critical calculation issue in the payroll report where the "remaining amount" was incorrectly calculated. The system now properly subtracts all recorded payments from the total amount due, displaying accurate remaining amounts for each employee.
 - **Check Payment Enhancement**: Improved the check payment functionality in the payroll form with the following changes:

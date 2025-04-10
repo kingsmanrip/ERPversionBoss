@@ -229,7 +229,7 @@ def export_to_csv(data, prefix):
 # --- PDF Generation Functions ---
 def generate_customer_invoice_pdf(invoice_id):
     """
-    Generate a professional PDF invoice for customers.
+    Generate a professional PDF invoice for customers with a compact, information-focused design.
     
     Args:
         invoice_id: The ID of the invoice to generate a PDF for
@@ -237,6 +237,12 @@ def generate_customer_invoice_pdf(invoice_id):
     Returns:
         A Flask send_file response with the PDF
     """
+    from models import Invoice, Project
+    from flask import send_file, after_this_request
+    from fpdf import FPDF
+    import tempfile
+    import os
+    
     invoice = Invoice.query.get_or_404(invoice_id)
     project = Project.query.get_or_404(invoice.project_id)
     
@@ -248,100 +254,298 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
     pdf.add_font('DejaVu', 'B', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', uni=True)
     
-    # Header with company info
+    # Set tighter margins for more space
+    pdf.set_margins(10, 10, 10)
+    
+    # Define colors - more muted professional palette
+    primary_color = (30, 55, 90)     # Darker blue
+    accent_color = (180, 30, 30)     # Darker red
+    highlight_color = (60, 100, 160) # Lighter blue
+    text_color = (70, 70, 70)        # Dark gray for text
+    light_fill = (248, 248, 248)     # Very light gray for fills
+    
+    # Header with company info - compact design with horizontal layout
+    # Create a header box
+    pdf.set_fill_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.rect(10, 10, 190, 14, 'F')
+    
+    # Company name in white on blue background
     pdf.set_font('DejaVu', 'B', 16)
-    pdf.cell(0, 10, 'Mauricio PDQ Paint & Drywall', 0, 1, 'C')
-    pdf.set_font('DejaVu', '', 10)
-    pdf.cell(0, 5, '123 Main Street, Austin, TX 78704', 0, 1, 'C')
-    pdf.cell(0, 5, 'Phone: (512) 555-1234 | Email: info@mauriciopdq.com', 0, 1, 'C')
-    pdf.ln(5)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_xy(12, 12)
+    pdf.cell(120, 10, 'Mauricio PDQ Paint & Drywall Llc', 0, 0, 'L')
     
-    # Document title
-    pdf.set_font('DejaVu', 'B', 14)
-    pdf.cell(0, 10, 'INVOICE', 0, 1, 'C')
-    pdf.ln(5)
-    
-    # Invoice and client details section
-    pdf.set_font('DejaVu', 'B', 11)
-    pdf.cell(95, 8, 'BILL TO:', 0, 0)
-    pdf.cell(95, 8, 'INVOICE DETAILS:', 0, 1)
-    
-    # Client info
-    pdf.set_font('DejaVu', '', 10)
-    pdf.cell(95, 6, project.client_name, 0, 0)
-    pdf.cell(45, 6, 'Invoice Number:', 0, 0)
-    pdf.cell(50, 6, f"{invoice.id:03d}", 0, 1)
-    
-    pdf.cell(95, 6, project.location, 0, 0)
-    pdf.cell(45, 6, 'Invoice Date:', 0, 0)
-    pdf.cell(50, 6, invoice.invoice_date.strftime('%m/%d/%Y'), 0, 1)
-    
-    pdf.cell(95, 6, '', 0, 0)
-    pdf.cell(45, 6, 'Due Date:', 0, 0)
-    pdf.cell(50, 6, invoice.due_date.strftime('%m/%d/%Y') if invoice.due_date else 'Upon Receipt', 0, 1)
-    
-    pdf.ln(5)
-    
-    # Project details
-    pdf.set_font('DejaVu', 'B', 11)
-    pdf.cell(0, 8, 'PROJECT DETAILS:', 0, 1)
-    
-    pdf.set_font('DejaVu', '', 10)
-    pdf.cell(45, 6, 'Project Name:', 0, 0)
-    pdf.cell(145, 6, project.name, 0, 1)
-    
-    pdf.cell(45, 6, 'Project Location:', 0, 0)
-    pdf.cell(145, 6, project.location, 0, 1)
-    
-    pdf.cell(45, 6, 'Project Status:', 0, 0)
-    pdf.cell(145, 6, project.status.name, 0, 1)
-    
-    pdf.ln(5)
-    
-    # Services/Charges
-    pdf.set_font('DejaVu', 'B', 11)
-    pdf.cell(0, 8, 'SERVICES/CHARGES:', 0, 1)
-    
-    # Headers for the table
-    pdf.set_fill_color(240, 240, 240)
-    pdf.cell(140, 8, 'Description', 1, 0, 'L', True)
-    pdf.cell(50, 8, 'Amount', 1, 1, 'R', True)
-    
-    # Add invoice details (simplified for now)
-    pdf.set_font('DejaVu', '', 10)
-    pdf.cell(140, 8, f'Services for Project: {project.name}', 1, 0, 'L')
-    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R')
-    
-    # If there were line items, they would go here in a loop
-    
-    # Totals
-    pdf.set_font('DejaVu', 'B', 10)
-    pdf.cell(140, 8, 'Total Due:', 1, 0, 'L', True)
-    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R', True)
-    
-    # Payment instructions
-    pdf.ln(10)
-    pdf.set_font('DejaVu', 'B', 11)
-    pdf.cell(0, 8, 'PAYMENT INSTRUCTIONS:', 0, 1)
-    
-    pdf.set_font('DejaVu', '', 10)
-    pdf.multi_cell(0, 6, 'Please make checks payable to "Mauricio PDQ Paint & Drywall". For electronic payments, please contact our office for banking details. Payment is due by the due date specified above.', 0, 'L')
-    
-    # Thank you message
-    pdf.ln(10)
-    pdf.set_font('DejaVu', 'B', 10)
-    pdf.cell(0, 8, 'Thank you for your business!', 0, 1, 'C')
-    
-    # Signature section
-    pdf.ln(15)
-    pdf.line(25, pdf.get_y(), 85, pdf.get_y())  # Signature line
-    pdf.line(115, pdf.get_y(), 175, pdf.get_y())  # Date line
-    
+    # Contact info on right side of header
     pdf.set_font('DejaVu', '', 8)
-    pdf.set_y(pdf.get_y() + 2)  # Add space after the lines
-    pdf.cell(90, 5, 'Authorized Signature', 0, 0, 'C')
-    pdf.cell(20, 5, '', 0, 0)
-    pdf.cell(90, 5, 'Date', 0, 1, 'C')
+    pdf.set_xy(132, 12)
+    pdf.cell(68, 5, 'MAURICIO: 601-596-3130', 0, 1, 'R')
+    pdf.set_xy(132, 17)
+    pdf.cell(68, 5, 'FAX: 601-752-3519', 0, 0, 'R')
+    
+    # Company address below header
+    pdf.set_xy(10, 26)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(95, 4, '968 WPA RD, Sumrall Ms, 39482', 0, 0, 'L')
+    
+    # Invoice number and date on right
+    pdf.set_font('DejaVu', 'B', 9)
+    pdf.set_xy(105, 26)
+    pdf.cell(40, 4, 'INVOICE #:', 0, 0, 'R')
+    pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
+    pdf.cell(55, 4, f'{invoice.id:03d}', 0, 1, 'L')
+    
+    pdf.set_xy(105, 30)
+    pdf.set_font('DejaVu', 'B', 9)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(40, 4, 'DATE:', 0, 0, 'R')
+    pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
+    pdf.cell(55, 4, invoice.invoice_date.strftime('%m/%d/%Y'), 0, 1, 'L')
+    
+    # Client information section - two column layout
+    pdf.ln(5)
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.set_font('DejaVu', 'B', 10)
+    pdf.cell(0, 6, 'CLIENT INFORMATION', 0, 1, 'L')
+    
+    # Horizontal line under section title
+    pdf.set_draw_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(1)
+    
+    # Client details in a compact two-column layout
+    col_width = 95
+    line_height = 5
+    
+    # Set up client info box with light background
+    client_box_y = pdf.get_y()
+    pdf.set_fill_color(light_fill[0], light_fill[1], light_fill[2])
+    pdf.rect(10, client_box_y, 190, 28, 'F')
+    
+    # First column
+    pdf.set_xy(12, client_box_y + 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(20, line_height, 'NAME:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
+    pdf.cell(75, line_height, project.client_name, 0, 0)
+    
+    # Second column
+    pdf.set_xy(107, client_box_y + 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(20, line_height, 'PHONE:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
+    pdf.cell(70, line_height, '', 0, 1)
+    
+    # First column - second row
+    pdf.set_xy(12, client_box_y + 2 + line_height + 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.cell(20, line_height, 'STREET:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.cell(75, line_height, project.location, 0, 0)
+    
+    # Second column - second row
+    pdf.set_xy(107, client_box_y + 2 + line_height + 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.cell(20, line_height, 'CELL:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.cell(70, line_height, '', 0, 1)
+    
+    # First column - third row
+    pdf.set_xy(12, client_box_y + 2 + (line_height + 2) * 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.cell(20, line_height, 'CITY/STATE:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.cell(75, line_height, '', 0, 0)
+    
+    # Second column - third row
+    pdf.set_xy(107, client_box_y + 2 + (line_height + 2) * 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.cell(20, line_height, 'JOB LOCATION:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.cell(70, line_height, '', 0, 1)
+    
+    # First column - fourth row
+    pdf.set_xy(12, client_box_y + 2 + (line_height + 2) * 3)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.cell(20, line_height, 'SUBDIVISION:', 0, 0)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.cell(75, line_height, '', 0, 1)
+    
+    # Move cursor after client info box
+    pdf.set_y(client_box_y + 30)
+    
+    # Proposal section
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.set_font('DejaVu', 'B', 10)
+    pdf.cell(0, 6, 'PROPOSAL', 0, 1, 'L')
+    
+    # Horizontal line under section title
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(1)
+    
+    # Proposal text
+    pdf.set_font('DejaVu', '', 8)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(0, 5, 'I propose to furnish all materials and perform all necessary labor to complete the following:', 0, 1, 'L')
+    
+    # Description box with light fill
+    description_y = pdf.get_y() + 1
+    description_height = 50  # Shorter height for more compact design
+    
+    # Create description box with light background
+    pdf.set_fill_color(light_fill[0], light_fill[1], light_fill[2])
+    pdf.rect(10, description_y, 190, description_height, 'F')
+    
+    # Description header
+    pdf.set_xy(12, description_y + 2)
+    pdf.set_font('DejaVu', 'B', 9)
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.cell(186, 5, 'DESCRIPTION & DIRECTIONS', 0, 1, 'L')
+    
+    # Description content
+    pdf.set_xy(12, description_y + 8)
+    pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.multi_cell(186, 5, project.description, 0, 'L')
+    
+    # Move cursor after description box
+    pdf.set_y(description_y + description_height + 2)
+    
+    # Payment section
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.set_font('DejaVu', 'B', 10)
+    pdf.cell(0, 6, 'PAYMENT DETAILS', 0, 1, 'L')
+    
+    # Horizontal line under section title
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(1)
+    
+    # Payment box with light background
+    payment_y = pdf.get_y()
+    pdf.set_fill_color(light_fill[0], light_fill[1], light_fill[2])
+    pdf.rect(10, payment_y, 190, 25, 'F')
+    
+    # Payment text
+    pdf.set_xy(12, payment_y + 2)
+    pdf.set_font('DejaVu', '', 8)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(0, 5, 'All of the work to be completed in a substantial and workmanlike manner for the sum of:', 0, 1, 'L')
+    
+    # Price line with modern styling - more compact
+    pdf.set_xy(12, payment_y + 8)
+    pdf.cell(10, 6, '$', 0, 0)
+    pdf.cell(25, 6, '________', 'B', 0)
+    pdf.cell(5, 6, '+', 0, 0, 'C')
+    pdf.cell(10, 6, '$', 0, 0)
+    pdf.cell(25, 6, '________', 'B', 0)
+    pdf.cell(30, 6, '(tax) TOTAL:', 0, 0)
+    
+    # Total amount with highlight
+    pdf.set_font('DejaVu', 'B', 12)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
+    pdf.cell(0, 6, f'${invoice.amount:.2f}', 0, 1)
+    
+    # Terms in a more compact format
+    pdf.set_xy(12, payment_y + 16)
+    pdf.set_font('DejaVu', '', 7)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.multi_cell(186, 3, 'The entire amount of the contract to be paid upon completion. Any alterations or deviation from the above specifications involving extra cost of material or labor will be executed upon written order for same and will become an extra charge over the sum mentioned in this contract. All agreements must be made in writing.', 0, 'L')
+    
+    # Move cursor after payment box
+    pdf.set_y(payment_y + 27)
+    
+    # Acceptance and signature section
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.set_font('DejaVu', 'B', 10)
+    pdf.cell(0, 6, 'ACCEPTANCE & PAYMENT INFORMATION', 0, 1, 'L')
+    
+    # Horizontal line under section title
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(1)
+    
+    # Acceptance text
+    pdf.set_font('DejaVu', '', 7)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.multi_cell(0, 3, 'I hereby authorize Ultimate PDQ Painting and Drywall to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.', 0, 'L')
+    pdf.ln(1)
+    
+    # Create a two-column layout for payment details and signatures
+    signature_y = pdf.get_y()
+    
+    # Payment details on the left with light fill
+    pdf.set_fill_color(light_fill[0], light_fill[1], light_fill[2])
+    pdf.rect(10, signature_y, 90, 35, 'F')
+    
+    # Payment details header
+    pdf.set_xy(12, signature_y + 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.cell(86, 4, 'PAYMENT INFORMATION', 0, 1, 'L')
+    
+    # Payment form fields
+    pdf.set_font('DejaVu', '', 8)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    
+    form_y = signature_y + 7
+    pdf.set_xy(12, form_y)
+    pdf.cell(25, 4, 'C/C #:', 0, 0)
+    pdf.cell(63, 4, '_______________________', 0, 1)
+    
+    pdf.set_xy(12, form_y + 6)
+    pdf.cell(25, 4, 'EXP:', 0, 0)
+    pdf.cell(20, 4, '__________', 0, 0)
+    pdf.cell(15, 4, 'CVV:', 0, 0)
+    pdf.cell(28, 4, '________', 0, 1)
+    
+    pdf.set_xy(12, form_y + 12)
+    pdf.cell(25, 4, 'Name:', 0, 0)
+    pdf.cell(63, 4, '_______________________', 0, 1)
+    
+    pdf.set_xy(12, form_y + 18)
+    pdf.cell(25, 4, 'Address:', 0, 0)
+    pdf.cell(63, 4, '_______________________', 0, 1)
+    
+    pdf.set_xy(12, form_y + 24)
+    pdf.cell(25, 4, 'Zip Code:', 0, 0)
+    pdf.cell(63, 4, '_______________________', 0, 1)
+    
+    # Signature section on the right with light fill
+    pdf.set_fill_color(light_fill[0], light_fill[1], light_fill[2])
+    pdf.rect(110, signature_y, 90, 35, 'F')
+    
+    # Signature header
+    pdf.set_xy(112, signature_y + 2)
+    pdf.set_font('DejaVu', 'B', 8)
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.cell(86, 4, 'SIGNATURES', 0, 1, 'L')
+    
+    # Date line
+    pdf.set_xy(112, form_y)
+    pdf.set_font('DejaVu', '', 8)
+    pdf.set_text_color(text_color[0], text_color[1], text_color[2])
+    pdf.cell(20, 4, 'Date:', 0, 0)
+    pdf.cell(68, 4, '_______________________', 0, 1)
+    
+    # Customer signature
+    pdf.set_xy(112, form_y + 10)
+    pdf.cell(30, 4, 'Customer Signature:', 0, 0)
+    pdf.cell(58, 4, '_______________________', 0, 1)
+    
+    # Contractor signature
+    pdf.set_xy(112, form_y + 20)
+    pdf.cell(30, 4, 'Contractor Signature:', 0, 0)
+    
+    # Add the contractor name in red below the signature line
+    pdf.set_xy(142, form_y + 20)
+    pdf.set_text_color(accent_color[0], accent_color[1], accent_color[2])
+    pdf.set_font('DejaVu', 'B', 9)
+    pdf.cell(56, 4, 'MAURICIO SANTOS', 0, 1)
     
     # Create a temporary file to store the PDF
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')

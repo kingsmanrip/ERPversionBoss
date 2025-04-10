@@ -68,6 +68,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
   - **Cascading Delete**: Project deletion automatically handles all associated records (timesheets, materials, expenses)
   - **Smart Project Selection**: Improved project dropdown to retain completed projects when editing timesheets
 
+- **Modernized Invoice Template** (April 10, 2025):
+  - **Compact Information-Focused Design**: Redesigned invoice PDF template with smaller fonts and optimized spacing
+  - **Professional Layout**: Improved header with company information and client details in a two-column format
+  - **Enhanced Visual Hierarchy**: Used subtle background colors and consistent text styles for better readability
+  - **Space Optimization**: Reduced vertical spacing between sections for a more compact presentation
+  - **Improved Form Fields**: Better alignment of payment information fields with underlines for a cleaner look
+  - **Professional Color Scheme**: Implemented muted, professional colors with darker shades of blue and red
+
 - **Enhanced PDF Reports**: Added comprehensive totals to all PDF exports
   - **Automatic Total Calculation**: Intelligent detection and summation of all numerical values
   - **Properly Formatted Totals**: Currency amounts, hours, and percentages formatted appropriately
