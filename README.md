@@ -41,6 +41,9 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 ## Recent Updates (April 2025)
 
 - **Bug Fixes and Enhancements** (April 10, 2025):
+  - **Timesheet Deletion Feature**: Added the ability to delete timesheet entries with a confirmation dialog
+  - **PDF Export Fix**: Resolved text overlapping issues in project PDF exports
+  - **Dashboard Enhancement**: Added quick access to invoices management in the dashboard
   - **Payroll Report Calculation Fix**: Fixed incorrect calculation of "remaining amount" in payroll reports to properly subtract all payments made
   - **Check Payment Entry Enhancement**: Improved the check payment entry in payroll form to properly display and validate check number and bank name fields
   - **Project Selection Fix**: Updated timesheet form to display all projects regardless of status, ensuring no projects are missing from dropdown

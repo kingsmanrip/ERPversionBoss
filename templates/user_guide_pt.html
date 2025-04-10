@@ -11,6 +11,9 @@
         <h4><i class="fas fa-bell"></i> Novidades - Abril 2025</h4>
         <p><strong>Novas funcionalidades importantes foram adicionadas ao sistema:</strong></p>
         <ul>
+            <li><strong>Exclusão de Folha de Ponto:</strong> Agora é possível excluir registros da folha de ponto com confirmação para prevenir exclusões acidentais</li>
+            <li><strong>Correção na Exportação PDF:</strong> Resolvido o problema de sobreposição de texto nos relatórios de projeto em PDF</li>
+            <li><strong>Acesso Rápido a Faturas:</strong> Adicionada uma seção dedicada no painel para acesso rápido a gerenciamento de faturas</li>
             <li><strong>Backup e Restauração do Banco de Dados:</strong> Agora é possível fazer backup e restaurar o banco de dados diretamente do painel, garantindo a segurança dos seus dados</li>
             <li><strong>Sistema de Feedback Simples:</strong> Botão para enviar sugestões e necessidades diretamente para a equipe de desenvolvimento</li>
             <li><strong>Bônus de Sábado ($5/hora):</strong> Pagamento adicional de $5 por hora para trabalho realizado aos sábados, exibido automaticamente na folha de ponto</li>
@@ -48,7 +51,39 @@
                     <h2 class="card-title h4 mb-0">Últimas Novidades (Abril 2025)</h2>
                 </div>
                 <div class="card-body">
-                    <h3 class="h5 mb-3">Backup e Restauração do Banco de Dados</h3>
+                    <h3 class="h5 mb-3">Exclusão de Folha de Ponto</h3>
+                    <p>Nova funcionalidade para excluir registros da folha de ponto:</p>
+                    <ul>
+                        <li><strong>Onde encontrar:</strong> Na página de listagem de folhas de ponto (Timesheets)</li>
+                        <li><strong>Como usar:</strong>
+                            <ol>
+                                <li>Ao lado do botão "Editar" para cada registro de folha de ponto, agora há um botão "Excluir"</li>
+                                <li>Ao clicar em "Excluir", um diálogo de confirmação aparecerá para evitar exclusões acidentais</li>
+                                <li>Confirme a exclusão para remover permanentemente o registro da folha de ponto</li>
+                            </ol>
+                        </li>
+                        <li><strong>Benefícios:</strong> Permite corrigir erros de entrada de dados ou remover registros duplicados</li>
+                    </ul>
+                    
+                    <h3 class="h5 mb-3 mt-4">Correção na Exportação PDF</h3>
+                    <p>Melhorias na geração de PDF para relatórios de projetos:</p>
+                    <ul>
+                        <li>Resolvido o problema de sobreposição de texto nos relatórios de projeto exportados em PDF</li>
+                        <li>Ajustes de tamanho de fonte e largura das colunas para melhor legibilidade</li>
+                        <li>Tratamento especial para relatórios com muitas colunas para garantir a visualização adequada de todos os dados</li>
+                        <li>Implementado sistema de truncamento inteligente para campos com texto muito longo</li>
+                    </ul>
+                    
+                    <h3 class="h5 mb-3 mt-4">Acesso Rápido a Faturas no Painel</h3>
+                    <p>Nova seção adicionada ao painel principal para gerenciamento de faturas:</p>
+                    <ul>
+                        <li>Seção dedicada "Gerenciamento de Faturas" no painel principal</li>
+                        <li>Botões de acesso rápido para visualizar todas as faturas ou criar uma nova fatura</li>
+                        <li>Resumo visual mostrando total de faturas, valor pendente de pagamento e valor total já recebido</li>
+                        <li>Interface intuitiva com cartões coloridos para acesso rápido às funcionalidades principais</li>
+                    </ul>
+
+                    <h3 class="h5 mb-3 mt-4">Backup e Restauração do Banco de Dados</h3>
                     <p>Nova funcionalidade para proteger seus dados e permitir recuperação em caso de problemas:</p>
                     <ul>
                         <li><strong>Onde encontrar:</strong> No final da página do Dashboard</li>
@@ -450,26 +485,68 @@
                     <h2 class="card-title h4 mb-0">Folha de Ponto</h2>
                 </div>
                 <div class="card-body">
-                    <h3 class="h5">Como registrar horas trabalhadas:</h3>
+                    <p>O sistema de folha de ponto permite registrar as horas trabalhadas pelos funcionários, associando-as a projetos específicos.</p>
+                    
+                    <h3 class="h5">Adicionando uma Nova Entrada:</h3>
                     <ol>
-                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Add Timesheet Entry</strong></li>
-                        <li>Selecione o funcionário, projeto e data</li>
-                        <li>Insira os horários de início e término do trabalho</li>
-                        <li>Se aplicável, insira os horários de início e término do almoço</li>
-                        <li>O sistema calculará automaticamente o total de horas trabalhadas</li>
-                        <li>Clique em <strong>Save</strong> para registrar as horas</li>
+                        <li>Acesse a página da folha de ponto clicando em <strong>Timesheets</strong> no menu principal</li>
+                        <li>Clique no botão <strong>Add Timesheet</strong></li>
+                        <li>Preencha o formulário:
+                            <ul>
+                                <li><strong>Funcionário</strong>: Selecione o funcionário</li>
+                                <li><strong>Projeto</strong>: Selecione o projeto (ou "Nenhum - Sem Projeto" para registrar horas administrativas)</li>
+                                <li><strong>Data</strong>: Selecione a data do trabalho</li>
+                                <li><strong>Hora de Início</strong>: Horário em que o funcionário começou a trabalhar</li>
+                                <li><strong>Hora de Término</strong>: Horário em que o funcionário terminou o trabalho</li>
+                                <li><strong>Duração do Almoço (minutos)</strong>: Tempo de almoço em minutos</li>
+                            </ul>
+                        </li>
+                        <li>O sistema calculará automaticamente o total de horas trabalhadas, aplicando as regras específicas para dedução do almoço</li>
+                        <li>Para trabalho realizado aos sábados, o sistema aplica automaticamente um adicional de $5/hora</li>
+                        <li>Clique em <strong>Submit</strong> para salvar</li>
                     </ol>
                     
-                    <h3 class="h5">Como visualizar registros de ponto:</h3>
+                    <h3 class="h5 mt-4">Regras de Dedução do Almoço:</h3>
+                    <ul>
+                        <li>Almoço ≥ 60 minutos: apenas 30 minutos são deduzidos (benefício ao funcionário)</li>
+                        <li>Almoço entre 30-59 minutos: tempo real é deduzido</li>
+                        <li>Almoço < 30 minutos: nenhuma dedução é aplicada</li>
+                    </ul>
+                    
+                    <h3 class="h5 mt-4">Editando uma Entrada Existente:</h3>
                     <ol>
-                        <li>Acesse o menu <strong>Payroll</strong> e selecione <strong>Timesheets</strong></li>
-                        <li>A página exibirá todos os registros de ponto em ordem cronológica</li>
-                        <li>Use os filtros disponíveis para localizar registros específicos por funcionário, projeto ou data</li>
+                        <li>Na página da folha de ponto, clique no botão <strong>Edit</strong> ao lado do registro que deseja modificar</li>
+                        <li>Você pode alterar qualquer campo, incluindo funcionário, projeto, data e horários</li>
+                        <li>A seleção inteligente de projetos manterá projetos associados mesmo quando já estiverem concluídos</li>
+                        <li>Clique em <strong>Submit</strong> para salvar as alterações</li>
                     </ol>
                     
-                    <div class="alert alert-info">
-                        <strong>Dica:</strong> O sistema calcula automaticamente o intervalo de almoço e subtrai do tempo total trabalhado.
+                    <h3 class="h5 mt-4">Excluindo uma Entrada:</h3>
+                    <ol>
+                        <li>Na página da folha de ponto, clique no botão <strong>Delete</strong> ao lado do registro que deseja excluir</li>
+                        <li>Confirme a exclusão na caixa de diálogo que aparecerá</li>
+                        <li>O registro será permanentemente removido do sistema</li>
+                        <li>Uma mensagem de confirmação será exibida após a exclusão bem-sucedida</li>
+                    </ol>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <strong>Atenção!</strong> A exclusão de registros da folha de ponto é permanente e afetará os cálculos de folha de pagamento e custos do projeto.
                     </div>
+                    
+                    <h3 class="h5 mt-4">Exportando Dados da Folha de Ponto:</h3>
+                    <p>Você pode exportar os dados da folha de ponto para diferentes formatos:</p>
+                    <ol>
+                        <li>Navegue até a página da folha de ponto</li>
+                        <li>Localize o botão de exportação na parte superior da página</li>
+                        <li>Selecione o formato desejado:
+                            <ul>
+                                <li>Excel (.xlsx)</li>
+                                <li>PDF</li>
+                                <li>CSV</li>
+                            </ul>
+                        </li>
+                        <li>O arquivo será gerado e baixado automaticamente</li>
+                    </ol>
                 </div>
             </div>
             
@@ -566,36 +643,64 @@
                     <h2 class="card-title h4 mb-0">Faturas</h2>
                 </div>
                 <div class="card-body">
-                    <h3 class="h5">Como criar uma fatura:</h3>
+                    <p>O sistema permite gerenciar faturas para clientes, incluindo criação, visualização, edição e geração de PDF para impressão ou envio digital.</p>
+                    
+                    <h3 class="h5">Acesso Rápido pelo Painel Principal:</h3>
+                    <p>O painel principal (Dashboard) agora possui uma seção dedicada para gerenciamento de faturas:</p>
+                    <ul>
+                        <li><strong>Cartão de Gerenciamento de Faturas</strong>: Localizado na página inicial, oferece:
+                            <ul>
+                                <li>Botão "Visualizar Faturas" para acessar a lista completa de faturas</li>
+                                <li>Botão "Criar Nova Fatura" para adicionar rapidamente uma nova fatura</li>
+                                <li>Resumo visual com contagem total de faturas, valores pendentes e valores recebidos</li>
+                            </ul>
+                        </li>
+                        <li>Esta seção proporciona acesso rápido às funções mais utilizadas relacionadas às faturas, sem necessidade de navegar pelo menu principal.</li>
+                    </ul>
+
+                    <h3 class="h5 mt-4">Criando uma Nova Fatura:</h3>
                     <ol>
-                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Add Invoice</strong></li>
-                        <li>Selecione o projeto para o qual está gerando a fatura</li>
-                        <li>O sistema preencherá automaticamente as informações do cliente</li>
-                        <li>Insira a descrição dos serviços, valor e data de vencimento</li>
+                        <li>Acesse <strong>Invoices > Add Invoice</strong> no menu principal ou clique no botão "Criar Nova Fatura" no painel</li>
+                        <li>Selecione o cliente e o projeto relacionado</li>
+                        <li>Preencha as informações da fatura:
+                            <ul>
+                                <li>Número da fatura (gerado automaticamente)</li>
+                                <li>Data da fatura</li>
+                                <li>Data de vencimento</li>
+                                <li>Descrição dos serviços</li>
+                                <li>Valor total</li>
+                                <li>Status (Pendente, Paga, Vencida)</li>
+                            </ul>
+                        </li>
                         <li>Clique em <strong>Save</strong> para criar a fatura</li>
                     </ol>
                     
-                    <h3 class="h5">Como gerar PDF de fatura personalizado:</h3>
+                    <h3 class="h5 mt-4">Gerenciando Faturas:</h3>
                     <ol>
-                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Invoices</strong></li>
-                        <li>Localize a fatura desejada na lista</li>
-                        <li>Clique no botão <strong>Print</strong> ao lado da fatura</li>
-                        <li>O sistema gerará automaticamente um PDF profissional com o layout personalizado da empresa</li>
-                        <li>O arquivo PDF será baixado automaticamente para seu computador</li>
-                        <li>Abra o PDF para visualizar a fatura formatada profissionalmente com todas as informações do projeto</li>
+                        <li>Para ver todas as faturas, acesse <strong>Invoices > View All</strong> no menu principal ou use o botão "Visualizar Faturas" no painel</li>
+                        <li>A lista exibe todas as faturas com informações principais como cliente, número, data, valor e status</li>
+                        <li>Para cada fatura, você pode:
+                            <ul>
+                                <li><strong>Visualizar</strong>: Ver detalhes completos da fatura</li>
+                                <li><strong>Editar</strong>: Modificar informações da fatura</li>
+                                <li><strong>Excluir</strong>: Remover a fatura do sistema (com confirmação)</li>
+                                <li><strong>Imprimir/PDF</strong>: Gerar um PDF para impressão ou envio ao cliente</li>
+                                <li><strong>Marcar como Paga</strong>: Atualizar o status para "Paga" quando o pagamento for recebido</li>
+                            </ul>
+                        </li>
                     </ol>
                     
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> <strong>Novo recurso:</strong> O PDF de fatura agora inclui um design moderno e profissional com seções bem organizadas para informações do cliente, escopo do projeto e precificação. O documento também inclui a assinatura do contratante pré-preenchida e a data atual.
+                    <h3 class="h5 mt-4">Geração de PDF:</h3>
+                    <p>O sistema permite gerar PDFs profissionais das faturas:</p>
+                    <ul>
+                        <li>Os PDFs incluem todas as informações necessárias: logotipo da empresa, dados do cliente, descrição do serviço, valores e condições de pagamento</li>
+                        <li>A formatação foi melhorada para evitar sobreposição de texto e garantir a legibilidade</li>
+                        <li>As faturas em PDF podem ser salvas, impressas ou enviadas por e-mail diretamente ao cliente</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <strong>Dica:</strong> Para facilitar o acompanhamento, o sistema exibe alertas visuais para faturas vencidas ou próximas do vencimento no painel principal.
                     </div>
-                    
-                    <h3 class="h5">Como gerenciar faturas:</h3>
-                    <ol>
-                        <li>Acesse o menu <strong>Financials</strong> e selecione <strong>Invoices</strong></li>
-                        <li>A página exibirá todas as faturas com status de pagamento</li>
-                        <li>Para registrar o pagamento de uma fatura, clique no botão <strong>Mark as Paid</strong></li>
-                        <li>Insira a data e informações de pagamento quando solicitado</li>
-                    </ol>
                 </div>
             </div>
             
