@@ -161,5 +161,56 @@
     </div>
 </div>
 
+<!-- Database Backup and Restore Section -->
+<div class="card mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Database Management</h5>
+        <span class="badge bg-info">Admin Feature</span>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Backup Database Section -->
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="card h-100 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="card-title mb-0">Backup Database</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Create a backup of the current database. This will download a copy of all your data that you can store safely.</p>
+                        <p class="small text-muted mb-3">Recommended before making major changes or periodically for data security.</p>
+                        <a href="{{ url_for('backup_database') }}" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i>Download Backup
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Restore Database Section -->
+            <div class="col-md-6">
+                <div class="card h-100 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="card-title mb-0">Restore Database</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Restore your database from a previous backup file.</p>
+                        <p class="small text-danger fw-bold mb-3">Warning: This will replace all current data with the data from the backup file!</p>
+                        
+                        <form action="{{ url_for('restore_database') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <label for="backup_file" class="form-label">Select Backup File</label>
+                                <input class="form-control" type="file" id="backup_file" name="backup_file" accept=".db">
+                            </div>
+                            <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to restore the database from this backup? All current data will be replaced!');">
+                                <i class="fas fa-upload me-2"></i>Restore Database
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Chart scripts have been removed per the client's request -->
 {% endblock %}

@@ -11,6 +11,7 @@
         <h4><i class="fas fa-bell"></i> Novidades - Abril 2025</h4>
         <p><strong>Novas funcionalidades importantes foram adicionadas ao sistema:</strong></p>
         <ul>
+            <li><strong>Backup e Restauração do Banco de Dados:</strong> Agora é possível fazer backup e restaurar o banco de dados diretamente do painel, garantindo a segurança dos seus dados</li>
             <li><strong>Sistema de Feedback Simples:</strong> Botão para enviar sugestões e necessidades diretamente para a equipe de desenvolvimento</li>
             <li><strong>Bônus de Sábado ($5/hora):</strong> Pagamento adicional de $5 por hora para trabalho realizado aos sábados, exibido automaticamente na folha de ponto</li>
             <li><strong>Edição de Folha de Ponto:</strong> Agora é possível editar registros existentes na folha de ponto, mantendo associações com projetos mesmo após sua conclusão</li>
@@ -35,6 +36,7 @@
                 <a class="list-group-item list-group-item-action" href="#faturas">Faturas</a>
                 <a class="list-group-item list-group-item-action bg-success text-white" href="#financeiro">Sistema Financeiro</a>
                 <a class="list-group-item list-group-item-action" href="#relatorios">Relatórios</a>
+                <a class="list-group-item list-group-item-action bg-dark text-white" href="#administracao">Administração do Sistema</a>
                 <a class="list-group-item list-group-item-action" href="#implementacoesfuturas">Implementações Futuras</a>
             </div>
         </div>
@@ -46,7 +48,29 @@
                     <h2 class="card-title h4 mb-0">Últimas Novidades (Abril 2025)</h2>
                 </div>
                 <div class="card-body">
-                    <h3 class="h5 mb-3">Sistema de Feedback Simples</h3>
+                    <h3 class="h5 mb-3">Backup e Restauração do Banco de Dados</h3>
+                    <p>Nova funcionalidade para proteger seus dados e permitir recuperação em caso de problemas:</p>
+                    <ul>
+                        <li><strong>Onde encontrar:</strong> No final da página do Dashboard</li>
+                        <li><strong>Como usar - Backup:</strong>
+                            <ol>
+                                <li>Clique no botão "Download Backup" na seção "Backup Database"</li>
+                                <li>Um arquivo .db será baixado contendo todos os seus dados</li>
+                                <li>Guarde este arquivo em local seguro para uso futuro</li>
+                            </ol>
+                        </li>
+                        <li><strong>Como usar - Restauração:</strong>
+                            <ol>
+                                <li>Na seção "Restore Database", clique em "Selecionar arquivo"</li>
+                                <li>Escolha um arquivo de backup (.db) previamente salvo</li>
+                                <li>Clique em "Restore Database" e confirme a ação</li>
+                                <li>Seu banco de dados será restaurado para o estado do backup</li>
+                            </ol>
+                        </li>
+                        <li><strong>Recomendações:</strong> Faça backup regularmente e especialmente antes de fazer grandes alterações nos dados</li>
+                    </ul>
+                    
+                    <h3 class="h5 mb-3 mt-4">Sistema de Feedback Simples</h3>
                     <p>Um novo sistema de feedback foi implementado para facilitar a comunicação de necessidades e sugestões:</p>
                     <ul>
                         <li>Um botão "Feedback" está disponível no canto inferior direito de todas as páginas do sistema</li>
@@ -718,6 +742,88 @@
                         </li>
                         <li>O arquivo será gerado e baixado automaticamente</li>
                     </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" id="administracao">
+                <div class="card-header bg-dark text-white">
+                    <h2 class="card-title h4 mb-0">Administração do Sistema</h2>
+                </div>
+                <div class="card-body">
+                    <p>Esta seção contém funcionalidades administrativas para gerenciar o sistema ERP.</p>
+                    
+                    <h3 class="h5 mb-3">Backup e Restauração do Banco de Dados</h3>
+                    <p>O sistema permite fazer backup e restaurar o banco de dados diretamente do painel. Esta funcionalidade é crucial para garantir a segurança dos seus dados e permitir a recuperação em caso de problemas.</p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card border-primary h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h4 class="h6 mb-0">Backup do Banco de Dados</h4>
+                                </div>
+                                <div class="card-body">
+                                    <p>Realizar backups regulares é essencial para proteger seus dados contra perda acidental.</p>
+                                    
+                                    <h5 class="h6 mt-3">Como fazer um backup:</h5>
+                                    <ol>
+                                        <li>Navegue até o <strong>Dashboard</strong> do sistema</li>
+                                        <li>Role até o final da página onde encontrará a seção "Database Management"</li>
+                                        <li>No card "Backup Database", clique no botão <strong>"Download Backup"</strong></li>
+                                        <li>Um arquivo com formato .db será baixado para seu computador</li>
+                                        <li>Este arquivo contém uma cópia completa do banco de dados no momento do backup</li>
+                                        <li>Armazene este arquivo em local seguro (preferencialmente em múltiplos locais)</li>
+                                    </ol>
+                                    
+                                    <h5 class="h6 mt-3">Melhores práticas:</h5>
+                                    <ul>
+                                        <li>Faça backups regularmente (semanalmente ou mensalmente)</li>
+                                        <li>Sempre faça um backup antes de realizar mudanças significativas nos dados</li>
+                                        <li>Mantenha múltiplas versões de backup (não sobrescreva backups antigos)</li>
+                                        <li>Armazene backups em locais diferentes do servidor principal</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border-warning h-100">
+                                <div class="card-header bg-warning text-dark">
+                                    <h4 class="h6 mb-0">Restauração do Banco de Dados</h4>
+                                </div>
+                                <div class="card-body">
+                                    <p>Em caso de problemas com o banco de dados, você pode restaurá-lo a partir de um backup anterior.</p>
+                                    
+                                    <div class="alert alert-danger">
+                                        <strong>Atenção!</strong> A restauração substituirá TODOS os dados atuais pelos dados do backup. Esta ação não pode ser desfeita.
+                                    </div>
+                                    
+                                    <h5 class="h6 mt-3">Como restaurar um backup:</h5>
+                                    <ol>
+                                        <li>Navegue até o <strong>Dashboard</strong> do sistema</li>
+                                        <li>Role até o final da página onde encontrará a seção "Database Management"</li>
+                                        <li>No card "Restore Database", clique em <strong>"Selecionar arquivo"</strong></li>
+                                        <li>Localize e selecione o arquivo de backup (.db) que deseja restaurar</li>
+                                        <li>Clique no botão <strong>"Restore Database"</strong></li>
+                                        <li>Confirme a ação quando solicitado</li>
+                                        <li>Aguarde a conclusão do processo de restauração</li>
+                                        <li>Você será redirecionado para a página inicial após a conclusão</li>
+                                    </ol>
+                                    
+                                    <h5 class="h6 mt-3">Observações importantes:</h5>
+                                    <ul>
+                                        <li>O sistema cria automaticamente um backup de segurança do banco de dados atual antes de realizar a restauração</li>
+                                        <li>Recomendamos realizar operações de restauração fora do horário comercial</li>
+                                        <li>Todos os usuários devem estar desconectados do sistema durante a restauração</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5 class="h6">Dica para Administradores</h5>
+                        <p class="mb-0">Você pode utilizar os backups para transferir dados entre diferentes instalações do sistema ou para criar ambientes de teste com dados reais.</p>
+                    </div>
                 </div>
             </div>
             

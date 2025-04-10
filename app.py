@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from datetime import date, timedelta, datetime
@@ -13,6 +13,7 @@ import io
 import pandas as pd
 import json
 import uuid
+import shutil
 
 from models import db, Employee, Project, Timesheet, Material, Expense, PayrollPayment, PayrollDeduction, Invoice, ProjectStatus, PaymentMethod, PaymentStatus, User, DeductionType, AccountsPayable, PaidAccount, MonthlyExpense, ExpenseCategory
 from forms import EmployeeForm, ProjectForm, TimesheetForm, MaterialForm, ExpenseForm, PayrollPaymentForm, PayrollDeductionForm, InvoiceForm, LoginForm, AccountsPayableForm, PaidAccountForm, MonthlyExpenseForm
@@ -176,250 +177,6 @@ def export_to_pdf(data, title, filename):
         pdf_path,
         as_attachment=True, 
         download_name=filename,
-        mimetype='application/pdf'
-    )
-
-def generate_customer_invoice_pdf(invoice_id):
-    """Generate a professional customer-facing invoice PDF with clear formatting and layout"""
-    # Get the invoice data
-    invoice = db.session.get(Invoice, invoice_id)
-    if not invoice:
-        return None
-    
-    project = invoice.project
-    today = date.today().strftime("%m/%d/%Y")
-    
-    # Create PDF instance - using portrait orientation
-    pdf = FPDF()
-    pdf.add_page()
-    
-    # Define colors for consistent branding
-    header_blue = (16, 52, 166)  # Darker blue for headers
-    accent_blue = (0, 83, 214)   # Bright blue for accents
-    text_gray = (80, 80, 80)     # Dark gray for main text
-    highlight_red = (214, 0, 0)  # Red for highlights
-    
-    # Add custom header with logo space and company info
-    pdf.set_fill_color(240, 240, 240)  # Light gray background for header
-    pdf.rect(10, 10, 190, 30, 'F')     # Header background
-    
-    # Company name and info (left side of header)
-    pdf.set_font('Arial', 'B', 16)
-    pdf.set_text_color(*header_blue)
-    pdf.set_xy(15, 12)
-    pdf.cell(100, 8, 'Mauricio PDQ Paint & Drywall Llc', 0, 1)
-    
-    pdf.set_font('Arial', '', 10)
-    pdf.set_text_color(*text_gray)
-    pdf.set_x(15)
-    pdf.cell(100, 5, '968 WPA RD, Sumrall MS, 39482', 0, 1)
-    
-    pdf.set_font('Arial', 'B', 9)
-    pdf.set_x(15)
-    pdf.set_text_color(*highlight_red)
-    pdf.cell(100, 5, 'TEL: 601-596-3130  FAX: 601-752-3519', 0, 0)
-    
-    # Document title (right side of header)
-    pdf.set_font('Arial', 'B', 18)
-    pdf.set_text_color(*header_blue)
-    pdf.set_xy(130, 18)
-    pdf.cell(65, 10, 'INVOICE', 0, 0, 'R')
-    
-    # Add invoice information section
-    pdf.set_text_color(*text_gray)
-    pdf.set_font('Arial', 'B', 10)
-    pdf.set_xy(10, 45)
-    pdf.cell(95, 6, 'CLIENT INFORMATION', 0, 0)
-    pdf.cell(95, 6, f'DATE: {today}', 0, 1, 'R')
-    
-    # Separator line
-    pdf.set_draw_color(*accent_blue)
-    pdf.line(10, 52, 200, 52)
-    
-    # Client details table
-    pdf.set_font('Arial', '', 10)
-    pdf.set_xy(10, 55)
-    
-    # Left column - client details
-    pdf.set_fill_color(246, 246, 246)  # Very light gray for alternating rows
-    
-    # Client name row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(30, 7, 'Client:', 0, 0, 'L')
-    pdf.set_font('Arial', '', 10)
-    pdf.set_text_color(*accent_blue)  
-    pdf.cell(65, 7, project.client_name or 'N/A', 0, 0, 'L')
-    pdf.set_text_color(*text_gray)
-    
-    # Project ID row on the right
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(30, 7, 'Project ID:', 0, 0, 'L')
-    pdf.set_font('Arial', '', 10)
-    pdf.cell(65, 7, project.project_id_str or f'#{project.id}', 0, 1, 'L')
-    
-    # Address row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(30, 7, 'Address:', 0, 0, 'L', 1)
-    pdf.set_font('Arial', '', 10)
-    pdf.cell(65, 7, 'N/A', 0, 0, 'L', 1)
-    
-    # Invoice number on the right
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(30, 7, 'Invoice #:', 0, 0, 'L', 1)
-    pdf.set_font('Arial', '', 10)
-    pdf.cell(65, 7, invoice.invoice_number or f'{invoice.id}', 0, 1, 'L', 1)
-    
-    # Phone row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(30, 7, 'Phone:', 0, 0, 'L')
-    pdf.set_font('Arial', '', 10)
-    pdf.cell(65, 7, 'N/A', 0, 0, 'L')
-    
-    # Job location on the right
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(30, 7, 'Job Location:', 0, 0, 'L')
-    pdf.set_font('Arial', '', 10)
-    pdf.set_text_color(*accent_blue)  
-    pdf.cell(65, 7, project.location or 'N/A', 0, 1, 'L')
-    pdf.set_text_color(*text_gray)
-    
-    # Add project description section
-    pdf.ln(5)
-    pdf.set_font('Arial', 'B', 11)
-    pdf.set_text_color(*header_blue)
-    pdf.cell(0, 7, 'PROJECT SCOPE', 0, 1, 'L')
-    pdf.set_text_color(*text_gray)
-    
-    # Separator line
-    pdf.set_draw_color(*accent_blue)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(2)
-    
-    # Project scope text
-    pdf.set_font('Arial', '', 10)
-    pdf.multi_cell(0, 6, 'I propose to furnish all materials and perform all necessary labor to complete the following work:', 0, 'L')
-    pdf.ln(3)
-    
-    # Project description box
-    pdf.set_draw_color(200, 200, 200)  # Light gray border
-    pdf.set_fill_color(246, 246, 246)  # Very light gray fill
-    pdf.rect(10, pdf.get_y(), 190, 40, 'DF')  # Draw box
-    
-    # Description text inside box
-    pdf.set_xy(12, pdf.get_y() + 2)
-    pdf.set_text_color(*accent_blue)
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(0, 6, 'Scope of Work:', 0, 1, 'L')
-    pdf.set_text_color(*text_gray)
-    pdf.set_font('Arial', '', 10)
-    
-    # Format the description with proper breaks
-    description_text = project.description or 'No description provided.'
-    pdf.set_x(12)
-    pdf.multi_cell(186, 6, description_text, 0, 'L')
-    
-    # Move to below the box
-    pdf.set_y(pdf.get_y() + 15)
-    
-    # Amount section
-    pdf.ln(5)
-    pdf.set_font('Arial', 'B', 11)
-    pdf.set_text_color(*header_blue)
-    pdf.cell(0, 7, 'PROJECT PRICING', 0, 1, 'L')
-    pdf.set_text_color(*text_gray)
-    
-    # Separator line
-    pdf.set_draw_color(*accent_blue)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(2)
-    
-    # Pricing summary table
-    pdf.set_fill_color(246, 246, 246)  # Very light gray fill
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(140, 8, 'Description', 1, 0, 'L', 1)
-    pdf.cell(50, 8, 'Amount', 1, 1, 'C', 1)
-    
-    # Item details
-    pdf.set_font('Arial', '', 10)
-    pdf.cell(140, 8, 'Materials and Labor', 1, 0, 'L')
-    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R')
-    
-    # Add empty Tax row
-    pdf.cell(140, 8, 'Tax', 1, 0, 'L')
-    pdf.cell(50, 8, '$0.00', 1, 1, 'R')
-    
-    # Total row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.set_fill_color(230, 230, 230)  # Slightly darker gray for total row
-    pdf.cell(140, 8, 'TOTAL', 1, 0, 'L', 1)
-    pdf.set_text_color(*accent_blue)
-    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R', 1)
-    pdf.set_text_color(*text_gray)
-    
-    # Terms and conditions
-    pdf.set_text_color(*header_blue)
-    pdf.set_font('Arial', 'B', 11)
-    pdf.ln(10)
-    pdf.cell(0, 8, 'TERMS & CONDITIONS', 0, 1)
-    
-    pdf.set_text_color(*text_gray)
-    pdf.set_font('Arial', '', 9)
-    pdf.multi_cell(0, 5, 'The entire amount of the contract to be paid upon completion. Any alterations or deviation from the above specifications involving extra cost of material or labor will be executed upon written order for same and will become an extra charge over the sum mentioned in this contract. All agreements must be made in writing.')
-    
-    # Acceptance section
-    pdf.set_text_color(*header_blue)
-    pdf.set_font('Arial', 'B', 11)
-    pdf.ln(5)
-    pdf.cell(0, 8, 'ACCEPTANCE', 0, 1)
-    
-    pdf.set_text_color(*text_gray)
-    pdf.set_font('Arial', '', 9)
-    pdf.multi_cell(0, 5, 'I hereby authorize Mauricio PDQ Painting and Drywall to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.')
-    
-    # Signature section with correct spacing
-    pdf.ln(20)  # More space between acceptance text and signature lines
-    
-    # Customer signature line
-    pdf.line(10, pdf.get_y(), 150, pdf.get_y())
-    pdf.set_xy(10, pdf.get_y() + 2)  # Position label below the line
-    pdf.set_font('Arial', '', 8)
-    pdf.cell(140, 5, 'Customer Signature', 0, 1, 'C')
-    
-    # Date line
-    pdf.line(160, pdf.get_y() - 7, 200, pdf.get_y() - 7)  # Date line
-    pdf.set_xy(160, pdf.get_y() - 5)  # Position date below the line
-    pdf.cell(40, 5, today, 0, 1, 'C')
-    pdf.set_xy(160, pdf.get_y())
-    pdf.cell(40, 5, 'Date', 0, 1, 'C')
-    
-    # Contractor signature with proper positioning
-    pdf.ln(10)  # Space between customer and contractor signature
-    pdf.line(10, pdf.get_y(), 150, pdf.get_y())
-    pdf.set_font('Arial', 'I', 10)  # Italic signature
-    pdf.set_text_color(*highlight_red)
-    pdf.set_xy(70, pdf.get_y() - 5)  # Position signature above the line
-    pdf.cell(60, 5, 'Mauricio Sosa', 0, 1, 'C')
-    pdf.set_font('Arial', '', 8)
-    pdf.set_text_color(*text_gray)
-    pdf.set_xy(10, pdf.get_y())
-    pdf.cell(140, 5, 'Contractor Signature', 0, 1, 'C')
-    
-    # Footer with page number
-    pdf.ln(20)
-    pdf.set_font('Arial', 'I', 8)
-    pdf.set_text_color(128, 128, 128)  # Light gray for footer
-    pdf.cell(0, 5, f'Invoice #{invoice.invoice_number or invoice.id} - Generated on {today}', 0, 0, 'C')
-    
-    # Create temp file and write PDF to it
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
-        pdf_path = tmp.name
-        pdf.output(pdf_path)
-    
-    # Return the created PDF file
-    return send_file(
-        pdf_path,
-        as_attachment=True,
-        download_name=f'invoice_{invoice.invoice_number}.pdf',
         mimetype='application/pdf'
     )
 
@@ -1989,6 +1746,75 @@ def financial_reports():
                           current_year=current_year,
                           selected_year=selected_year,
                           selected_month=selected_month)
+
+# --- Database Backup and Restore Routes ---
+@app.route('/backup_database')
+@login_required
+def backup_database():
+    """Create a backup of the current database and send it as a download."""
+    try:
+        # Close database connection
+        db.session.close()
+        
+        # Get the path to the current database file
+        db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+        
+        # Create a timestamp for the backup filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_filename = f"erp_backup_{timestamp}.db"
+        
+        # Send the file as a download
+        return send_file(
+            db_path,
+            as_attachment=True,
+            download_name=backup_filename,
+            mimetype='application/octet-stream'
+        )
+    except Exception as e:
+        flash(f'Error creating database backup: {str(e)}', 'danger')
+        return redirect(url_for('index'))
+
+@app.route('/restore_database', methods=['POST'])
+@login_required
+def restore_database():
+    """Restore the database from an uploaded backup file."""
+    try:
+        # Check if a file was uploaded
+        if 'backup_file' not in request.files:
+            flash('No backup file selected', 'danger')
+            return redirect(url_for('index'))
+        
+        backup_file = request.files['backup_file']
+        
+        # Check if the file has a name
+        if backup_file.filename == '':
+            flash('No backup file selected', 'danger')
+            return redirect(url_for('index'))
+        
+        # Get the path to the current database file
+        db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+        
+        # Close database connection
+        db.session.close()
+        
+        # Create a backup of the current database before restoring
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        pre_restore_backup = f"{db_path}_pre_restore_{timestamp}"
+        import shutil
+        shutil.copy2(db_path, pre_restore_backup)
+        
+        # Save the uploaded file to the database path
+        backup_file.save(db_path)
+        
+        # Reinitialize the database connection - Fixed to avoid KeyError
+        db.engine.dispose()
+        
+        flash('Database successfully restored from backup', 'success')
+        return redirect(url_for('index'))
+    except Exception as e:
+        import traceback
+        flash(f'Error restoring database: {traceback.format_exc()}', 'danger')
+        return redirect(url_for('index'))
 
 # --- Create DB tables ---
 @app.cli.command('init-db')
