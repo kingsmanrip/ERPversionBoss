@@ -273,7 +273,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', 'B', 16)
     pdf.set_text_color(255, 255, 255)
     pdf.set_xy(12, 12)
-    pdf.cell(120, 10, 'Mauricio PDQ Paint & Drywall Llc', 0, 0, 'L')
+    pdf.cell(120, 10, 'Mauricio PDQ Paint & Drywall LLC', 0, 0, 'L')
     
     # Contact info on right side of header
     pdf.set_font('DejaVu', '', 8)
@@ -354,6 +354,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', 'B', 8)
     pdf.cell(20, line_height, 'CELL:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
     pdf.cell(70, line_height, '', 0, 1)
     
     # First column - third row
@@ -361,6 +362,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', 'B', 8)
     pdf.cell(20, line_height, 'CITY/STATE:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
     pdf.cell(75, line_height, '', 0, 0)
     
     # Second column - third row
@@ -368,6 +370,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', 'B', 8)
     pdf.cell(20, line_height, 'JOB LOCATION:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
     pdf.cell(70, line_height, '', 0, 1)
     
     # First column - fourth row
@@ -375,6 +378,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', 'B', 8)
     pdf.cell(20, line_height, 'SUBDIVISION:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
+    pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
     pdf.cell(75, line_height, '', 0, 1)
     
     # Move cursor after client info box
@@ -472,7 +476,7 @@ def generate_customer_invoice_pdf(invoice_id):
     # Acceptance text
     pdf.set_font('DejaVu', '', 7)
     pdf.set_text_color(text_color[0], text_color[1], text_color[2])
-    pdf.multi_cell(0, 3, 'I hereby authorize Ultimate PDQ Painting and Drywall to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.', 0, 'L')
+    pdf.multi_cell(0, 3, 'I hereby authorize Mauricio PDQ Paint and Drywall LLC to furnish all materials and labor required to complete the work mentioned in the above proposal, and I agree to pay the amount mentioned in said proposal and according to the terms thereof.', 0, 'L')
     pdf.ln(1)
     
     # Create a two-column layout for payment details and signatures
@@ -554,23 +558,12 @@ def generate_customer_invoice_pdf(invoice_id):
     temp_file.close()
     
     # Send the PDF file to the client
-    return_value = send_file(
+    return send_file(
         temp_file.name,
         mimetype='application/pdf',
         as_attachment=True,
         download_name=f'invoice_{invoice.id:03d}_{project.name.replace(" ", "_")}.pdf'
     )
-    
-    # Schedule the temp file for deletion
-    @after_this_request
-    def remove_file(response):
-        try:
-            os.unlink(temp_file.name)
-        except:
-            pass
-        return response
-    
-    return return_value
 
 @app.route('/invoice/print/<int:id>')
 @login_required
@@ -908,7 +901,7 @@ def delete_project(id):
 def timesheets():
     # Basic view - show all timesheets, maybe filter by week later
     page = request.args.get('page', 1, type=int)
-    timesheet_list = Timesheet.query.join(Employee).join(Project)\
+    timesheet_list = Timesheet.query.join(Employee).outerjoin(Project)\
                         .order_by(Timesheet.date.desc(), Employee.name)\
                         .paginate(page=page, per_page=20)  # Add pagination
     return render_template('timesheets.html', timesheets=timesheet_list)
