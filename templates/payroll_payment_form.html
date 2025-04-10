@@ -154,7 +154,7 @@
 
             <div class="mb-3">
                 {{ form.payment_method.label(class="form-label") }}
-                {{ form.payment_method(class="form-select" + (" is-invalid" if form.payment_method.errors else "")) }}
+                {{ form.payment_method(class="form-select" + (" is-invalid" if form.payment_method.errors else ""), id="payment_method") }}
                 {% if form.payment_method.errors %}
                     <div class="invalid-feedback">
                         {% for error in form.payment_method.errors %}
@@ -162,6 +162,39 @@
                         {% endfor %}
                     </div>
                 {% endif %}
+            </div>
+            
+            <!-- Check payment details section (initially hidden) -->
+            <div id="check-details" class="card mb-3" style="display: none;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Check Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.check_number.label(class="form-label") }}
+                            {{ form.check_number(class="form-control" + (" is-invalid" if form.check_number.errors else "")) }}
+                            {% if form.check_number.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.check_number.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.bank_name.label(class="form-label") }}
+                            {{ form.bank_name(class="form-control" + (" is-invalid" if form.bank_name.errors else "")) }}
+                            {% if form.bank_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.bank_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -231,6 +264,8 @@
         const summaryGross = document.getElementById('summary-gross');
         const summaryDeductions = document.getElementById('summary-deductions');
         const summaryNet = document.getElementById('summary-net');
+        const paymentMethodSelect = document.getElementById('payment_method');
+        const checkDetails = document.getElementById('check-details');
         
         // Function to add a new deduction
         function addDeduction() {
@@ -289,6 +324,20 @@
         
         // Initialize summary
         updateSummary();
+        
+        // Show/hide check details based on payment method
+        paymentMethodSelect.addEventListener('change', function() {
+            if (this.value === 'CHECK') {
+                checkDetails.style.display = 'block';
+            } else {
+                checkDetails.style.display = 'none';
+            }
+        });
+        
+        // Show check details on page load if CHECK is selected
+        if (paymentMethodSelect.value === 'CHECK') {
+            checkDetails.style.display = 'block';
+        }
     });
 </script>
 {% endblock %}

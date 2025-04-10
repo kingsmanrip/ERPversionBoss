@@ -118,10 +118,16 @@ class PayrollPaymentForm(FlaskForm):
     gross_amount = FloatField('Gross Amount ($)', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative")])
     payment_date = DateField('Payment Date', validators=[DataRequired()], format='%Y-%m-%d')
     payment_method = SelectField('Payment Method', choices=[(pm.name, pm.value) for pm in PaymentMethod if pm != PaymentMethod.OTHER], coerce=str, validators=[DataRequired()])
+    check_number = StringField('Check Number (if applicable)')
+    bank_name = StringField('Bank Name (if applicable)')
     notes = TextAreaField('Notes (e.g., adjustments)')
     submit = SubmitField('Record Payment')
+    
+    def validate_check_number(form, field):
+        """Validate that check number is provided when payment method is Check."""
+        if form.payment_method.data == PaymentMethod.CHECK.name and not field.data:
+            raise ValidationError('Check number is required when payment method is Check.')
 
-# Basic form for creating/editing invoices
 class InvoiceForm(FlaskForm):
     project_id = SelectField('Project', coerce=int, validators=[DataRequired()])
     invoice_number = StringField('Invoice Number')

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, send_file, jsonify, after_this_request
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from datetime import date, timedelta, datetime
@@ -78,11 +78,17 @@ def export_to_excel(data, prefix):
 
 def export_to_pdf(data, title, filename):
     """Helper function to export data to PDF with totals for numerical fields"""
+    # Initialize PDF with Unicode support
     pdf = FPDF()
     pdf.add_page('L')  # Landscape orientation for more columns
     
+    # Add Unicode font support
+    pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+    pdf.add_font('DejaVu', 'B', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', uni=True)
+    pdf.add_font('DejaVu', 'I', '/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf', uni=True)
+    
     # Add title
-    pdf.set_font('Arial', 'B', 16)
+    pdf.set_font('DejaVu', 'B', 16)
     pdf.cell(0, 10, f'{title} Report', 0, 1, 'C')
     pdf.ln(5)
     
@@ -92,20 +98,42 @@ def export_to_pdf(data, title, filename):
         totals = {}
         column_keys = list(data[0].keys())
         
+        # Calculate appropriate column widths based on number of columns
+        page_width = 270
+        max_col_width = 40  # Maximum column width in mm
+        min_col_width = 15  # Minimum column width in mm
+        
+        # Calculate base width for all columns
+        base_col_width = page_width / len(column_keys)
+        
+        # If base width exceeds max, cap it
+        col_width = min(base_col_width, max_col_width)
+        # If base width is too small, use minimum
+        col_width = max(col_width, min_col_width)
+        
         # Add header row
-        pdf.set_font('Arial', 'B', 8)
-        col_width = 270 / len(column_keys)
+        pdf.set_font('DejaVu', 'B', 8)
         for key in column_keys:
-            pdf.cell(col_width, 10, str(key), 1)
+            # Truncate header text if too long
+            header_text = str(key)
+            if len(header_text) > 15:
+                header_text = header_text[:12] + '...'
+            pdf.cell(col_width, 10, header_text, 1)
             # Initialize totals for columns that might contain numbers
             totals[key] = 0
         pdf.ln()
         
         # Add data rows and calculate totals for numerical fields
-        pdf.set_font('Arial', '', 8)
+        pdf.set_font('DejaVu', '', 8)
         for item in data:
             for key, value in item.items():
-                pdf.cell(col_width, 10, str(value)[:20], 1)
+                # Ensure all values are properly encoded as strings and truncate if too long
+                cell_value = str(value)
+                if len(cell_value) > 15:
+                    cell_value = cell_value[:12] + '...'
+                
+                pdf.cell(col_width, 10, cell_value, 1)
+                
                 # Update total if the value is numerical (uses string checking since data might be pre-formatted)
                 string_value = str(value)
                 if string_value.replace('.', '', 1).replace(',', '', 1).replace('$', '', 1).replace('-', '', 1).isdigit():
@@ -131,7 +159,7 @@ def export_to_pdf(data, title, filename):
         pdf.ln(2)
         
         # Add totals row with bold formatting
-        pdf.set_font('Arial', 'B', 8)
+        pdf.set_font('DejaVu', 'B', 8)
         pdf.set_fill_color(240, 240, 240)  # Light gray background
         
         # First cell is the 'TOTALS' label
@@ -156,6 +184,10 @@ def export_to_pdf(data, title, filename):
                     # Integer format
                     formatted_total = f'{int(totals[key]):,}'
                 
+                # Truncate total value if too long
+                if len(formatted_total) > 15:
+                    formatted_total = formatted_total[:12] + '...'
+                
                 pdf.cell(col_width, 10, formatted_total, 1, 0, 'R', True)
             else:
                 # Non-numerical column
@@ -164,7 +196,7 @@ def export_to_pdf(data, title, filename):
         
         # Add note about totals
         pdf.ln(5)
-        pdf.set_font('Arial', 'I', 8)
+        pdf.set_font('DejaVu', 'I', 8)
         pdf.cell(0, 10, 'Note: Totals are calculated for numerical fields only.', 0, 1, 'L')
     
     # Create temp file and write PDF to it
@@ -187,13 +219,164 @@ def export_to_csv(data, prefix):
     df.to_csv(csv_file, index=False)
     csv_file.seek(0)
     
-    return Response(
-        csv_file.getvalue(),
-        mimetype='text/csv',
-        headers={
-            'Content-Disposition': f'attachment; filename={prefix}_report.csv'
-        }
+    return send_file(
+        csv_file,
+        as_attachment=True,
+        download_name=f'{prefix}_report.csv',
+        mimetype='text/csv'
     )
+
+# --- PDF Generation Functions ---
+def generate_customer_invoice_pdf(invoice_id):
+    """
+    Generate a professional PDF invoice for customers.
+    
+    Args:
+        invoice_id: The ID of the invoice to generate a PDF for
+        
+    Returns:
+        A Flask send_file response with the PDF
+    """
+    invoice = Invoice.query.get_or_404(invoice_id)
+    project = Project.query.get_or_404(invoice.project_id)
+    
+    # Create PDF object (A4 size)
+    pdf = FPDF(orientation='P', unit='mm', format='A4')
+    pdf.add_page()
+    
+    # Add Unicode font support
+    pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+    pdf.add_font('DejaVu', 'B', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', uni=True)
+    
+    # Header with company info
+    pdf.set_font('DejaVu', 'B', 16)
+    pdf.cell(0, 10, 'Mauricio PDQ Paint & Drywall', 0, 1, 'C')
+    pdf.set_font('DejaVu', '', 10)
+    pdf.cell(0, 5, '123 Main Street, Austin, TX 78704', 0, 1, 'C')
+    pdf.cell(0, 5, 'Phone: (512) 555-1234 | Email: info@mauriciopdq.com', 0, 1, 'C')
+    pdf.ln(5)
+    
+    # Document title
+    pdf.set_font('DejaVu', 'B', 14)
+    pdf.cell(0, 10, 'INVOICE', 0, 1, 'C')
+    pdf.ln(5)
+    
+    # Invoice and client details section
+    pdf.set_font('DejaVu', 'B', 11)
+    pdf.cell(95, 8, 'BILL TO:', 0, 0)
+    pdf.cell(95, 8, 'INVOICE DETAILS:', 0, 1)
+    
+    # Client info
+    pdf.set_font('DejaVu', '', 10)
+    pdf.cell(95, 6, project.client_name, 0, 0)
+    pdf.cell(45, 6, 'Invoice Number:', 0, 0)
+    pdf.cell(50, 6, f"{invoice.id:03d}", 0, 1)
+    
+    pdf.cell(95, 6, project.location, 0, 0)
+    pdf.cell(45, 6, 'Invoice Date:', 0, 0)
+    pdf.cell(50, 6, invoice.invoice_date.strftime('%m/%d/%Y'), 0, 1)
+    
+    pdf.cell(95, 6, '', 0, 0)
+    pdf.cell(45, 6, 'Due Date:', 0, 0)
+    pdf.cell(50, 6, invoice.due_date.strftime('%m/%d/%Y') if invoice.due_date else 'Upon Receipt', 0, 1)
+    
+    pdf.ln(5)
+    
+    # Project details
+    pdf.set_font('DejaVu', 'B', 11)
+    pdf.cell(0, 8, 'PROJECT DETAILS:', 0, 1)
+    
+    pdf.set_font('DejaVu', '', 10)
+    pdf.cell(45, 6, 'Project Name:', 0, 0)
+    pdf.cell(145, 6, project.name, 0, 1)
+    
+    pdf.cell(45, 6, 'Project Location:', 0, 0)
+    pdf.cell(145, 6, project.location, 0, 1)
+    
+    pdf.cell(45, 6, 'Project Status:', 0, 0)
+    pdf.cell(145, 6, project.status.name, 0, 1)
+    
+    pdf.ln(5)
+    
+    # Services/Charges
+    pdf.set_font('DejaVu', 'B', 11)
+    pdf.cell(0, 8, 'SERVICES/CHARGES:', 0, 1)
+    
+    # Headers for the table
+    pdf.set_fill_color(240, 240, 240)
+    pdf.cell(140, 8, 'Description', 1, 0, 'L', True)
+    pdf.cell(50, 8, 'Amount', 1, 1, 'R', True)
+    
+    # Add invoice details (simplified for now)
+    pdf.set_font('DejaVu', '', 10)
+    pdf.cell(140, 8, f'Services for Project: {project.name}', 1, 0, 'L')
+    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R')
+    
+    # If there were line items, they would go here in a loop
+    
+    # Totals
+    pdf.set_font('DejaVu', 'B', 10)
+    pdf.cell(140, 8, 'Total Due:', 1, 0, 'L', True)
+    pdf.cell(50, 8, f'${invoice.amount:.2f}', 1, 1, 'R', True)
+    
+    # Payment instructions
+    pdf.ln(10)
+    pdf.set_font('DejaVu', 'B', 11)
+    pdf.cell(0, 8, 'PAYMENT INSTRUCTIONS:', 0, 1)
+    
+    pdf.set_font('DejaVu', '', 10)
+    pdf.multi_cell(0, 6, 'Please make checks payable to "Mauricio PDQ Paint & Drywall". For electronic payments, please contact our office for banking details. Payment is due by the due date specified above.', 0, 'L')
+    
+    # Thank you message
+    pdf.ln(10)
+    pdf.set_font('DejaVu', 'B', 10)
+    pdf.cell(0, 8, 'Thank you for your business!', 0, 1, 'C')
+    
+    # Signature section
+    pdf.ln(15)
+    pdf.line(25, pdf.get_y(), 85, pdf.get_y())  # Signature line
+    pdf.line(115, pdf.get_y(), 175, pdf.get_y())  # Date line
+    
+    pdf.set_font('DejaVu', '', 8)
+    pdf.set_y(pdf.get_y() + 2)  # Add space after the lines
+    pdf.cell(90, 5, 'Authorized Signature', 0, 0, 'C')
+    pdf.cell(20, 5, '', 0, 0)
+    pdf.cell(90, 5, 'Date', 0, 1, 'C')
+    
+    # Create a temporary file to store the PDF
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    pdf_output = pdf.output(dest='S').encode('latin1')
+    temp_file.write(pdf_output)
+    temp_file.close()
+    
+    # Send the PDF file to the client
+    return_value = send_file(
+        temp_file.name,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f'invoice_{invoice.id:03d}_{project.name.replace(" ", "_")}.pdf'
+    )
+    
+    # Schedule the temp file for deletion
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.unlink(temp_file.name)
+        except:
+            pass
+        return response
+    
+    return return_value
+
+@app.route('/invoice/print/<int:id>')
+@login_required
+def print_customer_invoice(id):
+    """Generate and download a customer-facing invoice PDF"""
+    try:
+        return generate_customer_invoice_pdf(id)
+    except Exception as e:
+        flash(f'Error generating invoice PDF: {str(e)}', 'danger')
+        return redirect(url_for('invoices'))
 
 # --- Auth Routes ---
 @app.route('/login', methods=['GET', 'POST'])
@@ -537,8 +720,7 @@ def add_timesheet():
     
     # Add a "None" option for projects
     active_projects = [(proj.id, f"{proj.name} ({proj.project_id_str or 'No ID'})") 
-                      for proj in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]))
-                      .order_by(Project.name).all()]
+                      for proj in Project.query.order_by(Project.name).all()]
     form.project_id.choices = [(None, "None - No Project")] + active_projects
     
     if form.validate_on_submit():
@@ -591,8 +773,7 @@ def edit_timesheet(id):
     
     # Get active projects (pending and in-progress)
     active_projects = [(proj.id, f"{proj.name} ({proj.project_id_str or 'No ID'})") 
-                      for proj in Project.query.filter(Project.status.in_([ProjectStatus.PENDING, ProjectStatus.IN_PROGRESS]))
-                      .order_by(Project.name).all()]
+                      for proj in Project.query.order_by(Project.name).all()]
     
     # Make sure the current project is in the list, even if it's completed or cancelled
     current_project_in_list = False
@@ -941,23 +1122,13 @@ def invoices():
         flash(f'Error loading invoices: {str(e)}', 'danger')
         return render_template('invoices.html', invoices=[])
 
-@app.route('/invoice/print/<int:id>')
-@login_required
-def print_customer_invoice(id):
-    """Generate and download a customer-facing invoice PDF"""
-    try:
-        return generate_customer_invoice_pdf(id)
-    except Exception as e:
-        flash(f'Error generating invoice PDF: {str(e)}', 'danger')
-        return redirect(url_for('invoices'))
-
 @app.route('/invoice/add', methods=['GET', 'POST'])
 @login_required
 def add_invoice():
     form = InvoiceForm()
     # Populate project choices
     form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(
-        Project.status.in_([ProjectStatus.COMPLETED, ProjectStatus.INVOICED])
+        Project.status.in_([ProjectStatus.PENDING, ProjectStatus.COMPLETED, ProjectStatus.INVOICED])
     ).order_by(Project.name).all()]
     
     if form.validate_on_submit():
@@ -1686,15 +1857,14 @@ def financial_reports():
     
     for i in range(6):
         # Calculate month offset from current month
-        month_offset = i
-        target_month = current_month - month_offset
-        target_year = current_year
-        
         # Adjust for previous year if needed
-        if target_month <= 0:
-            target_month += 12
-            target_year -= 1
-            
+        if current_month - i <= 0:
+            target_month = 12 + current_month - i
+            target_year = current_year - 1
+        else:
+            target_month = current_month - i
+            target_year = current_year
+        
         # Calculate start and end of month
         start_date = date(target_year, target_month, 1)
         if target_month == 12:

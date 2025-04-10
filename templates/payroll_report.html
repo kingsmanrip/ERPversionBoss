@@ -151,7 +151,7 @@
                                 {% if data.payments is defined and data.payments %}
                                     {% set total_paid = 0 %}
                                     {% for payment in data.payments %}
-                                        {% set total_paid = total_paid + payment.amount %}
+                                        {% set total_paid = total_paid + payment.gross_amount %}
                                     {% endfor %}
                                     {% if total_paid >= data.potential_pay %}
                                         <span class="badge bg-success">Paid</span>

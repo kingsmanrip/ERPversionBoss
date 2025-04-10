@@ -674,6 +674,30 @@ The following enhancements have been identified as priority items for future dev
 
 ## Recent Enhancements
 
+### April 10, 2025 Updates
+
+#### Payroll System Improvements
+- **Payroll Report Calculation Fix**: Fixed a critical calculation issue in the payroll report where the "remaining amount" was incorrectly calculated. The system now properly subtracts all recorded payments from the total amount due, displaying accurate remaining amounts for each employee.
+- **Check Payment Enhancement**: Improved the check payment functionality in the payroll form with the following changes:
+  - Added a dedicated "Check Details" section that dynamically appears when "Check" is selected as the payment method
+  - Implemented proper form validation for check number and bank name fields
+  - Added client-side JavaScript to show/hide the check details section based on payment method selection
+  - Fixed initialization for pre-filled forms when editing existing check payments
+
+#### Project and Timesheet Enhancements
+- **Project Selection Fix**: Modified the timesheet entry form to display all projects in the dropdown regardless of their status. This ensures that users can record time for projects in any state (PENDING, COMPLETED, INVOICED, etc.), which is especially useful for recording work on completed projects that still require maintenance or follow-up tasks.
+
+#### System Testing and Maintenance
+- **Mock Data Generation**: Added a comprehensive script (`add_mock_data.py`) to populate the system with realistic test data, including:
+  - Timesheet entries with reasonable work hours and lunch breaks
+  - Material records with appropriate costs and suppliers
+  - Business expenses with various categories and payment statuses
+  - Invoices with payment statuses and due dates
+  - Payroll payments with both cash and check payment methods
+  - Payroll deductions of various types
+  
+- **Invoice PDF Generation Fix**: Resolved an issue in the invoice PDF generation where the system was trying to access a non-existent `issue_date` attribute. The system now correctly uses the `invoice_date` field from the Invoice model.
+
 ### April 9, 2025 Updates
 
 #### Timesheet Enhancements

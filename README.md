@@ -40,6 +40,13 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 
 ## Recent Updates (April 2025)
 
+- **Bug Fixes and Enhancements** (April 10, 2025):
+  - **Payroll Report Calculation Fix**: Fixed incorrect calculation of "remaining amount" in payroll reports to properly subtract all payments made
+  - **Check Payment Entry Enhancement**: Improved the check payment entry in payroll form to properly display and validate check number and bank name fields
+  - **Project Selection Fix**: Updated timesheet form to display all projects regardless of status, ensuring no projects are missing from dropdown
+  - **Mock Data Generation**: Added script to generate realistic mock data for thorough system testing
+  - **Invoice PDF Generation Fix**: Corrected invoice PDF generation to use proper date fields
+
 - **Bug Fixes and Enhancements** (April 9, 2025):
   - **"No Project" Timesheet Selection**: Fixed an issue where selecting "None - No Project" in the timesheet form was causing validation errors
   - **Invoice Listing Display**: Resolved an issue where invoices weren't displaying in the invoice list view
