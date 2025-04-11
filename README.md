@@ -2,6 +2,23 @@
 
 A comprehensive Enterprise Resource Planning (ERP) system designed specifically for Mauricio PDQ Paint & Drywall. This application helps manage employees, projects, timesheets, materials, expenses, invoices, and payroll in a single integrated platform.
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Tech Stack](#tech-stack)
+4. [Installation and Setup](#installation-and-setup)
+5. [Database Structure](#database-structure)
+6. [Usage Guide](#usage-guide)
+7. [Recent Updates](#recent-updates)
+8. [Project Structure](#project-structure)
+9. [Development Guidelines](#development-guidelines)
+10. [Troubleshooting](#troubleshooting)
+
+## Overview
+
+The Mauricio PDQ ERP System is a web-based application developed to streamline business operations for Mauricio PDQ Paint & Drywall. It provides an integrated solution for managing various aspects of the business, including employee information, project tracking, time management, financial operations, and reporting.
+
 ## Features
 
 - **User Authentication**: Secure login system to protect sensitive business data
@@ -24,160 +41,29 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 - **Cost Analysis**: Automatic calculation of project costs and profitability
 - **Net Profit Tracking**: Real-time calculation of actual net profit (revenue collected minus expenses) for each project and company-wide
 - **Financial Management System**: Comprehensive tracking of accounts payable, paid accounts, and monthly expenses
-  - Track unpaid bills and their status (pending, paid, overdue)
-  - Record all payments to vendors with detailed information
-  - Monitor recurring monthly expenses by category
-  - View financial reports with interactive charts and visualizations
-- **Responsive UI Design**: Optimized display of financial data with properly sized elements to ensure readability of large numbers
+- **Responsive UI Design**: Optimized display of financial data with properly sized elements to ensure readability
 
 ## Tech Stack
 
 - **Backend**: Python with Flask framework
-- **Database**: SQLite (via SQLAlchemy)
+- **Database**: SQLite (via SQLAlchemy ORM)
 - **Frontend**: Bootstrap 5 for responsive design
 - **Forms**: WTForms for form handling and validation
-- **Testing**: Comprehensive pytest suite for validation
+- **PDF Generation**: FPDF for invoice and report generation
+- **Testing**: Pytest suite for validation
 
-## Recent Updates (April 2025)
-
-- **Bug Fixes and Enhancements** (April 10, 2025):
-  - **Timesheet Deletion Feature**: Added the ability to delete timesheet entries with a confirmation dialog
-  - **PDF Export Fix**: Resolved text overlapping issues in project PDF exports
-  - **Dashboard Enhancement**: Added quick access to invoices management in the dashboard
-  - **Payroll Report Calculation Fix**: Fixed incorrect calculation of "remaining amount" in payroll reports to properly subtract all payments made
-  - **Check Payment Entry Enhancement**: Improved the check payment entry in payroll form to properly display and validate check number and bank name fields
-  - **Project Selection Fix**: Updated timesheet form to display all projects regardless of status, ensuring no projects are missing from dropdown
-  - **Mock Data Generation**: Added script to generate realistic mock data for thorough system testing
-  - **Invoice PDF Generation Fix**: Corrected invoice PDF generation to use proper date fields
-
-- **Bug Fixes and Enhancements** (April 9, 2025):
-  - **"No Project" Timesheet Selection**: Fixed an issue where selecting "None - No Project" in the timesheet form was causing validation errors
-  - **Invoice Listing Display**: Resolved an issue where invoices weren't displaying in the invoice list view
-  - **Invoice Deletion Functionality**: Added the ability to delete invoices with a confirmation dialog to prevent accidental deletions
-  - **Invoice PDF Improvements**: 
-    - Fixed text overlap issues in the signature and date sections
-    - Changed document title from "PROJECT PROPOSAL" to "INVOICE" for clarity
-    - Improved overall layout and spacing for better readability
-
-- **New Timesheet and Project Management Features** (April 4, 2025):
-  - **Simple Feedback System**: Added a feedback button allowing users to easily share their needs and suggestions
-  - **Saturday Premium Pay**: Added $5.00/hour premium for Saturday work with visual indicators
-  - **Timesheet Editing Functionality**: Added ability to edit existing timesheet entries with preserved project associations
-  - **"No Project" Timesheet Option**: Added ability to record employee hours without associating them with any project
-  - **Project Deletion Functionality**: Implemented secure project deletion with confirmation dialog to prevent accidental deletions
-  - **Cascading Delete**: Project deletion automatically handles all associated records (timesheets, materials, expenses)
-  - **Smart Project Selection**: Improved project dropdown to retain completed projects when editing timesheets
-
-- **Modernized Invoice Template** (April 10, 2025):
-  - **Compact Information-Focused Design**: Redesigned invoice PDF template with smaller fonts and optimized spacing
-  - **Professional Layout**: Improved header with company information and client details in a two-column format
-  - **Enhanced Visual Hierarchy**: Used subtle background colors and consistent text styles for better readability
-  - **Space Optimization**: Reduced vertical spacing between sections for a more compact presentation
-  - **Improved Form Fields**: Better alignment of payment information fields with underlines for a cleaner look
-  - **Professional Color Scheme**: Implemented muted, professional colors with darker shades of blue and red
-
-- **Enhanced PDF Reports**: Added comprehensive totals to all PDF exports
-  - **Automatic Total Calculation**: Intelligent detection and summation of all numerical values
-  - **Properly Formatted Totals**: Currency amounts, hours, and percentages formatted appropriately
-  - **Visual Enhancements**: Clear separation of totals with styling for better readability
-
-- **Work Week Definition**: Implemented company-specific Friday to Thursday work week definition
-  - **Custom Week Calculation**: All weekly reports and dashboards use Friday-Thursday period
-  - **Consistent Implementation**: Applied throughout timesheets, payroll, and reporting modules
-
-- **Payment Method Summary**: Added comprehensive payment summary visualization
-  - **Cash vs Check Breakdown**: Clear visual separation of payment methods with totals
-  - **Percentage Calculations**: Visual indicators showing proportion of each payment method
-  - **Grand Total Display**: Prominent display of combined payment totals across methods
-  - **Payment Count Metrics**: Tracking of payment counts by method and in total
-
-- **Financial Management System**: Added comprehensive financial tracking module
-  - **Accounts Payable Management**: Track unpaid vendor bills with due dates and status tracking
-  - **Paid Accounts Tracking**: Record all payments to vendors with payment method details
-  - **Monthly Expenses Monitoring**: Track recurring expenses with category classification
-  - **Financial Reports Dashboard**: Visualize financial data with interactive charts
-    - Payment status summary with filtering by year/month
-    - Expense breakdown by category with percentage analysis
-    - Cash flow tracking comparing income vs expenses
-    - Upcoming payments alerts with days-to-due indicators
-  - **Financial Data Analysis**: Track financial trends and identify spending patterns
-
-- **Portuguese User Guide**: Added comprehensive documentation in Portuguese
-  - Created a dedicated "Guia do Usuário" section in the main navigation
-  - Detailed step-by-step instructions for all system features
-  - Clear explanations of the workflow for each module
-  - Visual emphasis with color-coded navigation element
-  - "Implementações Futuras" section outlining upcoming features
-  - Designed with a responsive, card-based layout for easy reading
-  - **NEW:** Added interactive Recommended Workflow section with visual timeline
-  - Step-by-step workflow guide with accordion panels for detailed instructions
-  - Color-coded best practices and tips for optimal system usage
-
-- **Employee Dropdown Search for Payroll**: Added comprehensive employee search functionality to the payroll report
-  - Implemented dropdown menu with all employees for easy selection
-  - Detailed employee summary displaying pay rate, status, and financial metrics
-  - Historical view of employee's recent payments and timesheets
-  - Calculation of total hours worked and total paid amounts
-  - Clear button to toggle between filtered and unfiltered views
-  - Enhanced user experience with selected state maintenance
-
-- **Payroll Deductions System**: Implemented comprehensive payroll deductions functionality
-  - Added support for multiple deduction types (taxes, insurance, retirement, advances, etc.)
-  - Created dynamic UI for managing deductions during payment recording
-  - Enhanced reporting to show both gross and net payment amounts
-  - Added tooltips to display detailed deduction information in reports
-  - Fixed edge cases in payroll report calculations
-  - Fixed critical issues with the PayrollPayment model to properly handle gross and net amounts
-  - Improved validation for payroll payment forms
-
-- **Net Profit Calculation**: Added functionality to track actual net profit (money collected minus expenses) for each project and company-wide
-  - Color-coded profit displays (green for positive, red for negative)
-  - Comprehensive test coverage for the net profit calculation functionality
-
-- **UI Improvements**:
-  - Streamlined dashboard by removing the Quick Actions section
-  - Removed non-functional buttons and links throughout the interface
-  - Enhanced payroll report UI with employee filtering capabilities
-  - Removed Future Enhancements link from navigation
-  - Fixed layout issues for better readability of financial data
-  - Added clear status indicators for non-implemented features
-
-- **Custom Invoice PDF Generation**:
-  - Added professional invoice PDF generation with consistent branding
-  - Implemented clean, modern design with proper spacing and visual hierarchy
-  - Created organized sections for client info, project scope, and pricing
-  - Added "Print" button to invoices page for easy PDF generation
-  - Included automated contractor signature and date information
-- **Enhanced Lunch Break Calculations**: Implemented precise rules for lunch break deductions
-- **Improved Payment Method Tracking**: Added capabilities to record check numbers and bank names
-- **Enhanced Payroll Reporting**: Added detailed breakdowns by payment method (Cash vs Check)
-- **Bug Fixes**:
-  - Fixed UndefinedError in payroll reports when no payments exist for certain methods
-  - Fixed BuildError related to non-existent routes
-  - Improved error handling throughout the application
-  - Fixed NOT NULL constraint errors in PayrollPayment model
-  - Fixed validator issue in forms.py to handle different field names consistently
-  - Resolved test failures in integration tests for project workflow and payroll processing
-  - Fixed authentication issues in test suite
-- **Comprehensive Testing**: Added extensive test suite with all tests passing
-  - Enhanced test data creation for consistent test execution
-  - Improved test coverage for edge cases
-  - Fixed authentication in tests to ensure proper access to protected routes
-- **Mock Data Generation**: Included a script to populate the system with realistic test data
-- **SQLAlchemy 2.0 Compatibility**: Updated all database queries to use modern patterns
-
-## Installation
+## Installation and Setup
 
 ### Prerequisites
 
 - Python 3.7 or higher
 - Git (for cloning the repository)
 
-### Setup Instructions
+### Installation Steps
 
 1. **Clone the repository**:
    ```
-   git clone https://github.com/kingsmanrip/mauricioERP.git
+   git clone <repository-url>
    cd mauricioERP
    ```
 
@@ -196,13 +82,14 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
    ```
    pip install -r requirements.txt
    ```
-
-4. **Initialize the database**:
+   
+   ⚠️ **Note**: You may need to install additional packages not listed in requirements.txt:
    ```
-   # Option 1
-   flask init-db
+   pip install bootstrap-flask==2.3.0 flask-excel
+   ```
 
-   # Option 2 (if above doesn't work)
+4. **Initialize the database** (if it doesn't exist):
+   ```
    python -c "from app import app, db; app.app_context().push(); db.create_all()"
    ```
 
@@ -211,135 +98,156 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
    python app.py
    ```
 
-6. **Access the application**:
-   - **Production Environment**: https://mauriciopdq.site
-   - **Local Development**: Open your browser and navigate to: http://127.0.0.1:5000
-   - Login with the default credentials (username: `patricia`, password: `Patri2025`)
-
-7. **Run tests**:
+6. **Access the application** in your web browser:
    ```
-   python -m pytest
+   http://127.0.0.1:3002
    ```
 
-## Recommended Workflow
+## Database Structure
 
-### Initial Setup
-1. Add employees through the Employees section
-2. Create projects in the Projects section
+The application uses SQLAlchemy ORM with the following main models:
 
-### Daily Operations
-1. Record timesheets for employees working on projects
-2. Log materials purchased for projects
-3. Track business expenses
+- **User**: Authentication and user management
+- **Employee**: Stores employee information and pay rates
+- **Project**: Manages project details, status, and relationships
+- **Timesheet**: Records work hours with automatic calculation
+- **Material**: Tracks materials used in projects with costs
+- **Expense**: Tracks expenses with or without project association
+- **Invoice**: Manages client invoices and payment status
+- **PayrollPayment**: Records payments to employees
+- **PayrollDeduction**: Tracks deductions from employee payments
+- **AccountsPayable**: Tracks pending payments to vendors
+- **PaidAccount**: Records completed payments to vendors
+- **MonthlyExpense**: Tracks recurring monthly expenses
 
-### Financial Management
-1. Generate payroll reports and record payments to employees
-2. Create invoices for completed projects
-3. Update project statuses as they progress
-4. Monitor project profitability through the net profit tracking and cost analysis features
+## Usage Guide
+
+### Dashboard
+
+The dashboard provides an overview of key business metrics:
+- Active projects count and status
+- Recent timesheet entries
+- Financial summaries
+- Quick navigation to common tasks
+
+### Employee Management
+
+1. **View Employees**: Navigate to the Employees section to see all employee records
+2. **Add Employee**: Click the "Add Employee" button and fill out the form
+3. **Edit Employee**: Use the Edit button next to any employee to update their information
+4. **Delete Employee**: The system prevents deletion of employees with associated records
+
+### Project Management
+
+1. **View Projects**: Navigate to the Projects section to see all project records
+2. **Add Project**: Click the "Add Project" button and fill out the form
+3. **Edit Project**: Use the Edit button next to any project to update its information
+4. **Delete Project**: Use the Delete button to remove a project and all associated records
+5. **View Project Details**: Click on a project name to see detailed information
+
+### Timesheet Management
+
+1. **View Timesheets**: Navigate to the Timesheets section to see all timesheet entries
+2. **Add Timesheet**: Click the "Add Timesheet" button and fill out the form
+   - Select an employee
+   - Select a project (or "None - No Project")
+   - Enter date, entry time, exit time, and lunch duration
+3. **Edit Timesheet**: Use the Edit button to modify an existing timesheet entry
+4. **Delete Timesheet**: Use the Delete button to remove a timesheet entry
+
+### Payroll Processing
+
+1. **View Payroll Report**: Navigate to the Payroll section
+2. **Filter by Employee**: Use the dropdown to select a specific employee
+3. **Record Payment**: Click "Record Payment" and fill out the form
+4. **Add Deductions**: Use the deduction section to add various deductions
+
+## Recent Updates
+
+- **Timesheet Deletion Feature**: Added the ability to delete timesheet entries with a confirmation dialog
+- **"No Project" Timesheet Option**: Added ability to record employee hours without associating them to any project
+- **Saturday Premium Pay**: Added $5.00/hour premium for Saturday work with visual indicators
+- **Payroll Deductions System**: Implemented comprehensive payroll deduction functionality
+- **Net Profit Calculation**: Added tracking of actual net profit for each project
+- **Financial Management System**: Added modules for accounts payable and financial tracking
+- **Enhanced Invoice Template**: Redesigned invoice PDF with professional layout
+- **Custom Work Week**: Implemented Friday to Thursday work week definition
 
 ## Project Structure
 
-- `app.py` - Main application file with routes and configuration
-- `models.py` - Database models and relationships
-- `forms.py` - Form definitions using WTForms
-- `templates/` - HTML templates for the web interface
-- `instance/` - Contains the SQLite database file
-- `static/` - Static files (CSS, JavaScript)
-- `tests/` - Comprehensive test suite
+```
+mauricioERP/
+│
+├── app.py                 # Main application with routes and configuration
+├── models.py              # Database models and relationships
+├── forms.py               # Form definitions using WTForms
+├── requirements.txt       # Python dependencies
+│
+├── instance/              # Database storage (created at runtime)
+│   └── erp.db             # SQLite database file
+│
+├── templates/             # HTML templates
+│   ├── layout.html        # Base template with navigation
+│   ├── index.html         # Dashboard
+│   ├── employees.html     # Employee listing
+│   ├── employee_form.html # Add/edit employee
+│   └── ... (other templates)
+│
+├── static/                # Static assets
+│   └── (CSS, JS files)    # For styling and scripts
+│
+├── tests/                 # Test directory
+    ├── test_models.py     # Tests for data models
+    ├── test_forms.py      # Tests for form validation
+    └── ... (other tests)
+```
 
-## Database Schema
+## Development Guidelines
 
-The application uses the following main models:
-- **Employee**: Stores employee information and pay rates
-- **Project**: Manages project details, status, and relationships to other models
-- **Timesheet**: Records work hours with automatic calculation of hours and lunch breaks
-- **Material**: Tracks materials used in projects with costs
-- **Expense**: Records business expenses with categorization
-- **PayrollPayment**: Manages employee payment processing
-- **Invoice**: Handles client billing for projects
+### Adding New Features
 
-## Key Model Relationships
+1. Create database models in `models.py`
+2. Add form classes in `forms.py`
+3. Implement routes in `app.py`
+4. Create HTML templates in the `templates` directory
+5. Write tests for your new functionality
 
-All relationships are properly set up with cascade behavior for reliable data management:
-- Projects have timesheets, materials, expenses, and invoices
-- Employees have timesheets and payroll payments
-- Proper validation ensures data integrity across all models
+### Database Migrations
 
-## Security Notes
+The application currently does not use Alembic for migrations. When changing the database schema:
 
-This version includes basic user authentication. For enhanced security in production:
-- Enable HTTPS for secure data transmission
-- Implement role-based access control for different user types
-- Use environment variables for sensitive configuration (including SECRET_KEY)
-- Store passwords using strong hashing methods (already implemented)
-- Implement multi-factor authentication for sensitive operations
-- Implement proper backup procedures for the database
+1. Back up the existing database
+2. Make changes to the models
+3. Use the update_schema.py script or manually recreate the database
+
+### Coding Standards
+
+- Follow PEP 8 style guidelines
+- Document functions and classes with docstrings
+- Use consistent naming conventions
+- Maintain test coverage for new features
 
 ## Troubleshooting
 
-### Database Issues
-- If you encounter database errors, check that the `instance` directory exists and has proper permissions
-- For a fresh start, you can delete the database file in the `instance` directory and reinitialize it
+### Common Issues
 
-### Port Already in Use
-- If port 5000 is already in use, you can specify a different port:
-  ```
-  python app.py --port=5001
-  ```
+1. **Database Errors**:
+   - Check that the database file exists in the instance directory
+   - Verify the database schema matches the models
 
-## Database Backup and Restore
+2. **CSRF Token Errors**:
+   - Ensure all forms include `<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>`
 
-This application includes an automated backup and restore system for the SQLite database.
+3. **Bootstrap Issues**:
+   - Make sure bootstrap-flask is installed with version 2.3.0 or higher
 
-### Automated Daily Backups
+4. **Project Association Errors**:
+   - When no project is selected, the system uses project_id = 0 as a placeholder
 
-The system is configured to automatically create daily backups of the database at 3:00 AM:
+### Support
 
-- **Backup Location**: `/root/backups/erp/`
-- **Backup Naming**: `erp_db_backup_YYYY-MM-DD.db.gz` (date-stamped and compressed)
-- **Retention Policy**: Backups are kept for 30 days before being automatically deleted
+For questions or issues, please contact the development team or submit an issue through the appropriate channels.
 
-### Database Restoration
+---
 
-To restore the database from a backup, use the provided restore script:
-
-```bash
-/root/restore_erp_db.sh YYYY-MM-DD
-```
-
-For example, to restore from April 3, 2025:
-```bash
-/root/restore_erp_db.sh 2025-04-03
-```
-
-The restore process:
-1. Creates a safety backup of the current database
-2. Stops the application service
-3. Restores the selected backup
-4. Restarts the application service
-
-If no date is specified, the script will list all available backups.
-
-### Manual Backup
-
-To manually create a backup at any time, run:
-```bash
-/root/backup_erp_db.sh
-```
-
-## Contributing
-
-To contribute to this project:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-This project is proprietary software developed for Mauricio PDQ Paint & Drywall.
-
-## Contact
-
-For support or inquiries, please contact the repository owner.
+Maintained by Mauricio PDQ Paint & Drywall (2025)

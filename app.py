@@ -921,10 +921,14 @@ def add_timesheet():
     form.project_id.choices = [(None, "None - No Project")] + active_projects
     
     if form.validate_on_submit():
+        # Check if "None - No Project" was selected and set a default project ID
+        # Use 0 as a placeholder for "No Project" if None is not allowed by the database
+        project_id = form.project_id.data if form.project_id.data else 0
+        
         # Create new timesheet
         timesheet = Timesheet(
             employee_id=form.employee_id.data,
-            project_id=form.project_id.data,
+            project_id=project_id,
             date=form.date.data,
             entry_time=form.entry_time.data,
             exit_time=form.exit_time.data,
@@ -934,20 +938,24 @@ def add_timesheet():
         # Validate the timesheet
         is_valid, message = timesheet.is_valid()
         if is_valid:
-            db.session.add(timesheet)
-            db.session.commit()
-            
-            # Get the employee name for the flash message
-            employee = db.session.get(Employee, form.employee_id.data)
-            
-            # Customize message based on if project is selected or not
-            if form.project_id.data:
-                project = db.session.get(Project, form.project_id.data)
-                flash(f'Timesheet for {employee.name} on project {project.name} added successfully!', 'success')
-            else:
-                flash(f'Timesheet for {employee.name} (no project) added successfully!', 'success')
+            try:
+                db.session.add(timesheet)
+                db.session.commit()
                 
-            return redirect(url_for('timesheets'))
+                # Get the employee name for the flash message
+                employee = db.session.get(Employee, form.employee_id.data)
+                
+                # Customize message based on if project is selected or not
+                if form.project_id.data:
+                    project = db.session.get(Project, form.project_id.data)
+                    flash(f'Timesheet for {employee.name} on project {project.name} added successfully!', 'success')
+                else:
+                    flash(f'Timesheet for {employee.name} (no project) added successfully!', 'success')
+                    
+                return redirect(url_for('timesheets'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error adding timesheet: {str(e)}', 'danger')
         else:
             flash(f'Error adding timesheet: {message}', 'danger')
     
@@ -991,7 +999,7 @@ def edit_timesheet(id):
     if form.validate_on_submit():
         # Update the timesheet record
         timesheet.employee_id = form.employee_id.data
-        timesheet.project_id = form.project_id.data
+        timesheet.project_id = form.project_id.data if form.project_id.data else 0
         timesheet.date = form.date.data
         timesheet.entry_time = form.entry_time.data
         timesheet.exit_time = form.exit_time.data
@@ -1017,6 +1025,28 @@ def edit_timesheet(id):
             flash(f'Error updating timesheet: {message}', 'danger')
     
     return render_template('timesheet_form.html', form=form, title="Edit Timesheet Entry")
+
+@app.route('/timesheet/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_timesheet(id):
+    timesheet = db.session.get(Timesheet, id)
+    if not timesheet:
+        flash('Timesheet entry not found.', 'danger')
+        return redirect(url_for('timesheets')), 404
+        
+    try:
+        # Get the employee name before deletion for the flash message
+        employee_name = timesheet.employee.name if timesheet.employee else "Unknown"
+        
+        # Explicitly delete the timesheet using SQL DELETE to avoid ORM constraints
+        db.session.execute(db.delete(Timesheet).where(Timesheet.id == id))
+        db.session.commit()
+        
+        flash(f'Timesheet entry for {employee_name} deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting timesheet entry: {e}', 'danger')
+    return redirect(url_for('timesheets'))
 
 # --- Material Routes ---
 @app.route('/materials')
