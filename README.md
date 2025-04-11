@@ -8,12 +8,13 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 2. [Features](#features)
 3. [Tech Stack](#tech-stack)
 4. [Installation and Setup](#installation-and-setup)
-5. [Database Structure](#database-structure)
-6. [Usage Guide](#usage-guide)
-7. [Recent Updates](#recent-updates)
-8. [Project Structure](#project-structure)
-9. [Development Guidelines](#development-guidelines)
-10. [Troubleshooting](#troubleshooting)
+5. [Deployment Information](#deployment-information)
+6. [Database Structure](#database-structure)
+7. [Usage Guide](#usage-guide)
+8. [Recent Updates](#recent-updates)
+9. [Project Structure](#project-structure)
+10. [Development Guidelines](#development-guidelines)
+11. [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -102,6 +103,37 @@ The Mauricio PDQ ERP System is a web-based application developed to streamline b
    ```
    http://127.0.0.1:3002
    ```
+
+## Deployment Information
+
+The Mauricio PDQ ERP System is currently deployed on a Hostinger VPS with the following configuration:
+
+### Deployment Details
+
+- **Domain**: [https://mauriciopdq.site/](https://mauriciopdq.site/)
+- **Server**: Ubuntu Linux VPS on Hostinger
+- **Repository Location**: `/root/finalERP`
+- **Default Login Credentials**:
+  - Username: `patricia`
+  - Password: `Patri2025`
+
+### Web Server Configuration
+
+- **Application Server**: Flask development server on port 3002
+- **Reverse Proxy**: Nginx forwarding requests from mauriciopdq.site to localhost:3002
+- **SSL**: Configured with Let's Encrypt certificates
+
+### Starting the Application
+
+To manually start the ERP application after a server reboot:
+
+```bash
+cd /root/finalERP
+source venv/bin/activate
+python app.py
+```
+
+Note: The application is currently using Flask's built-in development server. For improved reliability, consider setting up a systemd service with a production WSGI server like Gunicorn.
 
 ## Database Structure
 
