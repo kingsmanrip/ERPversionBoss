@@ -125,7 +125,25 @@ The Mauricio PDQ ERP System is currently deployed on a Hostinger VPS with the fo
 
 ### Starting the Application
 
-To manually start the ERP application after a server reboot:
+The application is configured as a systemd service for 24/7 operation:
+
+```bash
+# Check service status
+systemctl status mauriciopdq-erp.service
+
+# Start the service
+systemctl start mauriciopdq-erp.service
+
+# Stop the service
+systemctl stop mauriciopdq-erp.service
+
+# Restart the service
+systemctl restart mauriciopdq-erp.service
+```
+
+The service is configured to start automatically when the server boots up and will automatically restart if it crashes.
+
+If you need to manually start the application without systemd:
 
 ```bash
 cd /root/finalERP
@@ -133,7 +151,7 @@ source venv/bin/activate
 python app.py
 ```
 
-Note: The application is currently using Flask's built-in development server. For improved reliability, consider setting up a systemd service with a production WSGI server like Gunicorn.
+Note: The application is currently using Flask's built-in development server. For improved reliability, consider upgrading to a production WSGI server like Gunicorn.
 
 ## Database Structure
 
