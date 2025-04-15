@@ -416,7 +416,12 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_xy(12, description_y + 8)
     pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(text_color[0], text_color[1], text_color[2])
-    pdf.multi_cell(186, 5, project.description, 0, 'L')
+    # Only show invoice description
+    if invoice.description and invoice.description.strip():
+        pdf.multi_cell(186, 5, invoice.description, 0, 'L')
+    else:
+        # If no invoice description is available, show empty space
+        pdf.ln(10)
     
     # Move cursor after description box
     pdf.set_y(description_y + description_height + 2)
@@ -444,10 +449,14 @@ def generate_customer_invoice_pdf(invoice_id):
     # Price line with modern styling - more compact
     pdf.set_xy(12, payment_y + 8)
     pdf.cell(10, 6, '$', 0, 0)
-    pdf.cell(25, 6, '________', 'B', 0)
+    # Replace blank line with actual base amount
+    base_amount_str = f"{invoice.base_amount:,.2f}"
+    pdf.cell(25, 6, base_amount_str, 'B', 0)
     pdf.cell(5, 6, '+', 0, 0, 'C')
     pdf.cell(10, 6, '$', 0, 0)
-    pdf.cell(25, 6, '________', 'B', 0)
+    # Replace blank line with actual tax amount
+    tax_amount_str = f"{invoice.tax_amount:,.2f}"
+    pdf.cell(25, 6, tax_amount_str, 'B', 0)
     pdf.cell(30, 6, '(tax) TOTAL:', 0, 0)
     
     # Total amount with highlight
@@ -1357,43 +1366,46 @@ def add_invoice():
     form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(
         Project.status.in_([ProjectStatus.PENDING, ProjectStatus.COMPLETED, ProjectStatus.INVOICED])
     ).order_by(Project.name).all()]
-    
+
     if form.validate_on_submit():
+        # Calculate total amount
+        form.amount.data = (form.base_amount.data or 0) + (form.tax_amount.data or 0)
+        
+        # Generate a unique invoice number if not provided
+        invoice_number = form.invoice_number.data
+        if not invoice_number or invoice_number.strip() == '':
+            # Generate a unique invoice number based on timestamp and random suffix
+            from datetime import datetime
+            import random
+            import string
+            timestamp = datetime.now().strftime('%Y%m%d')
+            random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            invoice_number = f"INV-{timestamp}-{random_suffix}"
+            
         new_invoice = Invoice(
             project_id=form.project_id.data,
-            invoice_number=form.invoice_number.data,
+            invoice_number=invoice_number,
             invoice_date=form.invoice_date.data,
             due_date=form.due_date.data,
+            base_amount=form.base_amount.data,
+            tax_amount=form.tax_amount.data,
             amount=form.amount.data,
+            description=form.description.data,
             status=PaymentStatus[form.status.data],
-            payment_received_date=form.payment_received_date.data if form.status.data == PaymentStatus.PAID.name else None
+            payment_received_date=form.payment_received_date.data
         )
-        
-        # Validate that due date is after invoice date if provided
-        if not new_invoice.validate_dates() and form.invoice_date.data and form.due_date.data:
-            flash('Error: Due date must be on or after invoice date.', 'danger')
-            return render_template('invoice_form.html', form=form, title="Add Invoice")
-            
-        # If status is PAID, need payment date
-        if form.status.data == PaymentStatus.PAID.name and not form.payment_received_date.data:
-            flash('Error: Payment received date is required when status is PAID.', 'danger')
-            return render_template('invoice_form.html', form=form, title="Add Invoice")
-        
         db.session.add(new_invoice)
-        
         # Update project status if invoice is being created
         project = Project.query.get(form.project_id.data)
         if project.status == ProjectStatus.COMPLETED:
             project.status = ProjectStatus.INVOICED
-        
         # Update project status if invoice is marked as paid
         if form.status.data == PaymentStatus.PAID.name:
             project.status = ProjectStatus.PAID
-            
         db.session.commit()
         flash('Invoice added successfully!', 'success')
         return redirect(url_for('invoices'))
-    
+
     return render_template('invoice_form.html', form=form, title="Add Invoice")
 
 @app.route('/invoice/delete/<int:id>', methods=['POST'])

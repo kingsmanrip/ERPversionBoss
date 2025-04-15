@@ -163,14 +163,40 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', '', 10)
     pdf.cell(0, 8, 'All of the work to be completed in a substantial and workmanlike manner for the sum of:', 0, 1, 'C')
     
+    # Payment Details Section
+    pdf.ln(5)
+    pdf.set_font('DejaVu', 'B', 13)
+    pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
+    pdf.cell(0, 10, 'PAYMENT DETAILS', 0, 1, 'L')
+    pdf.set_font('DejaVu', '', 11)
+    pdf.set_text_color(0, 0, 0)
+    pdf.multi_cell(0, 7, invoice.description or '', 0, 'L')
+    pdf.ln(2)
+    pdf.set_font('DejaVu', '', 11)
+    pdf.cell(60, 8, 'Base Amount:', 0, 0, 'L')
+    pdf.cell(40, 8, f"${invoice.base_amount:,.2f}", 0, 0, 'L')
+    pdf.cell(40, 8, 'Tax/Fees:', 0, 0, 'L')
+    pdf.cell(40, 8, f"${invoice.tax_amount:,.2f}", 0, 1, 'L')
+    pdf.set_font('DejaVu', 'B', 12)
+    pdf.set_text_color(0, 102, 204)
+    pdf.cell(60, 10, '', 0, 0)
+    pdf.cell(40, 10, 'TOTAL:', 0, 0, 'L')
+    pdf.set_font('DejaVu', 'B', 16)
+    pdf.set_text_color(0, 102, 204)
+    pdf.cell(40, 10, f"${invoice.amount:,.2f}", 0, 1, 'L')
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(3)
+    
     # Price line with modern styling
     pdf.set_text_color(0, 0, 0)
     pdf.cell(15, 10, '$', 0, 0, 'R')
-    pdf.cell(25, 10, '________', 'B', 0, 'C')
+    base_amount_str = f"{invoice.base_amount:,.2f}"
+    pdf.cell(25, 10, base_amount_str, 'B', 0, 'C')
     pdf.cell(5, 10, '+', 0, 0, 'C')
     pdf.cell(5, 10, '$', 0, 0, 'R')
-    pdf.cell(25, 10, '________', 'B', 0, 'C')
-    pdf.cell(40, 10, '(tax) dollars totaling', 0, 0, 'C')
+    tax_amount_str = f"{invoice.tax_amount:,.2f}"
+    pdf.cell(25, 10, tax_amount_str, 'B', 0, 'C')
+    pdf.cell(40, 10, '(tax) TOTAL:', 0, 0, 'C')
     
     # Total amount with highlight
     pdf.set_font('DejaVu', 'B', 14)

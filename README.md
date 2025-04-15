@@ -214,6 +214,23 @@ The dashboard provides an overview of key business metrics:
 
 ## Recent Updates
 
+### April 14, 2025
+
+#### Invoice System Improvements
+- **Enhanced Invoice PDFs**: Updated invoice PDF generation to properly display base amount and tax amount values in the payment section
+- **Improved Description Handling**: Modified invoice PDFs to only display the invoice-specific description (not the project description)
+- **Automatic Invoice Numbering**: Added automatic generation of unique invoice numbers (format: INV-YYYYMMDD-XXXX) when creating invoices with empty invoice number fields
+- **Fixed Database Schema**: Resolved issues with invoice table columns to ensure compatibility with the application code
+
+#### Bug Fixes
+- Fixed internal server error when creating new invoices with empty invoice numbers
+- Resolved issue where amounts entered in the invoice form weren't displaying correctly in the PDF output
+- Improved error handling when working with invoice records
+
+#### Development Notes
+- The invoice template now properly separates invoice-specific content from project data
+- PDF generation has been optimized for better visual presentation
+
 - **Timesheet Deletion Feature**: Added the ability to delete timesheet entries with a confirmation dialog
 - **"No Project" Timesheet Option**: Added ability to record employee hours without associating them to any project
 - **Saturday Premium Pay**: Added $5.00/hour premium for Saturday work with visual indicators
