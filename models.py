@@ -469,7 +469,10 @@ class Invoice(db.Model):
     invoice_number = db.Column(db.String(50), unique=True)
     invoice_date = db.Column(db.Date, nullable=False)
     due_date = db.Column(db.Date)
+    base_amount = db.Column(db.Float, default=0.0)
+    tax_amount = db.Column(db.Float, default=0.0)
     amount = db.Column(db.Float, nullable=False)
+    description = db.Column(db.Text)
     status = db.Column(db.Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     payment_received_date = db.Column(db.Date)
     

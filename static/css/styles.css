@@ -1,0 +1,133 @@
+/* Main styling for Mauricio PDQ ERP System */
+
+body {
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.navbar {
+    background-color: #343a40 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: #ffffff !important;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: #ffffff !important;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: 600;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.table {
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+    background-color: #f2f2f2;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.alert {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: #86b7fe;
+}
+
+/* Dashboard specific styles */
+.dashboard-card {
+    height: 100%;
+    transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+}
+
+.dashboard-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Status colors */
+.status-pending {
+    color: #fd7e14;
+}
+
+.status-in-progress {
+    color: #0dcaf0;
+}
+
+.status-completed {
+    color: #20c997;
+}
+
+.status-invoiced {
+    color: #6610f2;
+}
+
+.status-paid {
+    color: #198754;
+}
+
+.status-cancelled {
+    color: #dc3545;
+}
+
+/* Saturday work indicator */
+.saturday-premium {
+    background-color: #fff3cd;
+}
+
+.saturday-label {
+    color: #664d03;
+    font-weight: bold;
+}
+
+/* Financial display */
+.currency {
+    font-family: 'Roboto Mono', monospace;
+}
+
+.profit-positive {
+    color: #198754;
+    font-weight: bold;
+}
+
+.profit-negative {
+    color: #dc3545;
+    font-weight: bold;
+}

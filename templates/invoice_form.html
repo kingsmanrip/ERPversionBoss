@@ -62,19 +62,66 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                {{ form.amount.label(class="form-label") }}
-                <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else "")) }}
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    {{ form.base_amount.label(class="form-label") }}
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.base_amount(class="form-control" + (" is-invalid" if form.base_amount.errors else ""), id="base_amount") }}
+                    </div>
+                    {% if form.base_amount.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.base_amount.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                {% if form.amount.errors %}
-                    <div class="invalid-feedback d-block">
-                        {% for error in form.amount.errors %}
+
+                <div class="col-md-4 mb-3">
+                    {{ form.tax_amount.label(class="form-label") }}
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.tax_amount(class="form-control" + (" is-invalid" if form.tax_amount.errors else ""), id="tax_amount") }}
+                    </div>
+                    {% if form.tax_amount.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.tax_amount.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">Optional, leave blank if no tax is applied</div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    {{ form.amount.label(class="form-label") }}
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), id="total_amount", readonly=true) }}
+                    </div>
+                    {% if form.amount.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.amount.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">Auto-calculated from base amount plus tax amount</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4") }}
+                {% if form.description.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.description.errors %}
                             {{ error }}
                         {% endfor %}
                     </div>
                 {% endif %}
+                <div class="form-text">Enter detailed description of work performed, items, or services provided</div>
             </div>
 
             <div class="mb-3">
@@ -109,4 +156,27 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const baseAmountInput = document.getElementById('base_amount');
+    const taxAmountInput = document.getElementById('tax_amount');
+    const totalAmountInput = document.getElementById('total_amount');
+    
+    // Function to calculate total
+    function calculateTotal() {
+        const baseAmount = parseFloat(baseAmountInput.value) || 0;
+        const taxAmount = parseFloat(taxAmountInput.value) || 0;
+        const total = baseAmount + taxAmount;
+        totalAmountInput.value = total.toFixed(2);
+    }
+    
+    // Add event listeners to recalculate on input change
+    baseAmountInput.addEventListener('input', calculateTotal);
+    taxAmountInput.addEventListener('input', calculateTotal);
+    
+    // Initial calculation
+    calculateTotal();
+});
+</script>
 {% endblock %}

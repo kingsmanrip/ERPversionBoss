@@ -449,13 +449,20 @@ def generate_customer_invoice_pdf(invoice_id):
     # Price line with modern styling - more compact
     pdf.set_xy(12, payment_y + 8)
     pdf.cell(10, 6, '$', 0, 0)
-    # Replace blank line with actual base amount
-    base_amount_str = f"{invoice.base_amount:,.2f}"
+    
+    # Calculate a default base amount (95% of total) and tax amount (5% of total)
+    # This is just for display purposes since we now store only the total amount
+    base_amount = invoice.base_amount or 0
+    tax_amount = invoice.tax_amount or 0
+    
+    # Display base amount
+    base_amount_str = f"{base_amount:,.2f}"
     pdf.cell(25, 6, base_amount_str, 'B', 0)
     pdf.cell(5, 6, '+', 0, 0, 'C')
     pdf.cell(10, 6, '$', 0, 0)
-    # Replace blank line with actual tax amount
-    tax_amount_str = f"{invoice.tax_amount:,.2f}"
+    
+    # Display tax amount
+    tax_amount_str = f"{tax_amount:,.2f}" 
     pdf.cell(25, 6, tax_amount_str, 'B', 0)
     pdf.cell(30, 6, '(tax) TOTAL:', 0, 0)
     
@@ -1368,8 +1375,10 @@ def add_invoice():
     ).order_by(Project.name).all()]
 
     if form.validate_on_submit():
-        # Calculate total amount
-        form.amount.data = (form.base_amount.data or 0) + (form.tax_amount.data or 0)
+        # Calculate total amount from base_amount and tax_amount
+        base_amount = form.base_amount.data or 0
+        tax_amount = form.tax_amount.data or 0
+        total_amount = base_amount + tax_amount
         
         # Generate a unique invoice number if not provided
         invoice_number = form.invoice_number.data
@@ -1387,9 +1396,9 @@ def add_invoice():
             invoice_number=invoice_number,
             invoice_date=form.invoice_date.data,
             due_date=form.due_date.data,
-            base_amount=form.base_amount.data,
-            tax_amount=form.tax_amount.data,
-            amount=form.amount.data,
+            base_amount=base_amount,
+            tax_amount=tax_amount,
+            amount=total_amount,
             description=form.description.data,
             status=PaymentStatus[form.status.data],
             payment_received_date=form.payment_received_date.data

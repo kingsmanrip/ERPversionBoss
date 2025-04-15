@@ -1,11 +1,33 @@
 # Mauricio PDQ ERP Invoices Functionality - Testing Progress
 
-## Testing Date: April 11-14, 2025
+## Testing Date: April 11-15, 2025
 
 ## Summary of Findings
 We've conducted initial investigations into the invoices functionality of the Mauricio PDQ ERP system. Our goal is to ensure the invoices section is 100% functional with no errors, which includes checking the invoice listing, creation, deletion, editing, error handling, project relationships, and PDF generation.
 
 ## Current Status
+
+### Most Recent Updates (April 15, 2025):
+- **Enhanced Invoice Form with Separate Amount Fields**:
+  - Added separate Base Amount and Tax Amount fields to the invoice form
+  - Implemented automatic calculation of total amount based on these values
+  - Added real-time JavaScript calculation as users type in the form
+  - Made the total amount field read-only to ensure consistency
+
+- **Improved Invoice Database Model**:
+  - Added `base_amount` and `tax_amount` fields to the Invoice database model
+  - Created migration script to update existing invoices (95%/5% split of total amounts)
+  - Ensured backward compatibility with existing invoices
+
+- **Updated PDF Generation**:
+  - Modified PDF generation to use the actual base and tax amounts separately
+  - Fixed layout to match the required design with "+" symbol and tax label
+  - Ensured consistent formatting of currency values
+
+- **Added Description Field per Invoice**:
+  - Moved the description field from project level to per-invoice
+  - Updated the invoice form to include a description textarea
+  - Ensured the description appears properly in the generated PDF
 
 ### Components Found and Examined:
 - **Invoice Template (invoices.html)**: 
@@ -36,7 +58,7 @@ We've conducted initial investigations into the invoices functionality of the Ma
   - Implementation includes robust error handling
   - Checks for invalid invoices and missing projects
 
-### RESOLVED (April 14, 2025)
+### RESOLVED (April 14-15, 2025)
 - **Invoice Listing Route**:
   - Found in app.py
   - Properly displaying invoices with project relationships
@@ -45,6 +67,7 @@ We've conducted initial investigations into the invoices functionality of the Ma
   - Implemented in app.py
   - Added auto-generation of invoice numbers when field is left empty
   - Fixed internal server error related to unique constraints
+  - Added separate base_amount and tax_amount fields with auto-calculation
 
 - **Delete Invoice Route**:
   - Located in app.py
@@ -62,6 +85,7 @@ We've conducted initial investigations into the invoices functionality of the Ma
 - **Findings**: 
   - Fixed database schema issues with missing columns
   - Added automatic invoice number generation
+  - Added separate Base Amount and Tax Amount fields with auto-calculation
   - Resolved internal server error when submitting the form
 - **Notes**: Now works reliably with proper error handling
 
@@ -81,9 +105,10 @@ We've conducted initial investigations into the invoices functionality of the Ma
   - Fixed display of base amount and tax amount in payment section
   - Modified to only show invoice-specific description
   - Improved overall layout and formatting
+  - Updated to use the actual base_amount and tax_amount fields from the database
 - **Notes**: PDF generation now works reliably with correct data display
 
-## Action Items - COMPLETED (April 14, 2025)
+## Action Items - COMPLETED (April 15, 2025)
 
 1. **Locate All Invoice Routes**:
    - All invoice routes have been located in app.py
@@ -97,7 +122,15 @@ We've conducted initial investigations into the invoices functionality of the Ma
 
 4. **Database Testing**:
    - Fixed database schema issues with invoice table
+   - Added base_amount and tax_amount columns to the database
+   - Created migration scripts for updating the schema
    - Verified all relationships and data validation functions
 
+5. **Form Improvements**:
+   - Added separate base_amount and tax_amount input fields
+   - Implemented JavaScript for auto-calculation of the total
+   - Added invoice description field for per-invoice descriptions
+   - Validated form functionality with actual data entry
+
 ## Conclusion
-The invoice functionality has been thoroughly tested and fixed. The system now reliably handles the entire invoice lifecycle from creation to PDF generation and deletion. All identified issues have been resolved, and the invoice module is now fully functional.
+The invoice functionality has been thoroughly tested and fixed. The system now reliably handles the entire invoice lifecycle from creation to PDF generation and deletion. All identified issues have been resolved, and the invoice module is now fully functional with an improved user interface for better data entry and management.
