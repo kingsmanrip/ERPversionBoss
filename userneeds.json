@@ -30,5 +30,45 @@
         "content": "be able to delete invoice",
         "section": "/invoices",
         "timestamp": "2025-04-09 01:34:06"
+    },
+    {
+        "id": "03bedd0e-3191-49a3-a19b-a8c9d382ddce",
+        "user_id": 1,
+        "username": "patricia",
+        "content": "When I click to delete the invoice the page freezes and does not complete the request",
+        "section": "/invoice/add",
+        "timestamp": "2025-04-16 13:59:28"
+    },
+    {
+        "id": "cbc53345-e882-4b50-b3f4-f5ffb4b22bfb",
+        "user_id": 1,
+        "username": "patricia",
+        "content": "When I click to delete the invoice, the page freezes and the request is not completed. P.S.: From mobile phone - on computer, everything works perfectly.",
+        "section": "/invoice/add",
+        "timestamp": "2025-04-16 14:04:42"
+    },
+    {
+        "id": "fff8f1d0-23d5-4522-b9b1-a00658273d39",
+        "user_id": 1,
+        "username": "patricia",
+        "content": "Create a login for Mauricio as well please ",
+        "section": "/",
+        "timestamp": "2025-04-16 19:09:20"
+    },
+    {
+        "id": "86505484-2605-4b75-905d-3fc602d198b2",
+        "user_id": 1,
+        "username": "patricia",
+        "content": "BE ABLE TO EDIT OU DELETE MATERIALS EXPENSES ",
+        "section": "/project/view/32",
+        "timestamp": "2025-04-16 19:58:43"
+    },
+    {
+        "id": "0d3fd10f-7ae7-4b1b-99d4-9fb2de8d6f6f",
+        "user_id": 1,
+        "username": "patricia",
+        "content": "in the 'Add Invoices' field, when I try to fill  project, the previously added projects are not appearing, As a result, I am unable to add new invoices for that client, even though they were registered before",
+        "section": "/invoice/add",
+        "timestamp": "2025-04-21 13:36:12"
     }
 ]

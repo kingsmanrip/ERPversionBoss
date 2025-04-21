@@ -125,6 +125,71 @@
             </div>
 
             <div class="mb-3">
+                {{ form.client_phone.label(class="form-label") }}
+                {{ form.client_phone(class="form-control" + (" is-invalid" if form.client_phone.errors else "")) }}
+                {% if form.client_phone.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.client_phone.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Client phone number that will appear on the invoice</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.client_city_state.label(class="form-label") }}
+                {{ form.client_city_state(class="form-control" + (" is-invalid" if form.client_city_state.errors else "")) }}
+                {% if form.client_city_state.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.client_city_state.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Client city and state that will appear on the invoice (e.g., Sumrall, MS)</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.client_contact_name.label(class="form-label") }}
+                {{ form.client_contact_name(class="form-control" + (" is-invalid" if form.client_contact_name.errors else "")) }}
+                {% if form.client_contact_name.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.client_contact_name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Client contact name that will appear on the invoice</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.job_location.label(class="form-label") }}
+                {{ form.job_location(class="form-control" + (" is-invalid" if form.job_location.errors else "")) }}
+                {% if form.job_location.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.job_location.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Job location that will appear on the invoice</div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.signature_date.label(class="form-label") }}
+                {{ form.signature_date(class="form-control" + (" is-invalid" if form.signature_date.errors else ""), type="date") }}
+                {% if form.signature_date.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.signature_date.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Date that will appear in the signature section of the invoice</div>
+            </div>
+
+            <div class="mb-3">
                 {{ form.status.label(class="form-label") }}
                 {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
                 {% if form.status.errors %}

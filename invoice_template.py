@@ -67,7 +67,7 @@ def generate_customer_invoice_pdf(invoice_id):
     col_width3 = 25
     col_width4 = 30
     
-    # First row
+    # First row (NAME column in first row is actually for client company name)
     pdf.set_fill_color(245, 245, 245)
     pdf.cell(col_width1, 9, 'NAME', 1, 0, 'L', True)
     pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
@@ -78,7 +78,7 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.cell(col_width3, 9, 'PHONE', 1, 0, 'L', True)
     pdf.set_font('DejaVu', '', 10)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(col_width4, 9, '', 1, 1)
+    pdf.cell(col_width4, 9, invoice.client_phone or '', 1, 1)
     
     # Second row
     pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
@@ -100,13 +100,13 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.cell(col_width1, 9, 'CITY/STATE', 1, 0, 'L', True)
     pdf.set_font('DejaVu', '', 10)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(col_width2, 9, '', 1, 0, 'L')
+    pdf.cell(col_width2, 9, invoice.client_city_state or '', 1, 0, 'L')
     pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
     pdf.set_font('DejaVu', 'B', 10)
-    pdf.cell(col_width3, 9, 'CELL', 1, 0, 'L', True)
+    pdf.cell(col_width3, 9, 'NAME', 1, 0, 'L', True)
     pdf.set_font('DejaVu', '', 10)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(col_width4, 9, '', 1, 1)
+    pdf.cell(col_width4, 9, invoice.client_contact_name or '', 1, 1)
     
     # Fourth row
     pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
@@ -117,7 +117,12 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.cell(col_width2, 9, '', 1, 0, 'L')
     pdf.set_text_color(primary_color[0], primary_color[1], primary_color[2])
     pdf.set_font('DejaVu', 'B', 10)
-    pdf.cell(col_width3 + col_width4, 9, 'JOB LOCATION', 1, 1, 'L', True)
+    pdf.cell(col_width3 + col_width4, 9, 'LOCATION', 1, 1, 'L', True)
+    
+    # Add the job location content in a separate row
+    pdf.set_font('DejaVu', '', 10)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 9, invoice.job_location or '', 1, 1, 'L')
     
     # Proposal statement with a modern touch
     pdf.ln(8)
@@ -249,8 +254,14 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', 'B', 9)
     pdf.set_xy(110, payment_box_y + 5)
     pdf.cell(30, 5, 'Date:', 0, 0)
-    pdf.set_draw_color(200, 200, 200)
-    pdf.line(145, pdf.get_y() + 3, 190, pdf.get_y() + 3)  # Date line
+    
+    # Display the signature date if available
+    if invoice.signature_date:
+        pdf.set_font('DejaVu', '', 9)
+        pdf.cell(50, 5, invoice.signature_date.strftime('%m/%d/%Y'), 0, 0)
+    else:
+        pdf.set_draw_color(200, 200, 200)
+        pdf.line(145, pdf.get_y() + 3, 190, pdf.get_y() + 3)  # Date line
     
     pdf.set_xy(110, pdf.get_y() + 15)
     pdf.cell(30, 5, 'Customer Signature:', 0, 0)

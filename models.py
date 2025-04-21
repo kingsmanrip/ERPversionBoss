@@ -419,7 +419,7 @@ class PayrollDeduction(db.Model):
 
 class PayrollPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id', ondelete='CASCADE'), nullable=False)
     pay_period_start = db.Column(db.Date, nullable=False)
     pay_period_end = db.Column(db.Date, nullable=False)
     gross_amount = db.Column(db.Float, nullable=False)
@@ -430,7 +430,7 @@ class PayrollPayment(db.Model):
     check_number = db.Column(db.String(50))
     bank_name = db.Column(db.String(100))
     
-    employee = db.relationship('Employee', foreign_keys=[employee_id], backref='payments')
+    employee = db.relationship('Employee', foreign_keys=[employee_id], backref=db.backref('payments', cascade='all, delete-orphan'))
     
     __table_args__ = (
         db.Index('idx_payroll_emp_date', 'employee_id', 'payment_date'),
@@ -473,6 +473,11 @@ class Invoice(db.Model):
     tax_amount = db.Column(db.Float, default=0.0)
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
+    client_phone = db.Column(db.String(20))
+    client_city_state = db.Column(db.String(100))
+    client_contact_name = db.Column(db.String(100))
+    job_location = db.Column(db.String(200))
+    signature_date = db.Column(db.Date)
     status = db.Column(db.Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     payment_received_date = db.Column(db.Date)
     
