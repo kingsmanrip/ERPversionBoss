@@ -214,6 +214,12 @@ The dashboard provides an overview of key business metrics:
 
 ## Recent Updates
 
+- **Employee Management Improvements (April 21, 2025)**:
+  - Fixed employee deletion functionality to properly handle related records
+  - Added cascade deletion for timesheet and payroll records
+  - Imported actual employee data with proper IDs and pay rates
+  - Optimized database relationships for better data integrity
+
 - **Invoice System Enhancements (April 21, 2025)**:
   - Added support for invoicing IN_PROGRESS projects (for recurring/weekly invoices)
   - Added invoice editing functionality with Edit button in the interface

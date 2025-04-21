@@ -148,22 +148,28 @@ sudo systemctl start finalerp
 
 ## Recent Updates (April 21, 2025)
 
+### Employee Management Improvements
+- Fixed employee deletion functionality to properly handle related records
+- Added cascade deletion for timesheet and payroll payment records 
+- Added script for importing actual employee data (`add_real_employees.py`)
+- Fixed database relationships for better data integrity
+
+### Database Changes
+If you're updating from an older version, make sure to run these scripts:
+
+```bash
+python fix_employee_delete.py  # Fixes employee deletion issue
+python add_real_employees.py   # Imports actual employee data (optional)
+python migrate_invoice_amounts.py
+python update_invoice_status.py
+```
+
 ### Invoice System Enhancements
 - Added support for creating invoices for IN_PROGRESS projects
 - Added invoice editing functionality via Edit button
 - Implemented automatic status updates for invoices with payment dates
 - Added validation to ensure payment dates and statuses are synchronized
 - Fixed issue where invoices with payment dates remained in PENDING status
-
-### Database Changes
-If you're updating from an older version, make sure to run these scripts:
-
-```bash
-python migrate_invoice_amounts.py
-python update_invoice_status.py
-```
-
-The `update_invoice_status.py` script will fix any existing invoices that have payment dates but incorrect status.
 
 ### Previous Updates (April 15, 2025)
 
