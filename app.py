@@ -340,22 +340,22 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.cell(20, line_height, 'PHONE:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
-    pdf.cell(70, line_height, '', 0, 1)
+    pdf.cell(70, line_height, invoice.client_phone or '', 0, 1)
     
     # First column - second row
     pdf.set_xy(12, client_box_y + 2 + line_height + 2)
     pdf.set_font('DejaVu', 'B', 8)
     pdf.cell(20, line_height, 'STREET:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
-    pdf.cell(75, line_height, project.location, 0, 0)
+    pdf.cell(75, line_height, project.location or '', 0, 0)
     
     # Second column - second row
     pdf.set_xy(107, client_box_y + 2 + line_height + 2)
     pdf.set_font('DejaVu', 'B', 8)
-    pdf.cell(20, line_height, 'CELL:', 0, 0)
+    pdf.cell(20, line_height, 'NAME:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
-    pdf.cell(70, line_height, '', 0, 1)
+    pdf.cell(70, line_height, invoice.client_contact_name or '', 0, 1)
     
     # First column - third row
     pdf.set_xy(12, client_box_y + 2 + (line_height + 2) * 2)
@@ -363,15 +363,15 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.cell(20, line_height, 'CITY/STATE:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
-    pdf.cell(75, line_height, '', 0, 0)
+    pdf.cell(75, line_height, invoice.client_city_state or '', 0, 0)
     
     # Second column - third row
     pdf.set_xy(107, client_box_y + 2 + (line_height + 2) * 2)
     pdf.set_font('DejaVu', 'B', 8)
-    pdf.cell(20, line_height, 'JOB LOCATION:', 0, 0)
+    pdf.cell(20, line_height, 'LOCATION:', 0, 0)
     pdf.set_font('DejaVu', '', 9)
     pdf.set_text_color(highlight_color[0], highlight_color[1], highlight_color[2])
-    pdf.cell(70, line_height, '', 0, 1)
+    pdf.cell(70, line_height, invoice.job_location or '', 0, 1)
     
     # First column - fourth row
     pdf.set_xy(12, client_box_y + 2 + (line_height + 2) * 3)
@@ -550,7 +550,10 @@ def generate_customer_invoice_pdf(invoice_id):
     pdf.set_font('DejaVu', '', 8)
     pdf.set_text_color(text_color[0], text_color[1], text_color[2])
     pdf.cell(20, 4, 'Date:', 0, 0)
-    pdf.cell(68, 4, '_______________________', 0, 1)
+    if invoice.signature_date:
+        pdf.cell(68, 4, invoice.signature_date.strftime('%m/%d/%Y'), 0, 1)
+    else:
+        pdf.cell(68, 4, '_______________________', 0, 1)
     
     # Customer signature
     pdf.set_xy(112, form_y + 10)
@@ -1371,7 +1374,7 @@ def add_invoice():
     form = InvoiceForm()
     # Populate project choices
     form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(
-        Project.status.in_([ProjectStatus.PENDING, ProjectStatus.COMPLETED, ProjectStatus.INVOICED])
+        Project.status.in_([ProjectStatus.PENDING, ProjectStatus.COMPLETED, ProjectStatus.INVOICED, ProjectStatus.IN_PROGRESS])
     ).order_by(Project.name).all()]
 
     if form.validate_on_submit():
@@ -1391,6 +1394,12 @@ def add_invoice():
             random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
             invoice_number = f"INV-{timestamp}-{random_suffix}"
             
+        # Set status to PAID if payment_received_date is provided
+        status = PaymentStatus[form.status.data]
+        if form.payment_received_date.data and status != PaymentStatus.PAID:
+            status = PaymentStatus.PAID
+            flash('Invoice status automatically set to PAID because a payment date was provided.', 'info')
+            
         new_invoice = Invoice(
             project_id=form.project_id.data,
             invoice_number=invoice_number,
@@ -1400,7 +1409,12 @@ def add_invoice():
             tax_amount=tax_amount,
             amount=total_amount,
             description=form.description.data,
-            status=PaymentStatus[form.status.data],
+            client_phone=form.client_phone.data,
+            client_city_state=form.client_city_state.data,
+            client_contact_name=form.client_contact_name.data,
+            job_location=form.job_location.data,
+            signature_date=form.signature_date.data,
+            status=status,
             payment_received_date=form.payment_received_date.data
         )
         db.session.add(new_invoice)
@@ -1416,6 +1430,70 @@ def add_invoice():
         return redirect(url_for('invoices'))
 
     return render_template('invoice_form.html', form=form, title="Add Invoice")
+
+@app.route('/invoice/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_invoice(id):
+    invoice = Invoice.query.get_or_404(id)
+    form = InvoiceForm(obj=invoice)
+    
+    # Populate project choices
+    form.project_id.choices = [(p.id, p.name) for p in Project.query.filter(
+        Project.status.in_([ProjectStatus.PENDING, ProjectStatus.COMPLETED, ProjectStatus.INVOICED, ProjectStatus.IN_PROGRESS, ProjectStatus.PAID])
+    ).order_by(Project.name).all()]
+    
+    if form.validate_on_submit():
+        # Calculate total amount from base_amount and tax_amount
+        base_amount = form.base_amount.data or 0
+        tax_amount = form.tax_amount.data or 0
+        total_amount = base_amount + tax_amount
+        
+        # Check if payment status is being updated
+        previous_status = invoice.status
+        
+        # Update invoice fields
+        invoice.project_id = form.project_id.data
+        invoice.invoice_number = form.invoice_number.data
+        invoice.invoice_date = form.invoice_date.data
+        invoice.due_date = form.due_date.data
+        invoice.base_amount = base_amount
+        invoice.tax_amount = tax_amount
+        invoice.amount = total_amount
+        invoice.description = form.description.data
+        invoice.client_phone = form.client_phone.data
+        invoice.client_city_state = form.client_city_state.data
+        invoice.client_contact_name = form.client_contact_name.data
+        invoice.job_location = form.job_location.data
+        invoice.signature_date = form.signature_date.data
+        invoice.status = PaymentStatus[form.status.data]
+        invoice.payment_received_date = form.payment_received_date.data
+        
+        # Auto-update status if payment date is provided
+        if invoice.payment_received_date and invoice.status != PaymentStatus.PAID:
+            invoice.status = PaymentStatus.PAID
+            flash('Invoice status automatically set to PAID because a payment date was provided.', 'info')
+        
+        # Remove payment date if status is not PAID
+        if invoice.status != PaymentStatus.PAID and invoice.payment_received_date:
+            invoice.payment_received_date = None
+            flash('Payment received date was cleared because invoice status is not PAID.', 'info')
+            
+        # Update project status if invoice status changed to PAID
+        project = Project.query.get(form.project_id.data)
+        if previous_status != PaymentStatus.PAID and invoice.status == PaymentStatus.PAID:
+            # Check if this is the only invoice for the project
+            if len(project.invoices) == 1:
+                project.status = ProjectStatus.PAID
+        
+        db.session.commit()
+        flash('Invoice updated successfully!', 'success')
+        return redirect(url_for('invoices'))
+    
+    # Set the PaymentStatus enum values
+    if invoice.status:
+        form.status.data = invoice.status.name
+    
+    return render_template('invoice_form.html', form=form, title="Edit Invoice")
 
 @app.route('/invoice/delete/<int:id>', methods=['POST'])
 @login_required

@@ -146,7 +146,26 @@ sudo systemctl enable finalerp
 sudo systemctl start finalerp
 ```
 
-## Recent Updates (April 15, 2025)
+## Recent Updates (April 21, 2025)
+
+### Invoice System Enhancements
+- Added support for creating invoices for IN_PROGRESS projects
+- Added invoice editing functionality via Edit button
+- Implemented automatic status updates for invoices with payment dates
+- Added validation to ensure payment dates and statuses are synchronized
+- Fixed issue where invoices with payment dates remained in PENDING status
+
+### Database Changes
+If you're updating from an older version, make sure to run these scripts:
+
+```bash
+python migrate_invoice_amounts.py
+python update_invoice_status.py
+```
+
+The `update_invoice_status.py` script will fix any existing invoices that have payment dates but incorrect status.
+
+### Previous Updates (April 15, 2025)
 
 ### Invoice System Enhancements
 - Added separate Base Amount and Tax Amount fields

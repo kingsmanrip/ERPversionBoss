@@ -48,6 +48,9 @@
                         <a href="{{ url_for('print_customer_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-primary" title="Print Customer Invoice">
                             <i class="bi bi-printer"></i> Print
                         </a>
+                        <a href="{{ url_for('edit_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Invoice">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInvoiceModal{{ invoice.id }}" title="Delete Invoice">
                             <i class="bi bi-trash"></i> Delete
                         </button>
