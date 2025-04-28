@@ -27,9 +27,9 @@ The Mauricio PDQ ERP System is a web-based application developed to streamline b
 - **Employee Management**: Track employee information, pay rates, and contact details
 - **Project Management**: Manage client projects with status tracking and financial details
 - **Time Tracking**: Record employee hours worked with smart lunch break handling:
-  - Lunch breaks ≥ 1 hour: only 30 minutes deducted
-  - Lunch breaks < 30 minutes: no deduction
-  - Lunch breaks 30-59 minutes: actual time deducted
+  - Lunch breaks 1-30 minutes: no deduction
+  - Lunch breaks 31-60 minutes: fixed 0.5 hour deduction
+  - Lunch breaks > 60 minutes: handled as invalid (via validation)
 - **Materials Management**: Track materials used for each project with cost calculations
 - **Expense Tracking**: Monitor business expenses with or without project association
 - **Invoicing**: Generate and track invoices for completed projects

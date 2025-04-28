@@ -256,24 +256,42 @@ class Timesheet(db.Model):
     @property
     def calculated_hours(self):
         """Calculate hours worked with lunch break adjustment according to specific rules.
-        - If lunch duration >= 60 minutes, deduct 30 minutes
-        - If lunch duration < 30 minutes, no deduction
-        - If lunch duration between 30-59 minutes, deduct actual lunch time
+        - If lunch duration 1-30 minutes, no deduction
+        - If lunch duration 31-60 minutes, deduct fixed 0.5 hours
+        - If lunch duration > 60 minutes, timesheet is invalid (handled by is_valid method)
         """
         if self.entry_time and self.exit_time:
             hours = self.raw_hours
-            
+            lunch_deduction = 0  # Default to no deduction
+
             # Apply lunch break rules
-            if self.lunch_duration_minutes >= 60:
-                # Only deduct 30 minutes for lunch breaks of 1 hour or more
+            if 31 <= self.lunch_duration_minutes <= 60:
+                # Deduct fixed 0.5 hours for lunch breaks between 31-60 minutes
                 lunch_deduction = 0.5
-            elif self.lunch_duration_minutes < 30:
-                # No deduction for lunch breaks less than 30 minutes
-                lunch_deduction = 0
-            else:
-                # For breaks between 30-59 minutes, deduct actual time
-                lunch_deduction = self.lunch_duration_minutes / 60
-                
+            # No deduction for 1-30 minutes (covered by default)
+            # No deduction for > 60 minutes (should be caught by is_valid validation)
+
+            return hours - lunch_deduction
+        return 0
+    
+    @property
+    def display_hours(self):
+        """Calculate hours for display in the UI, following the correct lunch break rules.
+        - If lunch duration 1-30 minutes, no deduction
+        - If lunch duration 31-60 minutes, deduct fixed 0.5 hours
+        - If lunch duration > 60 minutes, timesheet is invalid (handled by is_valid method)
+        """
+        if self.entry_time and self.exit_time:
+            hours = self.raw_hours
+            lunch_deduction = 0  # Default to no deduction
+
+            # Apply lunch break rules
+            if 31 <= self.lunch_duration_minutes <= 60:
+                # Deduct fixed 0.5 hours for lunch breaks between 31-60 minutes
+                lunch_deduction = 0.5
+            # No deduction for 1-30 minutes (covered by default)
+            # No deduction for > 60 minutes (should be caught by is_valid validation)
+
             return hours - lunch_deduction
         return 0
     
@@ -339,6 +357,10 @@ class Timesheet(db.Model):
         
         if shift_minutes < min_minutes:
             return False, f"Shift must be at least {min_minutes} minutes long."
+        
+        # Ensure lunch break is not longer than 60 minutes
+        if self.lunch_duration_minutes > 60:
+            return False, "Lunch break exceeds 60 minutes. Employee must speak to the manager for approval."
             
         # Ensure lunch break is not longer than shift
         if self.lunch_duration_minutes >= shift_minutes:
