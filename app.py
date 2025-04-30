@@ -98,27 +98,100 @@ def export_to_pdf(data, title, filename):
         totals = {}
         column_keys = list(data[0].keys())
         
-        # Calculate appropriate column widths based on number of columns
-        page_width = 270
-        max_col_width = 40  # Maximum column width in mm
-        min_col_width = 15  # Minimum column width in mm
+        # Set PDF metrics
+        page_width = 275  # Landscape page width in mm
+        margin = 10  # Left and right margins
+        usable_width = page_width - (2 * margin)  # Usable width for columns
         
-        # Calculate base width for all columns
-        base_col_width = page_width / len(column_keys)
-        
-        # If base width exceeds max, cap it
-        col_width = min(base_col_width, max_col_width)
-        # If base width is too small, use minimum
-        col_width = max(col_width, min_col_width)
+        # Configure custom column widths based on report type
+        if title == 'Projects':
+            # Project reports need specific column widths due to text-heavy columns like Location
+            col_widths = {
+                'Project ID': 25,
+                'Name': 35,
+                'Client': 35,
+                'Location': 40,  # Location often has long addresses causing overlap
+                'Start Date': 22,
+                'End Date': 22,
+                'Status': 20,
+                'Contract Value': 25,
+                'Labor Cost': 22,
+                'Material Cost': 22,
+                'Other Expenses': 25,
+                'Total Cost': 22,
+                'Profit': 22,
+                'Profit Margin': 22
+            }
+            
+            # Handle missing or additional columns
+            column_widths = []
+            remaining_width = usable_width
+            
+            # First calculate width for known columns
+            assigned_columns = 0
+            for key in column_keys:
+                if key in col_widths:
+                    column_widths.append(col_widths[key])
+                    remaining_width -= col_widths[key]
+                    assigned_columns += 1
+                else:
+                    column_widths.append(None)  # Placeholder
+            
+            # Distribute remaining width evenly for any unassigned columns
+            if assigned_columns < len(column_keys):
+                unassigned = len(column_keys) - assigned_columns
+                default_width = max(18, remaining_width / unassigned) if unassigned > 0 else 20
+                
+                # Replace placeholders with calculated width
+                for i, width in enumerate(column_widths):
+                    if width is None:
+                        column_widths[i] = default_width
+        else:
+            # For other reports, calculate widths more dynamically
+            
+            # Analyze content to determine optimal column widths
+            col_content_length = {}
+            for key in column_keys:
+                # Start with header length
+                col_content_length[key] = len(str(key))
+                
+                # Check data values length
+                for item in data:
+                    val_len = len(str(item.get(key, '')))
+                    if val_len > col_content_length[key]:
+                        col_content_length[key] = min(val_len, 30)  # Cap at 30 chars
+            
+            # Calculate width proportions
+            total_content_length = sum(col_content_length.values())
+            column_widths = []
+            
+            for key in column_keys:
+                # Calculate proportional width with minimum of 15mm
+                prop = col_content_length[key] / total_content_length if total_content_length > 0 else 1/len(column_keys)
+                width = max(15, prop * usable_width)
+                
+                # Cap at 45mm for very wide columns
+                width = min(width, 45)
+                column_widths.append(width)
+            
+            # Adjust if total exceeds available width
+            total_width = sum(column_widths)
+            if total_width > usable_width:
+                scale_factor = usable_width / total_width
+                column_widths = [w * scale_factor for w in column_widths]
         
         # Add header row
         pdf.set_font('DejaVu', 'B', 8)
-        for key in column_keys:
-            # Truncate header text if too long
+        for i, key in enumerate(column_keys):
+            col_width = column_widths[i]
+            
+            # Truncate header text if necessary - allow longer text for wider columns
             header_text = str(key)
-            if len(header_text) > 15:
-                header_text = header_text[:12] + '...'
-            pdf.cell(col_width, 10, header_text, 1)
+            max_chars = max(10, int(col_width / 2))  # Roughly 2mm per character
+            if len(header_text) > max_chars:
+                header_text = header_text[:max_chars-3] + '...'
+                
+            pdf.cell(col_width, 10, header_text, 1, 0, 'C')
             # Initialize totals for columns that might contain numbers
             totals[key] = 0
         pdf.ln()
@@ -126,13 +199,20 @@ def export_to_pdf(data, title, filename):
         # Add data rows and calculate totals for numerical fields
         pdf.set_font('DejaVu', '', 8)
         for item in data:
-            for key, value in item.items():
+            for i, key in enumerate(column_keys):
+                col_width = column_widths[i]
+                value = item.get(key, '')
+                
                 # Ensure all values are properly encoded as strings and truncate if too long
                 cell_value = str(value)
-                if len(cell_value) > 15:
-                    cell_value = cell_value[:12] + '...'
+                max_chars = max(10, int(col_width / 1.8))  # Allow slightly more chars in data cells
+                if len(cell_value) > max_chars:
+                    cell_value = cell_value[:max_chars-3] + '...'
                 
-                pdf.cell(col_width, 10, cell_value, 1)
+                # Determine text alignment based on content
+                align = 'R' if any(c in str(value) for c in ['$', '%']) or isinstance(value, (int, float)) else 'L'
+                
+                pdf.cell(col_width, 10, cell_value, 1, 0, align)
                 
                 # Update total if the value is numerical (uses string checking since data might be pre-formatted)
                 string_value = str(value)
@@ -144,7 +224,7 @@ def export_to_pdf(data, title, filename):
                         totals[key] += float(clean_value)
                     except ValueError:
                         pass
-                elif string_value.startswith('$') and string_value[1:].replace('.', '', 1).replace(',', '', 1).isdigit():
+                elif string_value.startswith('$') and len(string_value) > 1 and string_value[1:].replace('.', '', 1).replace(',', '', 1).isdigit():
                     # Handle currency values starting with $
                     clean_value = string_value.replace('$', '').replace(',', '')
                     try:
@@ -162,36 +242,39 @@ def export_to_pdf(data, title, filename):
         pdf.set_font('DejaVu', 'B', 8)
         pdf.set_fill_color(240, 240, 240)  # Light gray background
         
-        # First cell is the 'TOTALS' label
-        pdf.cell(col_width, 10, 'TOTALS', 1, 0, 'L', True)
-        
         # Add total values for each column
-        for key in column_keys[1:]:  # Skip the first column which usually has labels
-            # Check if this column had numerical values
-            if totals[key] > 0:
-                # Format the total based on the column content (currency, decimals, etc.)
-                if any('$' in str(item[key]) for item in data):
-                    # Currency format
-                    formatted_total = f'${totals[key]:,.2f}'
-                elif any('hours' in str(key).lower() for item in data) or \
-                     any('hrs' in str(key).lower() for item in data):
-                    # Hours format - 2 decimal places
-                    formatted_total = f'{totals[key]:.2f}'
-                elif isinstance(totals[key], float):
-                    # Regular float format
-                    formatted_total = f'{totals[key]:,.2f}'
-                else:
-                    # Integer format
-                    formatted_total = f'{int(totals[key]):,}'
+        for i, key in enumerate(column_keys):
+            col_width = column_widths[i]
+            
+            # First column or non-numeric columns
+            if i == 0 or totals[key] == 0:
+                cell_text = 'TOTALS' if i == 0 else ''
+                pdf.cell(col_width, 10, cell_text, 1, 0, 'L' if i == 0 else 'C', True)
+                continue
                 
-                # Truncate total value if too long
-                if len(formatted_total) > 15:
-                    formatted_total = formatted_total[:12] + '...'
-                
-                pdf.cell(col_width, 10, formatted_total, 1, 0, 'R', True)
+            # Format the total based on the column content
+            if any('$' in str(item.get(key, '')) for item in data):
+                # Currency format
+                formatted_total = f'${totals[key]:,.2f}'
+            elif any('hours' in str(key).lower() for item in data) or any('hrs' in str(key).lower() for item in data):
+                # Hours format - 2 decimal places
+                formatted_total = f'{totals[key]:.2f}'
+            elif any('%' in str(item.get(key, '')) for item in data):
+                # Percentage format
+                formatted_total = f'{totals[key]:.2f}%'
+            elif isinstance(totals[key], float):
+                # Regular float format
+                formatted_total = f'{totals[key]:,.2f}'
             else:
-                # Non-numerical column
-                pdf.cell(col_width, 10, '', 1, 0, 'C', True)
+                # Integer format
+                formatted_total = f'{int(totals[key]):,}'
+            
+            # Truncate total value if too long
+            max_chars = max(10, int(col_width / 2))
+            if len(formatted_total) > max_chars:
+                formatted_total = formatted_total[:max_chars-3] + '...'
+            
+            pdf.cell(col_width, 10, formatted_total, 1, 0, 'R', True)
         pdf.ln()
         
         # Add note about totals
@@ -1344,10 +1427,11 @@ def payroll_report():
                           all_employees=all_employees)
 
 # --- User Guide Route ---
-@app.route('/user-guide')
-@login_required
-def user_guide():
-    return render_template('user_guide_pt.html')
+# User Guide route commented out as requested on 2025-04-30
+# @app.route('/user-guide')
+# @login_required
+# def user_guide():
+#     return render_template('user_guide_pt.html')
 
 # --- Invoice Routes (Basic CRUD) ---
 @app.route('/invoices')
@@ -2247,9 +2331,11 @@ def financial_reports():
 @app.route('/backup_database')
 @login_required
 def backup_database():
-    """Create a backup of the current database and send it as a download."""
+    """Create a backup of the current database and send it as a download.
+    Improved version that includes validation, metadata, and better error handling.
+    """
     try:
-        # Close database connection
+        # Close database connection to ensure all writes are flushed
         db.session.close()
         
         # Get the path to the current database file
@@ -2257,24 +2343,84 @@ def backup_database():
         
         # Create a timestamp for the backup filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_filename = f"erp_backup_{timestamp}.db"
+        backup_dir = os.path.join(os.path.dirname(db_path), 'backups')
+        os.makedirs(backup_dir, exist_ok=True)
         
-        # Send the file as a download
+        # Create a temporary copy to avoid backing up a file that's in use
+        temp_backup_path = os.path.join(backup_dir, f"erp_backup_{timestamp}.db")
+        
+        # Copy the database to our backup location
+        import shutil
+        shutil.copy2(db_path, temp_backup_path)
+        
+        # Validate the backup by ensuring it's a valid SQLite database
+        import sqlite3
+        try:
+            conn = sqlite3.connect(temp_backup_path)
+            # Try to get the database version to verify it's a valid SQLite file
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA integrity_check;")
+            integrity_result = cursor.fetchone()[0]
+            if integrity_result != "ok":
+                raise Exception(f"Database integrity check failed: {integrity_result}")
+                
+            # Add metadata about the backup to track version and date
+            try:
+                cursor.execute("CREATE TABLE IF NOT EXISTS backup_metadata (key TEXT PRIMARY KEY, value TEXT);")
+                cursor.execute("INSERT OR REPLACE INTO backup_metadata VALUES (?, ?)", 
+                              ("backup_date", datetime.now().isoformat()))
+                cursor.execute("INSERT OR REPLACE INTO backup_metadata VALUES (?, ?)", 
+                              ("backup_version", "2.0"))
+                cursor.execute("INSERT OR REPLACE INTO backup_metadata VALUES (?, ?)", 
+                              ("system_version", "Mauricio PDQ ERP 2025.4.30"))
+                conn.commit()
+            except Exception as metadata_error:
+                # Non-fatal error - just log it
+                print(f"Error adding metadata to backup: {str(metadata_error)}")
+                
+            cursor.close()
+            conn.close()
+        except Exception as validation_error:
+            # Clean up the invalid backup file
+            os.remove(temp_backup_path)
+            raise Exception(f"Invalid database backup: {str(validation_error)}")
+            
+        # Backup successfully validated, now send it to the user
         return send_file(
-            db_path,
+            temp_backup_path,
             as_attachment=True,
-            download_name=backup_filename,
+            download_name=f"erp_backup_{timestamp}.db",
             mimetype='application/octet-stream'
         )
     except Exception as e:
         flash(f'Error creating database backup: {str(e)}', 'danger')
         return redirect(url_for('index'))
+    finally:
+        # Clean up temporary files if they exist
+        if 'temp_backup_path' in locals() and os.path.exists(temp_backup_path):
+            try:
+                os.remove(temp_backup_path)
+            except:
+                pass  # Ignore cleanup errors
 
 @app.route('/restore_database', methods=['POST'])
 @login_required
 def restore_database():
-    """Restore the database from an uploaded backup file."""
+    """Restore the database from an uploaded backup file.
+    Enhanced version with validation, metadata checking, and improved error handling.
+    """
+    # Create a temp directory for processing uploads
+    import tempfile
+    import os
+    import shutil
+    import sqlite3
+    import traceback
+    
+    temp_dir = None
     try:
+        # Create temporary directory for safe processing
+        temp_dir = tempfile.mkdtemp()
+        
         # Check if a file was uploaded
         if 'backup_file' not in request.files:
             flash('No backup file selected', 'danger')
@@ -2286,31 +2432,96 @@ def restore_database():
         if backup_file.filename == '':
             flash('No backup file selected', 'danger')
             return redirect(url_for('index'))
+            
+        # Validate file extension
+        if not backup_file.filename.lower().endswith('.db'):
+            flash('Invalid backup file format. Only .db files are supported.', 'danger')
+            return redirect(url_for('index'))
+        
+        # Save uploaded file to temporary location for validation
+        temp_file_path = os.path.join(temp_dir, 'uploaded_backup.db')
+        backup_file.save(temp_file_path)
+        
+        # Validate that this is a proper SQLite database
+        try:
+            conn = sqlite3.connect(temp_file_path)
+            cursor = conn.cursor()
+            
+            # Check database integrity
+            cursor.execute("PRAGMA integrity_check;")
+            integrity_result = cursor.fetchone()[0]
+            if integrity_result != "ok":
+                raise Exception(f"Uploaded file failed database integrity check: {integrity_result}")
+                
+            # Check that this is an ERP database by looking for essential tables
+            essential_tables = ['employee', 'project', 'timesheet', 'invoice']
+            for table in essential_tables:
+                cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}';")
+                if not cursor.fetchone():
+                    raise Exception(f"This doesn't appear to be a valid ERP database backup: Missing '{table}' table")
+            
+            # Check metadata if it exists
+            try:
+                cursor.execute("SELECT * FROM backup_metadata WHERE key='system_version';")
+                version_info = cursor.fetchone()
+                if version_info:
+                    # Log the version info but don't block restore if versions differ
+                    # This allows restoring backups from different versions if needed
+                    print(f"Restoring backup from version: {version_info[1]}")
+            except:
+                # Metadata table might not exist in older backups
+                print("No metadata found in backup - possibly an older version")
+                
+            cursor.close()
+            conn.close()
+        except Exception as validation_error:
+            flash(f'Invalid backup file: {str(validation_error)}', 'danger')
+            return redirect(url_for('index'))
         
         # Get the path to the current database file
         db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
         
-        # Close database connection
+        # Close all database connections
         db.session.close()
-        
-        # Create a backup of the current database before restoring
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        pre_restore_backup = f"{db_path}_pre_restore_{timestamp}"
-        import shutil
-        shutil.copy2(db_path, pre_restore_backup)
-        
-        # Save the uploaded file to the database path
-        backup_file.save(db_path)
-        
-        # Reinitialize the database connection - Fixed to avoid KeyError
         db.engine.dispose()
         
-        flash('Database successfully restored from backup', 'success')
+        # Create a backup of the current database before restoring in case something goes wrong
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_dir = os.path.join(os.path.dirname(db_path), 'backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        pre_restore_backup = os.path.join(backup_dir, f"pre_restore_{timestamp}.db")
+        shutil.copy2(db_path, pre_restore_backup)
+        
+        # Save the validated backup file to the database path
+        shutil.copy2(temp_file_path, db_path)
+        
+        # Reinitialize the database connection
+        db.engine.dispose()
+        
+        # Try to connect to the new database to verify it worked
+        try:
+            with app.app_context():
+                db.session.execute("SELECT 1")
+                db.session.commit()
+        except Exception as verify_error:
+            # If new database doesn't work, revert to backup
+            shutil.copy2(pre_restore_backup, db_path)
+            db.engine.dispose()
+            flash(f'Error verifying restored database, reverted to previous state: {str(verify_error)}', 'danger')
+            return redirect(url_for('index'))
+        
+        flash('Database successfully restored from backup. The page will refresh to show the restored data.', 'success')
         return redirect(url_for('index'))
     except Exception as e:
-        import traceback
-        flash(f'Error restoring database: {traceback.format_exc()}', 'danger')
+        flash(f'Error restoring database: {str(e)}', 'danger')
         return redirect(url_for('index'))
+    finally:
+        # Clean up temporary files
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except:
+                pass  # Ignore cleanup errors
 
 # --- Create DB tables ---
 @app.cli.command('init-db')

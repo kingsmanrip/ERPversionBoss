@@ -146,7 +146,39 @@ sudo systemctl enable finalerp
 sudo systemctl start finalerp
 ```
 
-## Recent Updates (April 21, 2025)
+## Recent Updates (April 30, 2025)
+
+### System Data Reset
+- Performed complete cleanup of timesheet and payroll data:
+  - Removed all 18 timesheet records
+  - Deleted all 56 payroll payment records
+  - Cleared 54 payroll deduction records
+- Created verification utilities to confirm data deletion (`verify_timesheets.py` and `verify_payroll.py`)
+- Maintained all core business data (employees, projects, materials, invoices)
+- System is now ready for fresh data entry with a clean payroll history
+
+### Enhanced Database Management System
+- Completely revamped the database backup and restore functionality (version 2.0)
+- Added integrity validation to ensure only valid backups can be restored
+- Implemented automatic pre-restore backups to prevent data loss
+- Created a dedicated `/instance/backups` directory for organized backup storage
+- Added metadata tracking with version history and timestamp information
+- Improved error handling with specific error messages and automatic recovery
+- Enhanced the security of the restore process with proper validation
+
+### PDF Export Improvements
+- Fixed overlapping text issues in PDF exports, particularly for project reports
+- Implemented dynamic column width allocation based on content
+- Added special handling for text-heavy columns like Project Location
+- Improved visual presentation with better text alignment and truncation
+- Enhanced readability of all PDF reports
+
+### System Streamlining
+- Simplified navigation by removing underutilized sections
+- Fixed template issues to enhance system stability
+- Improved performance of core functionality
+
+## Previous Updates (April 21, 2025)
 
 ### Employee Management Improvements
 - Fixed employee deletion functionality to properly handle related records

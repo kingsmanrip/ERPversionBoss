@@ -14,7 +14,8 @@ A comprehensive Enterprise Resource Planning (ERP) system designed specifically 
 8. [Recent Updates](#recent-updates)
 9. [Project Structure](#project-structure)
 10. [Development Guidelines](#development-guidelines)
-11. [Troubleshooting](#troubleshooting)
+11. [Testing](#testing)
+12. [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -30,14 +31,15 @@ The Mauricio PDQ ERP System is a web-based application developed to streamline b
   - Lunch breaks 1-30 minutes: no deduction
   - Lunch breaks 31-60 minutes: fixed 0.5 hour deduction
   - Lunch breaks > 60 minutes: handled as invalid (via validation)
+  - Saturday premium of $5/hour automatically applied
 - **Materials Management**: Track materials used for each project with cost calculations
 - **Expense Tracking**: Monitor business expenses with or without project association
 - **Invoicing**: Generate and track invoices for completed projects
 - **Payroll Management**:
   - Calculate payroll based on recorded timesheets
-  - Track detailed breakdowns by payment method (Cash vs Check)
+  - Track detailed breakdowns by payment method (Cash vs Check vs Direct Deposit)
   - Manage payroll deductions (taxes, insurance, retirement, advances, etc.)
-  - Calculate gross and net payment amounts
+  - Calculate gross and net payment amounts accurately
 - **Payment Method Tracking**: Record and track payments by method (Cash/Check) with check numbers and bank information
 - **Cost Analysis**: Automatic calculation of project costs and profitability
 - **Net Profit Tracking**: Real-time calculation of actual net profit (revenue collected minus expenses) for each project and company-wide
@@ -214,6 +216,31 @@ The dashboard provides an overview of key business metrics:
 
 ## Recent Updates
 
+- **April 30, 2025**:
+   #### Data Reset and System Cleanup
+   - **Clean Slate**: Removed all timesheet and payroll payment records to provide a fresh starting point
+   - **Deduction Cleanup**: Deleted all payroll deduction records while preserving employee and project data
+   - **Verification Scripts**: Added utilities to confirm complete data removal and system integrity
+   - **Documentation**: Updated system documentation to reflect the current state and changes
+   
+   #### Enhanced Database Management
+   - **Improved Backup System**: Added comprehensive database backup functionality with integrity checks and validation
+   - **Backup Metadata**: Added version tracking and timestamp information to database backups
+   - **Restore Safety**: Enhanced database restore with pre-restore backups and automatic rollback
+   - **Dedicated Backup Storage**: Created a structured backup directory system for better organization
+   - **Simplified Interface**: Maintained the same user-friendly backup/restore buttons with enhanced backend functionality
+
+   #### PDF Export Improvements
+   - **Optimized Project Reports**: Fixed overlapping text issues in PDF exports by implementing dynamic column width allocation
+   - **Improved Formatting**: Enhanced readability of all reports with intelligent text truncation and better alignment
+   - **Content-Aware Layout**: Added special handling for text-heavy columns like Project Location
+   - **Dynamic Column Sizing**: Implemented automatic width calculations based on actual content length
+   - **Improved Visual Presentation**: Refined alignment with left-aligned text and right-aligned numbers
+
+   #### User Interface Updates
+   - **Streamlined Navigation**: Removed unnecessary sections to simplify the user interface
+   - **Performance Improvements**: Fixed template issues to ensure stable application performance
+
 - **April 25, 2025**:
   #### System Testing and Validation
   - **Comprehensive Testing**: Conducted thorough testing of the payroll and project management modules
@@ -276,6 +303,20 @@ mauricioERP/
     ├── test_models.py     # Tests for data models
     ├── test_forms.py      # Tests for form validation
     └── ... (other tests)
+```
+
+## Testing
+
+The ERP system includes automated testing scripts to ensure the accuracy of critical functionalities:
+
+- **Timesheet Calculations**: The `test_timesheets.py` script verifies the calculation of hours worked, including lunch break deductions and Saturday premiums.
+- **Payroll Calculations**: The `test_payroll.py` script automates testing of payroll payments, covering various deduction scenarios and payment methods to ensure accurate gross and net amount calculations.
+
+To run the tests, use the following commands from the project root:
+
+```bash
+python test_timesheets.py
+python test_payroll.py
 ```
 
 ## Development Guidelines

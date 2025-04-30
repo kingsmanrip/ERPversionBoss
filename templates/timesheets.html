@@ -53,7 +53,7 @@
                     <td>{{ timesheet.entry_time.strftime('%H:%M') }}</td>
                     <td>{{ timesheet.exit_time.strftime('%H:%M') }}</td>
                     <td>{{ timesheet.lunch_duration_minutes }}</td>
-                    <td>{{ "%.2f"|format(timesheet.calculated_hours) }}</td>
+                    <td>{{ "%.2f"|format(timesheet.display_hours) }}</td>
                     <td>
                         {% if timesheet.date.weekday() == 5 %}
                             <span class="text-success">${{ "%.2f"|format(timesheet.effective_hourly_rate) }}</span>
@@ -62,7 +62,7 @@
                             ${{ "%.2f"|format(timesheet.employee.pay_rate) }}
                         {% endif %}
                     </td>
-                    <td>${{ "%.2f"|format(timesheet.calculated_hours * timesheet.effective_hourly_rate) }}</td>
+                    <td>${{ "%.2f"|format(timesheet.display_hours * timesheet.effective_hourly_rate) }}</td>
                     <td>
                         <a href="{{ url_for('edit_timesheet', id=timesheet.id) }}" class="btn btn-sm btn-info">Edit</a>
                         <form method="POST" action="{{ url_for('delete_timesheet', id=timesheet.id) }}" style="display: inline-block;">

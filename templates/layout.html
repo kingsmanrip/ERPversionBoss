@@ -76,13 +76,7 @@
                     <li><a class="dropdown-item" href="{{ url_for('add_invoice') }}">Add Invoice</a></li>
                 </ul>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('user_guide') }}">
-                    <span style="font-weight: bold; color: #ffc107;">Guia do Usuário</span>
-                    <span class="badge bg-danger">Atualizado!</span>
-                </a>
-            </li>
-            <!-- Future Enhancements link removed as requested -->
+            <!-- User Guide section removed as requested on 2025-04-30 -->
             {% endif %}
           </ul>
           {% if session.get('user_id') %}
